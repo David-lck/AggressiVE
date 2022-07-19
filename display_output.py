@@ -1,0 +1,137 @@
+import __main__
+cdie = __main__.cdie if hasattr(__main__, 'cdie') else None
+soc = __main__.soc if hasattr(__main__, 'soc') else None
+cpu = __main__.pch if hasattr(__main__, 'cpu') else None
+pch = __main__.pch if hasattr(__main__, 'pch') else None
+itp = __main__.itp if hasattr(__main__, 'itp') else None
+ioe = __main__.ioe if hasattr(__main__, 'ioe') else None
+gcd = __main__.gcd if hasattr(__main__, 'gcd') else None
+from builtins import *
+from builtins import str
+from builtins import range
+from builtins import object
+import namednodes as _namednodes
+from namednodes import sv as _sv
+cpu = _sv.socket.get_all()[0]
+from pysvtools import asciitable
+import export_log_file as dump
+try:
+    from tqdm.tqdm import tqdm
+except:
+    from tqdm import tqdm
+
+
+class Pre_test:
+    def disp_invalidate(invalid_ips,valid_ips,invalid_fields,valid_fields):
+        total_invalid = len(invalid_ips)
+        total_valid = len(valid_ips)
+        total_invalid_f = len(invalid_fields)
+        total_valid_f = len(valid_fields)
+        print(f'Number of invalid IPs: {total_invalid}')
+        print(f'Number of valid IPs: {total_valid}')
+        print(f'Number of invalid fields: {total_invalid_f}')
+        print(f'Number of valid fields: {total_valid_f}')
+        total = [total_invalid,total_valid,total_invalid_f,total_valid_f]
+        return total
+        
+def disp_avail_access(avail_access):
+    headers=['Heads','Access_Methods']
+    rowdictlist=[]
+    x=[]
+    for head in avail_access:
+        rowdictlist += [{'Heads':head,'Access_Methods':str(avail_access[head])}]  
+        x = asciitable.AsciiTable.fromDictList(rowdictlist,headers)
+    print(x.getTableText())
+    
+def disp_avail_attr(avail_attrs):
+    headers=['Num','Attributes in this IP']
+    rowdictlist=[]
+    x=[]
+    i=0
+    for avail_attr in avail_attrs:
+        i+=1
+        rowdictlist += [{'Num':i,'Attributes in this IP':str(avail_attr)}] 
+        x = asciitable.AsciiTable.fromDictList(rowdictlist,headers)
+    rowdictlist += [{'Num':'Enter','Attributes in this IP':' All'}] 
+    x = asciitable.AsciiTable.fromDictList(rowdictlist,headers)
+    print(x.getTableText())
+
+def store_content(rowdictlist,x,num,full_field_name,attr,pass_fail,pre_rd,wr_in_list,rd_in_list,fail_reason):
+    undefined_attrs = ['dc','ro/c/v','ro/p','ro/v','ro/v/p','rw/1c/p','rw/1c/v','rw/1c/v/p','rw/0c/v','rw/1s/v/p','rw/1s/v','rw/1s/v/l','rw/ac','rw/l/k','rw/o/p','rw/o/v/l','rw/p','rw/p/l','rw/s/l','rw/fuse','rw/strap','rw/v','rw/v/p','rw/v/l','rw/v/p/l','rw/v2']
+    headers=['Num','Field Name','Attr','Status','1st_Pre_RD','2nd_Pre_RD','1st_Val_WR','1st_Val_RD','2nd_Val_WR','2nd_Val_RD','3rd_Val_WR','3rd_Val_RD']
+    if pre_rd == []:#for those that are not able to read and write.
+        if attr in ['ro/swc','rw/cr'] or attr in undefined_attrs:
+            rowdictlist += [{'Num':str(num),'Field Name':full_field_name,'Attr':attr,'Status': pass_fail+str(fail_reason),'1st_Pre_RD':'NA','2nd_Pre_RD':'NA','1st_Val_WR':'NA','1st_Val_RD':'1strd:NA;2ndrd:NA','2nd_Val_WR':'NA','2nd_Val_RD':'1strd:NA;2ndrd:NA','3rd_Val_WR':'NA','3rd_Val_RD':'1strd:NA;2ndrd:NA'}]
+        else:
+            rowdictlist += [{'Num':str(num),'Field Name':full_field_name,'Attr':attr,'Status':pass_fail+str(fail_reason),'1st_Pre_RD':'NA','2nd_Pre_RD':'NA','1st_Val_WR':'NA','1st_Val_RD':'NA','2nd_Val_WR':'NA','2nd_Val_RD':'NA','3rd_Val_WR':'NA','3rd_Val_RD':'NA'}]
+    else:#normal one
+        if attr in ['ro/swc','rw/cr'] or attr in undefined_attrs:
+            rowdictlist += [{'Num':str(num),'Field Name':full_field_name,'Attr':attr,'Status': pass_fail+str(fail_reason),'1st_Pre_RD':pre_rd[0],'2nd_Pre_RD':pre_rd[1],'1st_Val_WR':wr_in_list[0],'1st_Val_RD':'1strd:'+rd_in_list[0]+';2ndrd:'+rd_in_list[1],'2nd_Val_WR':wr_in_list[1],'2nd_Val_RD':'1strd:'+rd_in_list[2]+';2ndrd:'+rd_in_list[3],'3rd_Val_WR':wr_in_list[2],'3rd_Val_RD':'1strd:'+rd_in_list[4]+';2ndrd:'+rd_in_list[5]}]
+        else:
+            Pre_RD1 = str(pre_rd[0])
+            Pre_RD2 = str(pre_rd[1])
+            WR1 = str(wr_in_list[0])
+            RD1 = str(rd_in_list[0])
+            WR2 = str(wr_in_list[1])
+            RD2 = str(rd_in_list[1])
+            WR3 = str(wr_in_list[2])
+            RD3 = str(rd_in_list[2])
+            rowdictlist += [{'Num':str(num),'Field Name':full_field_name,'Attr':attr,'Status':pass_fail+str(fail_reason),'1st_Pre_RD':Pre_RD1,'2nd_Pre_RD':Pre_RD2,'1st_Val_WR':WR1,'1st_Val_RD':RD1,'2nd_Val_WR':WR2,'2nd_Val_RD':RD2,'3rd_Val_WR':WR3,'3rd_Val_RD':RD3}]	
+    x = asciitable.AsciiTable.fromDictList(rowdictlist,headers)
+    return rowdictlist,x
+    
+def store_fail_content(fail_rowdl,fail_x,num,full_field_name,attr,pass_fail,pre_rd,wr_in_list,rd_in_list,fail_reason):
+    headers=['Num','Field Name','Attr','Status','1st_Pre_RD','2nd_Pre_RD','1st_Val_WR','1st_Val_RD','2nd_Val_WR','2nd_Val_RD','3rd_Val_WR','3rd_Val_RD']
+    undefined_attrs = ['dc','ro/c/v','ro/p','ro/v','ro/v/p','rw/1c/p','rw/1c/v','rw/1c/v/p','rw/0c/v','rw/1s/v/p','rw/1s/v','rw/1s/v/l','rw/ac','rw/l/k','rw/o/p','rw/o/v/l','rw/p','rw/p/l','rw/s/l','rw/fuse','rw/strap','rw/v','rw/v/p','rw/v/l','rw/v/p/l','rw/v2']
+    new_defined_attrs = ['ro/c','rw/cr','wo/1','wo/c','na','rw0c_fw','rw1c_fw','double buffered','r/w hardware clear','read/32 bit write only','r/w firmware only']
+    if attr in ['ro/swc','rw/cr'] or attr in undefined_attrs:
+        fail_rowdl += [{'Num':str(num),'Field Name':full_field_name,'Attr':attr,'Status': pass_fail+str(fail_reason),'1st_Pre_RD':pre_rd[0],'2nd_Pre_RD':pre_rd[1],'1st_Val_WR':wr_in_list[0],'1st_Val_RD':'1strd:'+rd_in_list[0]+';2ndrd:'+rd_in_list[1],'2nd_Val_WR':wr_in_list[1],'2nd_Val_RD':'1strd:'+rd_in_list[2]+';2ndrd:'+rd_in_list[3],'3rd_Val_WR':wr_in_list[2],'3rd_Val_RD':'1strd:'+rd_in_list[4]+';2ndrd:'+rd_in_list[5]}]
+    else:
+        Pre_RD1 = str(pre_rd[0])
+        Pre_RD2 = str(pre_rd[1])
+        WR1 = str(wr_in_list[0])
+        RD1 = str(rd_in_list[0])
+        WR2 = str(wr_in_list[1])
+        RD2 = str(rd_in_list[1])
+        WR3 = str(wr_in_list[2])
+        RD3 = str(rd_in_list[2])
+        fail_rowdl += [{'Num':str(num),'Field Name':full_field_name,'Attr':attr,'Status':pass_fail+str(fail_reason),'1st_Pre_RD':Pre_RD1,'2nd_Pre_RD':Pre_RD2,'1st_Val_WR':WR1,'1st_Val_RD':RD1,'2nd_Val_WR':WR2,'2nd_Val_RD':RD2,'3rd_Val_WR':WR3,'3rd_Val_RD':RD3}]
+    fail_x = asciitable.AsciiTable.fromDictList(fail_rowdl,headers)
+    return fail_rowdl,fail_x
+
+def disp_content(rowdictlist,x,dump_choice,alg,flg):
+    content_in_content = x.getTableText()
+    print(content_in_content)
+    if dump_choice == 0:
+        (alg,flg) = dump.export('store',content_in_content,alg,flg)
+
+def disp_fail_content(x,dump_choice,alg,flg):
+    fail_content = x.getTableText()
+    print(fail_content)
+    if dump_choice == 0:
+        (alg,flg) = dump.export('store',fail_content,alg,flg)
+        (alg,flg) = dump.export('store_fail',fail_content,alg,flg)
+    
+def disp_total_pass_fail(Pass,Fail,Unknown,Error,error_reasons):
+    print('Pass:'+str(Pass))
+    print('Fail:'+str(Fail))
+    print('Unknown:'+str(Unknown))
+    print('Error:'+str(Error))
+    print('---')
+    for reason in error_reasons:
+        print(reason)
+    print('---')
+
+def store(name,mode,content):
+    if content == []:
+        return f'No {mode}'
+    headers=['Num',name]
+    rowdictlist = []
+    x = []
+    i=1
+    for c in tqdm(content):
+        rowdictlist += [{'Num':mode+' '+str(i),name:c}]
+        i+=1
+    x = asciitable.AsciiTable.fromDictList(rowdictlist,headers)
+    print(f'Done generating {mode}')
+    return x.getTableText()
