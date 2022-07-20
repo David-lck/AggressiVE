@@ -106,21 +106,18 @@ class Pre_test:
         elif choice in ['n','no']:
             return 1
 
-    def disp_error_reg_choice(error_registers,error_fields,auto):
+    def disp_error_reg_choice(error_names,auto):
         if auto == True:
             choice = 'n'
         elif auto == False:
             choice = input('Display error regs?(y/n)')
         if choice == 'y' or choice == '':
             print('-'*100)
-            for reg in error_registers:
-                print(reg)
-            for field in error_fields:
-                print(field)
+            for error_name in error_names:
+                print(error_name)
             print('-'*100)
-        print(f"There's {len(error_registers)} error registers.")
-        print(f"There's {len(error_fields)} error fields.")
-        print('All the error fields names have been saved to C>>Users>>pgsvlab>>Documents>>PythonSv>>error_reg.py.')
+        print(f"There's {len(error_names)} error registers.")
+        print('All the error registers names have been saved to C>>Users>>pgsvlab>>Documents>>PythonSv>>error_reg.py.')
    
 class Exec:
     def _auto_generate_print_limit(total_field2print):

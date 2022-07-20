@@ -63,19 +63,15 @@ def list_all_cmd():
     print(x.getTableText())
 
 class Pre_test:
-    def _dump_error_reg(error_registers,error_fields):
+    def _dump_error_reg(error_registers):
         ilg = dump.export_invalid('open','','')
         #dump error regs to error_reg.log
-        print('Storing error registers to error_reg.log...')
+        print('Storing error registers names to error_reg.log...')
         for error_register in error_registers:
-            ilg = dump.export_invalid('store',error_register,ilg)
-        #dump error fields to error_reg.log
-        print('Storing error fields to error_reg.log...')
-        for error_field in error_fields:
             try:
-                ilg = dump.export_invalid('store',error_field,ilg)
+                ilg = dump.export_invalid('store',error_register,ilg)
             except:
-                print(f'Special Symbols in the name which cannot be recorded in log file: {error_field}')
+                print(f'Special Symbols in the name which cannot be recorded in log file: {error_register}')
         ilg = dump.export_invalid('close','',ilg)
 	
     def convert_str2list(string):
@@ -251,8 +247,7 @@ class Pre_test:
             (alg,flg) = dump.export('close_fail','NA',alg,flg)
 		
     def _main(input_reg,auto_attr,auto):
-        (error_registers,error_fields,full_fields) = error_regs(input_reg,auto,True,True,True)#detect for error regs and fields. Exclude them out from good regs and fields.
-        print()
+        full_fields = error_regs(input_reg,auto,True)#detect for error regs and fields. Exclude them out from good regs and fields.
         valid_fields = invalidate(full_fields,auto,True)#detect for invalid regs and fields without attribute info. Exclude them out.
         try:
             eval(input_reg+'.getaccess()')
@@ -412,7 +407,7 @@ def theory():
         i+=1
     print(x.getTableText())
     
-def error_regs(input_reg,auto,in_reg=False,in_field=False,validate=False):#Completed(die,IP, and register)
+def error_regs(input_reg,auto,validate=False):#Completed(die,IP, and register)
     '''
     Command:
         error_regs()
@@ -437,13 +432,11 @@ def error_regs(input_reg,auto,in_reg=False,in_field=False,validate=False):#Compl
         >>> error_regs('cpu.gfx.display.vga_control',in_reg=True,in_field=False)
         >>> error_regs('cpu.gfx.display.vga_control',in_reg=True,in_field=True)
     '''
-    (registers,detected_or_userinput_reg) = track.Pre_test.track_level(input_reg)#detect reg level else pass.
-    (full_registers,error_registers) = track.Pre_test.track_error_regs(input_reg,in_reg,registers,detected_or_userinput_reg)#detect error_regs name.
-    (full_fields,error_fields) = track.Pre_test.track_error_fields(in_field,full_registers)#detect error_fields name.
-    Pre_test._dump_error_reg(error_registers,error_fields)#dump error regs and fields to error_regs.log
-    user.Pre_test.disp_error_reg_choice(error_registers,error_fields,auto)#display all error regs and fields.
+    (error_regsname,valid_fields) = track.Pre_test.track_error_regsname(input_reg)
+    Pre_test._dump_error_reg(error_regsname)#dump error regs and fields to error_regs.log
+    user.Pre_test.disp_error_reg_choice(error_regsname,auto)#display all error regs and fields.
     if validate == True:
-        return error_registers,error_fields,full_fields
+        return valid_fields
 	
 def invalidate(input_reg,auto,validate=False):#Completed(die,ip,fields)
     '''
@@ -465,7 +458,7 @@ def invalidate(input_reg,auto,validate=False):#Completed(die,ip,fields)
         >>> invalidate('cpu.gfx.display.vga_control')
     '''
     if validate == False:#for die and ip (user input)
-        (error_registers,error_fields,full_fields) = error_regs(input_reg,auto,True,True,True)
+        full_fields = error_regs(input_reg,auto,True)
     elif validate == True:
         full_fields = input_reg
     full_ips = track.fields_2_ips(full_fields)#search for all the IPs

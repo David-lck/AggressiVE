@@ -62,60 +62,31 @@ class Pre_test:
         for attr in attrs:
             if input_attr in attr:
                 return attr
-		
-    def track_level(input_reg):
-        detected_or_userinput_reg = 'detected'
-        unknown_level = eval(input_reg+".search('')")
-        if unknown_level == []:
-            registers = []
-            registers.append(input_reg)
-            detected_or_userinput_reg = 'userinput'
-            return registers,detected_or_userinput_reg
-        present_absent_field = eval(input_reg+"."+unknown_level[0]+".search('')")
-        if present_absent_field == []:
-            #means unknown level is field level (lowest level).
-            registers = []
-            registers.append(input_reg)
-            detected_or_userinput_reg = 'userinput'
-        else:
-            #means unknown level is register level (not lowest level)
-            registers = unknown_level
-        return registers,detected_or_userinput_reg
 
-    def track_error_regs(input_reg,in_reg,registers,detected_or_userinput_reg):
-        full_registers = []
-        error_registers = []
-        if in_reg == True:
-            print('Detecting error regs...')
-            for register in tqdm(registers):
-                try:
-                    if detected_or_userinput_reg == 'userinput':
-                        eval(register)
-                        full_registers.append(register)
-                    else:
-                        eval(input_reg+'.'+register)
-                        full_registers.append(input_reg+'.'+register)
-                except:
-                    error_registers.append(input_reg+'.'+register)
-        return full_registers,error_registers
-		
-    def track_error_fields(in_field,full_registers):
-        error_fields = []
-        full_fields = []
-        if in_field == True:
-            print('Detecting error fields...')
-            for full_reg in tqdm(full_registers):
-                fields = eval(full_reg+".search('')")
-                if fields == []:
-                    full_fields.append(full_reg)
+    def track_error_regsname(input_reg):
+        print(f'Getting information from {input_reg} ...')
+        print('Detecting and storing all the error naming registers...')
+        valid_fields = []
+        error_regsname = []
+        registers_1stsearch = eval(input_reg+".search('')")
+        for register1 in tqdm(registers_1stsearch):
+            try:
+                registers_2ndsearch = eval(input_reg+"."+register1+".search('')")
+                if registers_2ndsearch == []:
+                    valid_fields.append(input_reg+"."+register1)
                 else:
-                    for field in fields:
+                    for register2 in registers_2ndsearch:
                         try:
-                            eval(full_reg+'.'+field)
-                            full_fields.append(full_reg+'.'+field)
+                            registers_3rdsearch = eval(input_reg+"."+register1+"."+register2+".search('')")
+                            if registers_3rdsearch == []:
+                                valid_fields.append(input_reg+'.'+register1+'.'+register2)
+                            else:
+                                print(f'{input_reg+"."+register1+"."+register2} has more fields.')
                         except:
-                            error_fields.append(full_reg+'.'+field)
-        return full_fields,error_fields
+                            error_regsname.append(input_reg+"."+register1+"."+register2)
+            except:
+                error_regsname.append(input_reg+"."+register1)
+        return error_regsname, valid_fields
 		
 def fields_2_ips(full_fields):
     print('Detecting all the IPs information...')
