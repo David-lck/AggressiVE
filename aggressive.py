@@ -128,33 +128,26 @@ class Pre_test:
         print(table_vip)
         (invf,vf) = dump.export_invalidate('close','',invf,vf)
 		
-    def _get_regs(input_reg):
+    def _get_fields(input_reg):
         print(f'Getting information from {input_reg} ...')
-        print('Detecting and storing all the registers information...')
-        registers = eval(input_reg+".search('')")
-        if registers == []:
-            return [input_reg]
-        registers2 = eval(input_reg+"."+registers[0]+".search('')")
-        if registers2 == []:
-            registers = [input_reg]
-        else:
-            i = 0
-            while i < len(registers):
-                registers[i] = input_reg + '.' + registers[i]
-                i += 1
-        return registers
-		
-    def _get_fields(registers):
         print('Detecting and storing all the fields information...')
         fields = []
-        for register in tqdm(registers):
+        registers_1stsearch = eval(input_reg+".search('')")
+        for register1 in tqdm(registers_1stsearch):
             try:
-                fields_in_a_reg = eval(register+".search('')")
-                if fields_in_a_reg == []:
-                    fields.append(register)
-                    continue
-                for field_in_a_reg in fields_in_a_reg:
-                    fields.append(register+'.'+field_in_a_reg)
+                registers_2ndsearch = eval(input_reg+"."+register1+".search('')")
+                if registers_2ndsearch == []:
+                    fields.append(input_reg+'.'+register1)
+                else:
+                    for register2 in registers_2ndsearch:
+                        try:
+                            registers_3rdsearch = eval(input_reg+"."+register1+"."+register2+".search('')")
+                            if registers_3rdsearch == []:
+                                fields.append(input_reg+'.'+register1+'.'+register2)
+                            else:
+                                print(f'{input_reg+"."+register1+"."+register2} has more fields.')
+                        except:
+                            pass
             except:
                 pass
         return fields
@@ -445,8 +438,8 @@ def error_regs(input_reg,auto,in_reg=False,in_field=False,validate=False):#Compl
         >>> error_regs('cpu.gfx.display.vga_control',in_reg=True,in_field=True)
     '''
     (registers,detected_or_userinput_reg) = track.Pre_test.track_level(input_reg)#detect reg level else pass.
-    (full_registers,error_registers) = track.Pre_test.track_error_regs(input_reg,in_reg,registers,detected_or_userinput_reg)#detect error_regs.
-    (full_fields,error_fields) = track.Pre_test.track_error_fields(in_field,full_registers)#detect error_fields.
+    (full_registers,error_registers) = track.Pre_test.track_error_regs(input_reg,in_reg,registers,detected_or_userinput_reg)#detect error_regs name.
+    (full_fields,error_fields) = track.Pre_test.track_error_fields(in_field,full_registers)#detect error_fields name.
     Pre_test._dump_error_reg(error_registers,error_fields)#dump error regs and fields to error_regs.log
     user.Pre_test.disp_error_reg_choice(error_registers,error_fields,auto)#display all error regs and fields.
     if validate == True:
@@ -531,8 +524,7 @@ def attr_all(input_regs,validate=False):#for die, ip, register, and fields
     x = []
     total_num_valid_fields = 0
     for input_reg in input_regs:
-        registers = Pre_test._get_regs(input_reg)#search for all the registers
-        fields = Pre_test._get_fields(registers)#search for all the fields
+        fields = Pre_test._get_fields(input_reg)#search for all the fields
         #detect the attribute info for valid_fields.
         (valid_fields,avai_attrs,num_avai_attr) = Pre_test._get_attr_num(fields)
         #combine the attributes with same category into one.
