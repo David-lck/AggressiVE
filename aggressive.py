@@ -108,11 +108,15 @@ class Pre_test:
 	
     def _dump_invalidate_ver2(total,table_invf,table_vf,invf,vf):
         (invf,vf) = dump.export_invalidate('store_invalid',f'Number of invalid fields: {total[2]}',invf,vf)
-        (invf,vf) = dump.export_invalidate('store_valid',f'Number of invalid fields: {total[3]}',invf,vf)
+        (invf,vf) = dump.export_invalidate('store_valid',f'Number of valid fields: {total[3]}',invf,vf)
+        if int(total[2]) >= 1000:
+            print('Due to too many invalid fields, pls refer to the log below.')
+            print(table_invf)
+        if int(total[3]) >= 1000:
+            print('Due to too many valid fields, pls refer to the log below.')
+            print(table_vf)
         (invf,vf) = dump.export_invalidate('store_invalid',table_invf,invf,vf)
         (invf,vf) = dump.export_invalidate('store_valid',table_vf,invf,vf)
-        print(table_invf)
-        print(table_vf)
         (invf,vf) = dump.export_invalidate('close','',invf,vf)
 	
     def _dump_invalidate_ver1(total,table_invip,table_vip,invf,vf):
@@ -425,12 +429,11 @@ def error_regs(input_reg,auto,validate=False):#Completed(die,IP, and register)
         Name of error IPs/regs/fields.
 
     EX:
-        >>> error_regs('cpu',in_reg=True,in_field=False)
-        >>> error_regs('cpu',in_reg=True,in_field=True)
-        >>> error_regs('cpu.gfx.display',in_reg=True,in_field=False)
-        >>> error_regs('cpu.gfx.display',in_reg=True,in_field=True)
-        >>> error_regs('cpu.gfx.display.vga_control',in_reg=True,in_field=False)
-        >>> error_regs('cpu.gfx.display.vga_control',in_reg=True,in_field=True)
+        >>> error_regs('cpu')
+        >>> error_regs('cpu',auto=True)
+        >>> error_regs('cpu',validate=True)
+        >>> error_regs('cpu.gfx.display')
+        >>> error_regs('cpu.gfx.display.vga_control')
     '''
     (error_regsname,valid_fields) = track.Pre_test.track_error_regsname(input_reg)
     Pre_test._dump_error_reg(error_regsname)#dump error regs and fields to error_regs.log
@@ -456,6 +459,8 @@ def invalidate(input_reg,auto,validate=False):#Completed(die,ip,fields)
         >>> invalidate('cpu')
         >>> invalidate('cpu.gfx.display')
         >>> invalidate('cpu.gfx.display.vga_control')
+        >>> invalidate('cpu.gfx.display.vga_control',auto=False)
+        >>> invalidate('cpu.gfx.display.vga_control',auto=False,validate=True)
     '''
     if validate == False:#for die and ip (user input)
         full_fields = error_regs(input_reg,auto,True)
