@@ -542,7 +542,7 @@ def attr_all(input_regs,validate=False):#for die, ip, register, and fields
     if validate == True:
         return new_attrs
 
-def aggressive(input_regs):#WIP (register level)
+def aggressive(input_regs, auto=False, auto_attr=''):#WIP (register level)
     '''
     Command:
         aggressive()
@@ -550,6 +550,7 @@ def aggressive(input_regs):#WIP (register level)
     Details:
         Validate the fields of all the chosen regs.
         Dependencies = access method and attr
+		If auto=True, it's a function without user input.
 
     Inputs:
         input_regs = Name of die/ Name of IP/ Name of reg
@@ -561,6 +562,8 @@ def aggressive(input_regs):#WIP (register level)
         >>> aggressive_auto('cpu')
         >>> aggressive_auto('cpu.gfx.display')
         >>> aggressive_auto('cpu.gfx.display.vga_control')
+        >>> aggressive_auto('cpu.gfx.display',auto=True)
+        >>> aggressive_auto('cpu.gfx.display',auto=True,auto_attr='rw')
     '''
     try:
         eval('__main__.'+input_regs)
@@ -571,45 +574,9 @@ def aggressive(input_regs):#WIP (register level)
     Pre_test.initial_setting()
     input_regs = Pre_test.convert_str2list(input_regs)
     for input_reg in input_regs:
-        (valid_fields,chosen_attr,dumpchoice) = Pre_test._main(input_reg,auto_attr='',auto=False)#run all pretest features.
-        (fail_x,Fail,alg,flg,fail_fields_name) = rdwr.validate(valid_fields,chosen_attr,dumpchoice,auto=False)#validation.
-        Post_test._main(Fail,fail_fields_name,alg,flg,dumpchoice,fail_x,auto=False)#run post feature (Validate or display fail fields only).
-    itp.go()
-
-def aggressive_auto(input_regs,auto_attr=''):
-    '''
-    Command:
-        aggressive_auto()
-
-    Details:
-        It's a function similar as aggressive() without user input.
-
-    Inputs:
-        input_regs = Name of die/ Name of IP/ Name of reg
-
-    Outputs:
-        Table with the information of validation.
-
-    EX:
-        >>> aggressive_auto('cpu')
-        >>> aggressive_auto('cpu','rw')
-        >>> aggressive_auto('cpu.gfx.display')
-        >>> aggressive_auto('cpu.gfx.display','rw')
-        >>> aggressive_auto('cpu.gfx.display.vga_control')
-        >>> aggressive_auto('cpu.gfx.display.vga_control','rw')
-    '''
-    try:
-        eval('__main__.'+input_regs)
-    except:
-        print('No such die exist in this project!')
-        print('Please enter the correct one!')
-        return 
-    Pre_test.initial_setting()
-    input_regs = Pre_test.convert_str2list(input_regs)
-    for input_reg in input_regs:
-        (valid_fields,chosen_attr,dumpchoice) = Pre_test._main(input_reg,auto_attr,auto=True)#run all pretest features.
-        (fail_x,Fail,alg,flg,fail_fields_name) = rdwr.validate(valid_fields,chosen_attr,dumpchoice,auto=True)#validation.
-        Post_test._main(Fail,fail_fields_name,alg,flg,dumpchoice,fail_x,auto=True)#run post feature (Validate or display fail fields only).
+        (valid_fields,chosen_attr,dumpchoice) = Pre_test._main(input_reg,auto_attr,auto)#run all pretest features.
+        (fail_x,Fail,alg,flg,fail_fields_name) = rdwr.validate(valid_fields,chosen_attr,dumpchoice,auto)#validation.
+        Post_test._main(Fail,fail_fields_name,alg,flg,dumpchoice,fail_x,auto)#run post feature (Validate or display fail fields only).
     itp.go()
 
 def test():
