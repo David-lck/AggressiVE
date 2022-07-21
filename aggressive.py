@@ -46,13 +46,16 @@ Current disabled/pending features:
 1. itp unlock and credential. (initial_setting)
 2. aggressive import
 '''
+
+itp.unlockerflush()
+itp.entercredentials()
+
 AVAIL_FUNCS = {
 'theory' : 'To display the validation algorithms of AggressiVE in term of attributes.',
 'error_regs' :  'To display all the error Dies/IPs/Regs/Fields exist in input_reg which have the unacceptable name.',
 'invalidate' : 'To display all the fields which have the information of attribute.',
 'attr_all' : 'To display the number of fields we have with the specific attributes.',
-'aggressive' : 'Main function of AggressiVE.',
-'aggressive_auto' : 'Automated main function of AggressiVE which require the initial declaration from user.'
+'aggressive' : 'Main function of AggressiVE. (Require the initial declaration from user if automatable.)',
 }
 def list_all_cmd():
     headers = ['Available Functions','Description']
@@ -227,16 +230,16 @@ class Pre_test:
 		
     def initial_setting():
         refresh()
-        itp.unlockerflush()
-        itp.entercredentials()
-        time.sleep(20)
-        try:
-            soc.south.fuses.load_fuse_ram
-        except:
-            cpu.fuses.load_fuse_ram()
-        else:
-            print('Not able to do load_fuse_ram!')
-            pass
+        itp.unlock()
+        #time.sleep(20)
+        #try:
+        #    cdie.fuses.load_fuse_ram
+        #    soc.south.fuses.load_fuse_ram
+        #except:
+        #    cpu.fuses.load_fuse_ram()
+        #else:
+        #    print('Not able to do load_fuse_ram!')
+        #    pass
         #sv.socket0.target_info["tap2sb_timeout"]=5*60
         #sv.pch0.target_info["p2sb_timeout"]=5*60 #does not support pch0 in MTL project.
         #Pre_test.fully_halt()        
@@ -256,8 +259,9 @@ class Pre_test:
         try:
             eval(input_reg+'.getaccess()')
             log_store = user.Pre_test.access_choice(input_reg)#display available access method and choose access method.(only for ip, how about die? how to choose?)
-        except:
+        except Exception as e:
             log_store = ['']
+            print(e)
         avai_attrs = attr_all(input_reg,True)#display available attributes
         chosen_attr = user.Pre_test.attr_choice(avai_attrs,auto,auto_attr)#choose the one for validation.('r/w' or '')
         dumpchoice = user.Pre_test.dump_choice(auto)#dump validation information to AggressiVE.log and AggressiVE_fail.log?(0/1)
@@ -554,6 +558,8 @@ def aggressive(input_regs, auto=False, auto_attr=''):#WIP (register level)
 
     Inputs:
         input_regs = Name of die/ Name of IP/ Name of reg
+        auto = (False in default) Automate this features
+        auto_attr = Attribute(s) of the registers that would like to validate
 
     Outputs:
         Table with the information of validation.
