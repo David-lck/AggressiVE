@@ -605,10 +605,25 @@ def debug():
     (fail_x,Fail,alg,flg,fail_fields_name) = rdwr.validate(valid_fields,'rw',0,auto=False)#validation.
 
 def test2():
-    combination = ['a','b','c']
-    for t in tqdm(combination):
-        print('')
-        print(t)
-    
-    
+    items = list(range(0,50))
+    l = len(items)
+
+    loadbar(0,l, prefix='Progress:', infix = 'Time_Taken= 0sec', suffix=f'Complete [{items[0]}]', length=l)
+    print(items)
+    for i, item in enumerate(items):
+        time.sleep(0.1)
+        loadbar(i + 1, l, prefix='Progress:', infix = f'Time_Taken= {round(time_taken)}sec', suffix=f'Complete [{item}]', length=l)
+
+def test3():
+    initial_time = time.time()
+
+    items = list(range(0,50))
+    l = len(items)
+
+    loadbar(0,l, prefix=f'Progress [0:{l}]:', infix = 'Time_Taken= 0sec', suffix=f'Reg: [{items[0]}]', length=l)
+    print(items)
+    for i, item in enumerate(items):
+        time_taken = time.time() - initial_time
+        time.sleep(0.1)
+        loadbar(i + 1, l, prefix=f'Progress [{i+1}:{l}]:', infix = f'Time_Taken= {round(time_taken)}sec', suffix=f'Reg: [{item}]', length=l)
     

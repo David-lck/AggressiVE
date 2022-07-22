@@ -15,6 +15,7 @@ from namednodes import sv as _sv
 cpu = _sv.socket.get_all()[0]
 from pysvtools import asciitable
 import export_log_file as dump
+import time
 try:
     from tqdm.tqdm import tqdm
 except:
@@ -135,3 +136,26 @@ def store(name,mode,content):
     x = asciitable.AsciiTable.fromDictList(rowdictlist,headers)
     print(f'Done generating {mode}')
     return x.getTableText()
+
+def loadbar(iteration, total, prefix='', infix ='', suffix='', decimals=1, length=100, fill='>'):
+    percent = 0
+    filledLength = 0
+    percent = ('{0:.' + str(decimals) + 'f}').format(100 * (iteration/float(total)))
+    filledLength = int(length * iteration // total)
+    bar = fill * filledLength + '-' *(length - filledLength)
+    print(f'\r{prefix} |{bar}| {percent}% [{infix}] {suffix}', end='\r')
+    if iteration == total:
+        print()  
+		
+def time(sec):
+    min = 0
+    hour = 0
+    while sec >= 60:
+        if sec >= 60:
+            sec -= 60
+            min += 1
+    while min >= 60:
+        if min == 60:
+            min -= 60
+            hour += 1
+    return sec,min,hour

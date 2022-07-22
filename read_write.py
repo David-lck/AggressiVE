@@ -19,6 +19,11 @@ import tracking as track
 import user_input as user
 import export_log_file as dump
 import sys
+try:
+    from tqdm.tqdm import tqdm
+except:
+    from tqdm import tqdm
+
 
 all_undefined_attrs = ['dc','ro/c/v','ro/p','ro/v','ro/v/p','rw/1c/p','rw/1c/v','rw/1c/v/p','rw/0c/v','rw/1s/v/p','rw/1s/v','rw/1s/v/l','rw/ac','rw/l/k','rw/o/p','rw/o/v/l','rw/p','rw/p/l','rw/s/l','rw/fuse','rw/strap','rw/v','rw/v/p','rw/v/l','rw/v/p/l','rw/v2']
 
@@ -574,9 +579,14 @@ def validate(valid_fields,chosen_attr,dumpchoice,auto):
             if num2print == 'end':
                 break
             num_chosen_attr_fields-=num2print
-        print(f'{str(num)}/{str(len(chosen_attr_fields))}: {full_field_name}')
+            initial_time = time.time()
+            reserved_num = 0
+        time_taken = time.time() - initial_time
+        (s,m,h) = disp.time(round(time_taken))
+        reserved_num += 1
+        disp.loadbar(reserved_num, reserved_print_num, prefix=f'Progress [{reserved_num}:{reserved_print_num}]:', infix = f'Time_Taken= {h}h{m}m{s}s', suffix=f'Reg: [{full_field_name}]', length=reserved_print_num)
+        ##print(f'{str(num)}/{str(len(chosen_attr_fields))}: {full_field_name}')
         #validate
-        print('Validating...')
         try:
             (pre_rd,wr_in_list,rd_in_list,pass_fail,fail_reason) = validate_1by1(full_field_name)
         except:
@@ -633,7 +643,6 @@ def validate2_fail_regs(fail_fields_name,alg,flg,dumpchoice,Fail,auto):
             num_chosen_attr_fields-=num2print
         print(f'{str(num)}/{str(len(fail_fields_name))}: {fail_field_name}')
         #validate
-        print('Validating...')
         (pre_rd,wr_in_list,rd_in_list,pass_fail,fail_reason) = validate_1by1(fail_field_name)
         attr = eval(fail_field_name+'.info["attribute"]')
         (fail_rowdl,fail_x) = disp.store_fail_content(fail_rowdl,fail_x,num,fail_field_name,attr,pass_fail,pre_rd,wr_in_list,rd_in_list,fail_reason)

@@ -132,6 +132,7 @@ class Exec:
             if auto == True:
                 num2print = Exec._auto_generate_print_limit(total_field2print)
             elif auto == False:
+                print('')
                 num2print = input(f'Display_Number[Left:{total_field2print}]["end"=stop]: ')
             if num2print == '':
                 num2print = reserved_print_limit
