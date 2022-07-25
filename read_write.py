@@ -637,6 +637,7 @@ def validate2_fail_regs(fail_fields_name,alg,flg,dumpchoice,Fail,auto):
     Error2 = 0
     num=1
     #2nd validation.
+    reserved_print_num = len(fail_fields_name)
     for fail_field_name in fail_fields_name:
         #to ask user for the num of table display.
         if num2print == 0:                                                                                                              #to ask user for the num of table display.
@@ -644,7 +645,13 @@ def validate2_fail_regs(fail_fields_name,alg,flg,dumpchoice,Fail,auto):
             if num2print == 'end':
                 return alg,flg
             num_chosen_attr_fields-=num2print
-        print(f'{str(num)}/{str(len(fail_fields_name))}: {fail_field_name}')
+            initial_time = time.time()
+            reserved_num = 0
+        time_taken = time.time() - initial_time
+        (s,m,h) = disp.time(round(time_taken))
+        reserved_num += 1
+        disp.progress(reserved_num, reserved_print_num, prefix=f'Progress [{reserved_num}:{reserved_print_num}]:', infix = f'Time_Taken= {h}h{m}m{s}s', suffix=f'Reg: [{fail_field_name}]')
+        #print(f'{str(num)}/{str(len(fail_fields_name))}: {fail_field_name}')
         #validate
         (pre_rd,wr_in_list,rd_in_list,pass_fail,fail_reason) = validate_1by1(fail_field_name)
         attr = eval(fail_field_name+'.info["attribute"]')
