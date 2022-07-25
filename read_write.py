@@ -7,6 +7,8 @@ itp = __main__.itp if hasattr(__main__, 'itp') else None
 ioe = __main__.ioe if hasattr(__main__, 'ioe') else None
 gcd = __main__.gcd if hasattr(__main__, 'gcd') else None
 import time
+import colorama
+from colorama import Fore
 from builtins import *
 from builtins import str
 from builtins import range
@@ -584,7 +586,8 @@ def validate(valid_fields,chosen_attr,dumpchoice,auto):
         time_taken = time.time() - initial_time
         (s,m,h) = disp.time(round(time_taken))
         reserved_num += 1
-        disp.loadbar(reserved_num, reserved_print_num, prefix=f'Progress [{reserved_num}:{reserved_print_num}]:', infix = f'Time_Taken= {h}h{m}m{s}s', suffix=f'Reg: [{full_field_name}]', length=reserved_print_num)
+        #disp.loadbar(reserved_num, reserved_print_num, prefix=f'Progress [{reserved_num}:{reserved_print_num}]:', infix = f'Time_Taken= {h}h{m}m{s}s', suffix=f'Reg: [{full_field_name}]', length=reserved_print_num)
+        disp.progress(reserved_num, reserved_print_num, prefix=f'Progress [{reserved_num}:{reserved_print_num}]:', infix = f'Time_Taken= {h}h{m}m{s}s', suffix=f'Reg: [{full_field_name}]')
         ##print(f'{str(num)}/{str(len(chosen_attr_fields))}: {full_field_name}')
         #validate
         try:

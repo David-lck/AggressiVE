@@ -11,6 +11,8 @@ refresh = __main__.refresh if hasattr(__main__, 'refresh') else None
 
 from pysvtools.asciitable import AsciiTable as Table
 import time
+import colorama
+from colorama import Fore
 from builtins import *
 from builtins import str
 from builtins import range
@@ -615,15 +617,34 @@ def test2():
         loadbar(i + 1, l, prefix='Progress:', infix = f'Time_Taken= {round(time_taken)}sec', suffix=f'Complete [{item}]', length=l)
 
 def test3():
-    initial_time = time.time()
+    print('aa')
+    Fore.RED
+    print('bb')
+    print(Fore.RED + 'This text is red in color')
+    Fore.RESET
+    print('ds')
+    print(Fore.BLACK + 'This text is red in color')
+    print(Fore.BLUE + 'This text is red in color')
+    print(Fore.CYAN + 'This text is red in color')
+    print(Fore.GREEN + 'This text is red in color')
+    print(Fore.LIGHTBLACK_EX + 'This text is red in color')
+    print(Fore.LIGHTBLUE_EX + 'This text is red in color')
+    print(Fore.LIGHTCYAN_EX + 'This text is red in color')
+    print(Fore.LIGHTGREEN_EX + 'This text is red in color')
+    print(Fore.LIGHTMAGENTA_EX + 'This text is red in color')
+    print(Fore.LIGHTRED_EX + 'This text is red in color')
+    print(Fore.LIGHTWHITE_EX + 'This text is red in color')
+    print(Fore.LIGHTYELLOW_EX + 'This text is red in color')
+    print(Fore.MAGENTA + 'This text is red in color')
+    print(Fore.RED + 'This text is red in color')
+    print(Fore.WHITE + 'This text is red in color')
+    print(Fore.YELLOW + 'This text is red in color')
+    print(Fore.RESET + 'This text is red in color')
+    print(Fore.YELLOW + 'This text is red in color. '+Fore.RED + 'sss')
+    print(Fore.RESET + 'This text is red in color')
+    temp1 = 32
+    temp2 = 'jjk'
+    print(f'{Fore.GREEN + str(temp1)} testing {Fore.YELLOW + temp2+Fore.RESET} hohoho')
+    print('last')
 
-    items = list(range(0,50))
-    l = len(items)
-
-    loadbar(0,l, prefix=f'Progress [0:{l}]:', infix = 'Time_Taken= 0sec', suffix=f'Reg: [{items[0]}]', length=l)
-    print(items)
-    for i, item in enumerate(items):
-        time_taken = time.time() - initial_time
-        time.sleep(0.1)
-        loadbar(i + 1, l, prefix=f'Progress [{i+1}:{l}]:', infix = f'Time_Taken= {round(time_taken)}sec', suffix=f'Reg: [{item}]', length=l)
-    
+ 

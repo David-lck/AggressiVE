@@ -16,6 +16,8 @@ cpu = _sv.socket.get_all()[0]
 from pysvtools import asciitable
 import export_log_file as dump
 import time
+import colorama
+from colorama import Fore
 try:
     from tqdm.tqdm import tqdm
 except:
@@ -146,6 +148,16 @@ def loadbar(iteration, total, prefix='', infix ='', suffix='', decimals=1, lengt
     print(f'\r{prefix} |{bar}| {percent}% [{infix}] {suffix}', end='\r')
     if iteration == total:
         print()  
+		
+def progress(iteration, total, prefix='', infix ='', suffix='', decimals=1):
+    percent = 0
+    percent = ('{0:.' + str(decimals) + 'f}').format(100 * (iteration/float(total)))
+    #print(f'\r{prefix}{Fore.LIGHTBLUE_EX + percent}%{Fore.RESET} [{infix}] {suffix}', end='\r')
+    LINE_CLEAR = '\x1b[2K' # <-- ANSI sequence
+    print(end=LINE_CLEAR)
+    print(f'\r{prefix}{Fore.LIGHTBLUE_EX + percent}%{Fore.RESET} [{infix}] {suffix}', end='')
+    if iteration == total:
+        print()
 		
 def time(sec):
     min = 0
