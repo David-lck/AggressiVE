@@ -116,8 +116,8 @@ class Pre_test:
             for error_name in error_names:
                 print(error_name)
             print('-'*100)
-        print(f"There's {len(error_names)} error registers.")
-        print('All the error registers names have been saved to C>>Users>>pgsvlab>>Documents>>PythonSv>>error_reg.py.')
+        print(f"{Fore.BLUE}There's {len(error_names)} error registers.")
+        print('All the error registers names have been saved to C>>Users>>pgsvlab>>Documents>>PythonSv>>error_reg.py.'+Fore.RESET)
    
 class Exec:
     def _auto_generate_print_limit(total_field2print):
@@ -148,6 +148,27 @@ class Exec:
         return num2print,reserved_print_limit
         
 class Post_test:
+    def disp_error_choice(Error, error_info, auto):
+        if Error > 0:
+            if auto:
+                chk_choice = 'y'
+            else:
+                chk_choice = input('Check Errors?(y/n): ')
+        else:
+            chk_choice = 'n'
+        if chk_choice.lower() in ['y','yes','']:
+            msg_sorted = track.track_dif_errors(error_info)
+            disp_choice = 0
+            disp.error_table(msg_sorted)
+            while disp_choice != 'end':
+                if auto:
+                    disp_choice == ''
+                else:
+                    disp_choice = input('Which error of registers to display?(Enter=All;"end"=stop):')
+                if disp_choice != "end":
+                    disp.disp_all_errors(disp_choice,msg_sorted,error_info)
+                
+        
     def fail_val_choice(auto):
         if auto == True:
             return 2

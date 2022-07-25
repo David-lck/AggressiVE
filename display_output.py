@@ -123,15 +123,11 @@ def disp_fail_content(x,dump_choice,alg,flg):
         (alg,flg) = dump.export('store',fail_content,alg,flg)
         (alg,flg) = dump.export('store_fail',fail_content,alg,flg)
     
-def disp_total_pass_fail(Pass,Fail,Unknown,Error,error_reasons):
+def disp_total_pass_fail(Pass,Fail,Unknown,Error):
     print(Fore.LIGHTBLUE_EX+'Pass:'+str(Pass))
     print('Fail:'+str(Fail))
     print('Unknown:'+str(Unknown))
     print('Error:'+str(Error)+Fore.RESET)
-    print('---')
-    for reason in error_reasons:
-        print(reason)
-    print('---')
 
 def store(name,mode,content):
     if content == []:
@@ -166,6 +162,42 @@ def progress(iteration, total, prefix='', infix ='', suffix='', decimals=1):
     print(f'\r{prefix}{Fore.LIGHTBLUE_EX + percent}%{Fore.RESET} [{infix}] {suffix}', end='')
     if iteration == total:
         print()
+
+def error_table(msg_sorted):
+    headers = ['Num', 'Error Message']
+    rowdictlist = []
+    x = []
+    i=1
+    for msg in msg_sorted:
+        rowdictlist += [{'Num':str(i),'Error Message':msg}]
+        i += 1
+    x = asciitable.AsciiTable.fromDictList(rowdictlist,headers)
+    print(x.getTableText())
+
+def disp_all_errors(disp_choice,msg_sorted,error_info):
+    headers = ['Num','Registers']
+    rowdictlist = []
+    x = []
+    i = 1
+    if disp_choice == '':
+        for msg in msg_sorted:
+            i = 1
+            print(f'Error = {msg}')		
+            for reg in error_info.keys():
+                if msg == error_info[reg]:
+                    rowdictlist += [{'Num':str(i),'Registers':reg}]
+                    i += 1
+    else:
+        msg = msg_sorted[disp_choice-1]
+        for reg in error_info.keys():
+            if msg == error_info[reg]:
+                rowdictlist += [{'Num':str(i),'Registers':reg}]
+                i += 1
+    x = asciitable.AsciiTable.fromDictList(rowdictlist,headers)
+    print(x.getTableText())
+
+
+
 		
 def time(sec):
     min = 0

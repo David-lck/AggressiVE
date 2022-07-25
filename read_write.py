@@ -565,8 +565,8 @@ def validate(valid_fields,chosen_attr,dumpchoice,auto):
     elg = dump.export_error('open','NA',elg)
     alg = ''
     flg = ''
+    error_info = {}
     fail_fields_name = []
-    error_reasons = []
     if dumpchoice == 0:
         (alg,flg) = dump.export('open','NA',alg,flg)
     #Exclude all the fields with non-chosen attr.
@@ -598,8 +598,7 @@ def validate(valid_fields,chosen_attr,dumpchoice,auto):
             if len(fail_reason) >= 30:
                 fail_reason = fail_reason[:35-len(fail_reason)]+'...'
             fail_reason = [fail_reason]
-            if str(message) not in error_reasons and len(str(message)) <100:
-                error_reasons.append(str(message))
+            error_info[full_field_name]=str(message)
             pass_fail = 'error'
             pre_rd = wr_in_list = rd_in_list = []
             elg = dump.export_error('store',full_field_name,elg)
@@ -615,7 +614,7 @@ def validate(valid_fields,chosen_attr,dumpchoice,auto):
         num2print -= 1
         if num2print == 0:
             disp.disp_content(rowdictlist,x,dumpchoice,alg,flg)
-            disp.disp_total_pass_fail(Pass,Fail,Unknown,Error,error_reasons)
+            disp.disp_total_pass_fail(Pass,Fail,Unknown,Error)
             rowdictlist=[]
             x=[]
         num+=1
@@ -623,6 +622,7 @@ def validate(valid_fields,chosen_attr,dumpchoice,auto):
     if dumpchoice == 0 and Fail == 0:
         (alg,flg) = dump.export('close_all','NA',alg,flg)
         (alg,flg) = dump.export('close_fail','NA',alg,flg)
+    user.disp_error_choice(Error,error_info,auto)
     return fail_x,Fail,alg,flg,fail_fields_name
 
 def validate2_fail_regs(fail_fields_name,alg,flg,dumpchoice,Fail,auto):
@@ -661,7 +661,7 @@ def validate2_fail_regs(fail_fields_name,alg,flg,dumpchoice,Fail,auto):
         if num2print == 0:
             disp.disp_fail_content(fail_x,dumpchoice,alg,flg)
             print(f'{Fail} fail(s) in 1st validation.')
-            disp.disp_total_pass_fail(Pass2,Fail2,Unknown2,Error2,['NA'])
+            disp.disp_total_pass_fail(Pass2,Fail2,Unknown2,Error2)
             fail_rowdl=[]
             fail_x=[]
         num+=1

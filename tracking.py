@@ -88,6 +88,13 @@ class Pre_test:
                 error_regsname.append(input_reg+"."+register1)
         return error_regsname, valid_fields
 		
+def track_dif_errors(error_info):
+    msg_sorted = []
+    for msg in error_info.values():
+        if msg not in msg_sorted:
+            msg_sorted.append(msg)
+    return msg_sorted
+		
 def fields_2_ips(full_fields):
     print('Detecting all the IPs information...')
     full_ips = []

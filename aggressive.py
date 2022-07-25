@@ -271,8 +271,8 @@ class Pre_test:
         return valid_fields,chosen_attr,dumpchoice
 	
 class Post_test:
-    def _main(Fail,fail_fields_name,alg,flg,dumpchoice,fail_x,auto):
-        if Fail > 0:
+    def _fail_main(Fail,fail_fields_name,alg,flg,dumpchoice,fail_x,auto):
+        if Fail > 0 :
             chosen_fail_val = 1
             while chosen_fail_val == 1:
                 chosen_fail_val = user.Post_test.fail_val_choice(auto)#choose the way to deal with fail fields.
@@ -584,7 +584,7 @@ def aggressive(input_regs, auto=False, auto_attr=''):#WIP (register level)
     for input_reg in input_regs:
         (valid_fields,chosen_attr,dumpchoice) = Pre_test._main(input_reg,auto_attr,auto)#run all pretest features.
         (fail_x,Fail,alg,flg,fail_fields_name) = rdwr.validate(valid_fields,chosen_attr,dumpchoice,auto)#validation.
-        Post_test._main(Fail,fail_fields_name,alg,flg,dumpchoice,fail_x,auto)#run post feature (Validate or display fail fields only).
+        Post_test._fail_main(Fail,fail_fields_name,alg,flg,dumpchoice,fail_x,auto)#run post feature (Validate or display fail fields only).
     itp.go()
 
 def test():
@@ -617,12 +617,7 @@ def test2():
         loadbar(i + 1, l, prefix='Progress:', infix = f'Time_Taken= {round(time_taken)}sec', suffix=f'Complete [{item}]', length=l)
 
 def test3():
-    print('aa')
-    Fore.RED
-    print('bb')
     print(Fore.RED + 'This text is red in color')
-    Fore.RESET
-    print('ds')
     print(Fore.BLACK + 'This text is red in color')
     print(Fore.BLUE + 'This text is red in color')
     print(Fore.CYAN + 'This text is red in color')
