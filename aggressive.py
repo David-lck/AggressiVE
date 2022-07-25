@@ -492,8 +492,8 @@ def invalidate(input_reg,auto,validate=False):#Completed(die,ip,fields)
     elif int(result_form) == 1:
         Pre_test._dump_invalidate_ver1(total,table_invip,table_vip,invf,vf)
     print('All the error fields names have been saved to:')
-    print('C>>Users>>pgsvlab>>Documents>>PythonSv>>invalid_fields.py.')
-    print('C>>Users>>pgsvlab>>Documents>>PythonSv>>valid_fields.py.')
+    print(Fore.LIGHTBLUE_EX + 'C>>Users>>pgsvlab>>Documents>>PythonSv>>invalid_fields.py.')
+    print('C>>Users>>pgsvlab>>Documents>>PythonSv>>valid_fields.py.' + Fore.RESET)
     if validate == True:
         return valid_fields
 		

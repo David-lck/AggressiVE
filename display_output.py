@@ -30,10 +30,10 @@ class Pre_test:
         total_valid = len(valid_ips)
         total_invalid_f = len(invalid_fields)
         total_valid_f = len(valid_fields)
-        print(f'Number of invalid IPs: {total_invalid}')
+        print(f'{Fore.LIGHTBLUE_EX}Number of invalid IPs: {total_invalid}')
         print(f'Number of valid IPs: {total_valid}')
         print(f'Number of invalid fields: {total_invalid_f}')
-        print(f'Number of valid fields: {total_valid_f}')
+        print(f'Number of valid fields: {str(total_valid_f)+Fore.RESET}')
         total = [total_invalid,total_valid,total_invalid_f,total_valid_f]
         return total
         
@@ -60,6 +60,10 @@ def disp_avail_attr(avail_attrs):
     print(x.getTableText())
 
 def store_content(rowdictlist,x,num,full_field_name,attr,pass_fail,pre_rd,wr_in_list,rd_in_list,fail_reason):
+    if pass_fail == 'pass':
+        pass_fail = Fore.GREEN + 'pass' + Fore.RESET
+    elif pass_fail == 'fail':
+        pass_fail = Fore.RED + 'fail' + Fore.RESET
     undefined_attrs = ['dc','ro/c/v','ro/p','ro/v','ro/v/p','rw/1c/p','rw/1c/v','rw/1c/v/p','rw/0c/v','rw/1s/v/p','rw/1s/v','rw/1s/v/l','rw/ac','rw/l/k','rw/o/p','rw/o/v/l','rw/p','rw/p/l','rw/s/l','rw/fuse','rw/strap','rw/v','rw/v/p','rw/v/l','rw/v/p/l','rw/v2']
     headers=['Num','Field Name','Attr','Status','1st_Pre_RD','2nd_Pre_RD','1st_Val_WR','1st_Val_RD','2nd_Val_WR','2nd_Val_RD','3rd_Val_WR','3rd_Val_RD']
     if pre_rd == []:#for those that are not able to read and write.
@@ -84,6 +88,10 @@ def store_content(rowdictlist,x,num,full_field_name,attr,pass_fail,pre_rd,wr_in_
     return rowdictlist,x
     
 def store_fail_content(fail_rowdl,fail_x,num,full_field_name,attr,pass_fail,pre_rd,wr_in_list,rd_in_list,fail_reason):
+    if pass_fail == 'pass':
+        pass_fail = Fore.GREEN + 'pass' + Fore.RESET
+    elif pass_fail == 'fail':
+        pass_fail = Fore.RED + 'fail' + Fore.RESET
     headers=['Num','Field Name','Attr','Status','1st_Pre_RD','2nd_Pre_RD','1st_Val_WR','1st_Val_RD','2nd_Val_WR','2nd_Val_RD','3rd_Val_WR','3rd_Val_RD']
     undefined_attrs = ['dc','ro/c/v','ro/p','ro/v','ro/v/p','rw/1c/p','rw/1c/v','rw/1c/v/p','rw/0c/v','rw/1s/v/p','rw/1s/v','rw/1s/v/l','rw/ac','rw/l/k','rw/o/p','rw/o/v/l','rw/p','rw/p/l','rw/s/l','rw/fuse','rw/strap','rw/v','rw/v/p','rw/v/l','rw/v/p/l','rw/v2']
     new_defined_attrs = ['ro/c','rw/cr','wo/1','wo/c','na','rw0c_fw','rw1c_fw','double buffered','r/w hardware clear','read/32 bit write only','r/w firmware only']
@@ -116,10 +124,10 @@ def disp_fail_content(x,dump_choice,alg,flg):
         (alg,flg) = dump.export('store_fail',fail_content,alg,flg)
     
 def disp_total_pass_fail(Pass,Fail,Unknown,Error,error_reasons):
-    print('Pass:'+str(Pass))
+    print(Fore.LIGHTBLUE_EX+'Pass:'+str(Pass))
     print('Fail:'+str(Fail))
     print('Unknown:'+str(Unknown))
-    print('Error:'+str(Error))
+    print('Error:'+str(Error)+Fore.RESET)
     print('---')
     for reason in error_reasons:
         print(reason)
