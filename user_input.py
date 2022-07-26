@@ -62,16 +62,16 @@ class Pre_test:
                 else:
                     temp+='.'+n_level
                 if eval(temp+'.getaccess()') == chosen_access:
-                    print(f'{chosen_access} has successfully been set in {temp}')
+                    print(f'{Fore.LIGHTBLUE_EX + chosen_access} has successfully been set in {temp + Fore.RESET}')
                     log_store.append(f'{chosen_access} has successfully been set in {temp}')
                 else:
-                    print(f'{chosen_access} has unsuccessfully been set in {temp}')
+                    print(f'{Fore.LIGHTBLUE_EX+chosen_access} has unsuccessfully been set in {temp+Fore.RESET}')
                     log_store.append(f'{chosen_access} has unsuccessfully been set in {temp}')
         else:#default
-            print(f'User has chosen default access for {input_reg}.')
+            print(f'{Fore.LIGHTBLUE_EX}User has chosen default access for {input_reg}.')
             log_store.append(f'User has chosen default access for {input_reg}.')
             default_access = eval(input_reg+'.getaccess()')
-            print(f'Default access for {input_reg} is {default_access}.')
+            print(f'Default access for {input_reg} is {default_access}.{Fore.RESET}')
             log_store.append(f'Default access for {input_reg} is {default_access}.')
         return log_store
 

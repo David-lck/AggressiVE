@@ -258,12 +258,12 @@ class Pre_test:
     def _main(input_reg,auto_attr,auto):
         full_fields = error_regs(input_reg,auto,True)#detect for error regs and fields. Exclude them out from good regs and fields.
         valid_fields = invalidate(full_fields,auto,True)#detect for invalid regs and fields without attribute info. Exclude them out.
-        try:
-            eval(input_reg+'.getaccess()')
-            log_store = user.Pre_test.access_choice(input_reg)#display available access method and choose access method.(only for ip, how about die? how to choose?)
-        except Exception as e:
-            log_store = ['']
-            print(e)
+        #try:
+        eval(input_reg+'.getaccess()')
+        log_store = user.Pre_test.access_choice(input_reg)#display available access method and choose access method.(only for ip, how about die? how to choose?)
+        #except Exception as e:
+        #    log_store = ['']
+        #    print(e)
         avai_attrs = attr_all(input_reg,True)#display available attributes
         chosen_attr = user.Pre_test.attr_choice(avai_attrs,auto,auto_attr)#choose the one for validation.('r/w' or '')
         dumpchoice = user.Pre_test.dump_choice(auto)#dump validation information to AggressiVE.log and AggressiVE_fail.log?(0/1)
@@ -567,11 +567,11 @@ def aggressive(input_regs, auto=False, auto_attr=''):#WIP (register level)
         Table with the information of validation.
 
     EX:
-        >>> aggressive_auto('cpu')
-        >>> aggressive_auto('cpu.gfx.display')
-        >>> aggressive_auto('cpu.gfx.display.vga_control')
-        >>> aggressive_auto('cpu.gfx.display',auto=True)
-        >>> aggressive_auto('cpu.gfx.display',auto=True,auto_attr='rw')
+        >>> aggressive('cpu')
+        >>> aggressive('cpu.gfx.display')
+        >>> aggressive('cpu.gfx.display.vga_control')
+        >>> aggressive('cpu.gfx.display',auto=True)
+        >>> aggressive('cpu.gfx.display',auto=True,auto_attr='rw')
     '''
     try:
         eval('__main__.'+input_regs)
@@ -585,7 +585,7 @@ def aggressive(input_regs, auto=False, auto_attr=''):#WIP (register level)
         (valid_fields,chosen_attr,dumpchoice) = Pre_test._main(input_reg,auto_attr,auto)#run all pretest features.
         (fail_x,Fail,alg,flg,fail_fields_name) = rdwr.validate(valid_fields,chosen_attr,dumpchoice,auto)#validation.
         Post_test._fail_main(Fail,fail_fields_name,alg,flg,dumpchoice,fail_x,auto)#run post feature (Validate or display fail fields only).
-    itp.go()
+    #itp.go()
 
 def test():
     itp.halt()
