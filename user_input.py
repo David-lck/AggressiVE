@@ -16,6 +16,8 @@ cpu = _sv.socket.get_all()[0]
 import display_output as disp
 import tracking as track
 from pysvtools.asciitable import AsciiTable as Table
+import colorama
+from colorama import Fore
 
 class Pre_test:
     def _get_access_method(input_reg):
