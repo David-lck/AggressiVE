@@ -118,7 +118,7 @@ class Pre_test:
             for error_name in error_names:
                 print(error_name)
             print('-'*100)
-        print(f"{Fore.BLUE}There's {len(error_names)} error registers.")
+        print(f"{Fore.LIGHTBLUE_EX}There's {len(error_names)} error registers.")
         print('All the error registers names have been saved to C>>Users>>pgsvlab>>Documents>>PythonSv>>error_reg.py.'+Fore.RESET)
    
 class Exec:

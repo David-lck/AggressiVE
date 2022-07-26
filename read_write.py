@@ -622,7 +622,7 @@ def validate(valid_fields,chosen_attr,dumpchoice,auto):
     if dumpchoice == 0 and Fail == 0:
         (alg,flg) = dump.export('close_all','NA',alg,flg)
         (alg,flg) = dump.export('close_fail','NA',alg,flg)
-    user.disp_error_choice(Error,error_info,auto)
+    user.Post_test.disp_error_choice(Error,error_info,auto)
     return fail_x,Fail,alg,flg,fail_fields_name
 
 def validate2_fail_regs(fail_fields_name,alg,flg,dumpchoice,Fail,auto):
