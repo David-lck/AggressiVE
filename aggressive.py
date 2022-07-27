@@ -570,7 +570,7 @@ def attr_all(input_regs,validate=False):#for die, ip, register, and fields
     #make the one string to list.
     if ',' not in str(input_regs):
         input_regs = input_regs.split(',')
-    headers = ['Num','Attributes','Num of fields']
+    headers = ['Num','Attributes','Num of fields','Algorithm']
     table = []
     x = []
     total_num_valid_fields = 0
@@ -583,10 +583,18 @@ def attr_all(input_regs,validate=False):#for die, ip, register, and fields
         #display all the attrs and num of fields.
         i = 0
         for new_attr in new_attrs:
-            table += [{'Num':i+1,'Attributes':new_attr ,'Num of fields':new_num[i]}]
+            if new_attr == 'rw':
+                new_attr = 'r/w'
+            elif new_attr == 'rw/c':
+                new_attr = 'r/wc'
+            if new_attr in STATUS:
+                algo = STATUS[new_attr]
+            else:
+                algo = 'Undefined'
+            table += [{'Num':i+1,'Attributes':new_attr ,'Num of fields':new_num[i],'Algorithm':algo}]
             i+=1
         total_num_valid_fields += len(valid_fields)
-    table += [{'Num':'-','Attributes':'Total num of fields' ,'Num of fields':total_num_valid_fields}]
+    table += [{'Num':'-','Attributes':'Total num of fields' ,'Num of fields':total_num_valid_fields,'Algorithm':'-'}]
     x = Table.fromDictList(table,headers)
     print(x.getTableText())
     aa = dump.export_attr_all('open','','')
