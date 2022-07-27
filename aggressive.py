@@ -285,105 +285,158 @@ class Post_test:
                 (alg,flg) = dump.export('close_all','NA',alg,flg)
                 (alg,flg) = dump.export('close_fail','NA',alg,flg)
 	
-class Algorithm:
-    def _basic_attr():
-        attrs = ['ro','wo','r/w','rw/s','rw/l','rw/o','rw/1c','rw/1l','rw/1s','r/wc','ro/swc','rsv']
-        description = ['read-only','write-only','read-write','read-write set','read-write lock','read-write once','read-write (write 1 will clear)','read-write (write 1 will lock)','read-write (write 1 will set)','read-write clear','read returns 0,subsequent reads return 1,write 1 clears, write 0 has no effect','reserved (rd and wr masks are disabled)']
-        status = ['Ready','Ready','Ready','Ready','Ready','Ready','Ready','Ready','Ready','Ready','Ready','Ready']
-        pre_rd1 = ['0/1','0/1','0/1','0/1','0/1','0/1','0/1','0/1','0/1','0/1','0','0/1']
-        pre_rd2 = ['0/1','0/1','0/1','0/1','0/1','0/1','0/1','0/1','0/1','0/1','1','0/1']
-        wr1 = ['10','10','10','10','10','10','10','10','10','10','10','10']
-        rd1 = ['pre_rd','pre_rd','10','1(pre_rd)','1(pre_rd)','10','0(pre_rd)','1(pre_rd)','1(pre_rd)','0(pre_rd)','1strd=0;2ndrd=0','pre_rd']
-        wr2 = ['01','01','01','01','01','01','01','01','01','01','01','01']
-        rd2 = ['pre_rd','pre_rd','01','11','11','10','00','11','11','00','1strd=1;2ndrd=1','pre_rd']
-        wr3 = ['10','10','10','10','10','10','10','10','10','10','10','10']
-        rd3 = ['pre_rd','pre_rd','10','11','11','10','00','11','11','00','1strd=0;2ndrd=0','pre_rd']
-        return [attrs,description,status,pre_rd1,pre_rd2,wr1,rd1,wr2,rd2,wr3,rd3]
-		
-    def _new_attr(all_info):
-        attrs = ['ro/c','rw/cr','wo/1','wo/c','na','rw0c_fw','rw1c_fw','double buffered','r/w hardware clear','read/32 bit write only','r/w firmware only']
-        description = ['read-only clear','read-write cleared by read','write once without read','write only, write will clear','no access. read and write masks are disabled','read-write 0 cleared by FW','read-write 1 cleared by FW','-','read-write cleared by HW','read and can only write in 32bit','read-write by FW only']
-        status = ['New','New','New','New','New','New','New','New','New','New','New']
-        pre_rd1 = ['?','1/0','1/0','1/0','0','1/0','1/0','1/0','1/0','1/0','1/0']
-        pre_rd2 = ['0','1/0','1/0','1/0','0','1/0','1/0','1/0','1/0','1/0','1/0']
-        wr1 = ['10','10','10','10','10','10','10','10','10','10','10']
-        rd1 = ['0','1strd=10;2ndrd=0','0','0','0','10','10','10','10','10','10',]
-        wr2 = ['NA','01','01','01','01','01','01','01','01','01','01']
-        rd2 = ['NA','1strd=01;2ndrd=0','0','0','0','01','01','01','01','01','01']
-        wr3 = ['NA','NA','10','10','10','10','10','10','10','10','10']
-        rd3 = ['NA','NA','0','0','0','10','10','10','10','10','10']
-        num = len(attrs)
-        while num > 0:
-            num -= 1
-            all_info[0].append(attrs[num])
-            all_info[1].append(description[num])
-            all_info[2].append(status[num])
-            all_info[3].append(pre_rd1[num])
-            all_info[4].append(pre_rd2[num])
-            all_info[5].append(wr1[num])
-            all_info[6].append(rd1[num])
-            all_info[7].append(wr2[num])
-            all_info[8].append(rd2[num])
-            all_info[9].append(wr3[num])
-            all_info[10].append(rd3[num])
-        return all_info
-		
-    def _undefined_attr(all_info):
-        attrs = ['rw/v/p','rw/v/l','rw/v/p/l','ro/v/p','rw/1c/p','rw/1c/v','rw/1c/v/p','rw/1s/v','rw/1s/v/l','rw/ac','rw/o/p','rw/o/v/l','rw/p/l','rw/fuse','rw/strap','dc']
-        description = ['Read-Write , Variant , HW loadable, Cleared with Power-good reset only','Read-Write Variable Lock','Read-Write variant with lock, sticky','Read-Only, Variant, Sticky','Read-Write 1 to Clear Sticky (set by HW, cleared by FW)','Read-Write 1 to Clear with HW loadable','read, write 1 to clear, HW loadable, sticky','Read-Write 1 to Set wirh HW loadable','Read-Write 1 to Set with HW loadable, Lock','Read/Write Auto Clear.Field is RW,but HW may clear the field without intervention','Read-Write Once Sticky','Read-Write Once Variant with Lock','Read-Write Sticky Lock','Read-Write Fuse','Read-Write Strap','-']
-        status = ['Undefined','Undefined','Undefined','Undefined','Undefined','Undefined','Undefined','Undefined','Undefined','Undefined','Undefined','Undefined','Undefined','Undefined','Undefined','Undefined']
-        pre_rd1 = ['r/w','r/w','r/w','ro','ro','ro','ro','ro','ro','ro','ro','ro','ro','ro','ro','ro']
-        pre_rd2 = ['r/w','r/w','r/w','ro','ro','ro','ro','ro','ro','ro','ro','ro','ro','ro','ro','ro']
-        wr1 = ['r/w','r/w','r/w','ro','ro','ro','ro','ro','ro','ro','ro','ro','ro','ro','ro','ro']
-        rd1 = ['r/w','r/w','r/w','ro','ro','ro','ro','ro','ro','ro','ro','ro','ro','ro','ro','ro']
-        wr2 = ['r/w','r/w','r/w','ro','ro','ro','ro','ro','ro','ro','ro','ro','ro','ro','ro','ro']
-        rd2 = ['r/w','r/w','r/w','ro','ro','ro','ro','ro','ro','ro','ro','ro','ro','ro','ro','ro']
-        wr3 = ['r/w','r/w','r/w','ro','ro','ro','ro','ro','ro','ro','ro','ro','ro','ro','ro','ro']
-        rd3 = ['r/w','r/w','r/w','ro','ro','ro','ro','ro','ro','ro','ro','ro','ro','ro','ro','ro']
-        num = len(attrs)
-        while num > 0:
-            num -= 1
-            all_info[0].append(attrs[num])
-            all_info[1].append(description[num])
-            all_info[2].append(status[num])
-            all_info[3].append(pre_rd1[num])
-            all_info[4].append(pre_rd2[num])
-            all_info[5].append(wr1[num])
-            all_info[6].append(rd1[num])
-            all_info[7].append(wr2[num])
-            all_info[8].append(rd2[num])
-            all_info[9].append(wr3[num])
-            all_info[10].append(rd3[num])
-        return all_info
-		
-    def _na_undefined_attr(all_info):
-        attrs = ['ro/c/v','ro/p','ro/v','rw/0c/v','rw/l/k','rw/p','rw/s/l','rw/v','rw/v2']
-        description = ['-','-','-','-','-','-','-','-','-']
-        status = ['Undefined','Undefined','Undefined','Undefined','Undefined','Undefined','Undefined','Undefined','Undefined']
-        pre_rd1 = ['r/w','r/w','r/w','ro','ro','ro','ro','ro','ro','ro','ro','ro','ro','ro','ro','ro']
-        pre_rd2 = ['r/w','r/w','r/w','ro','ro','ro','ro','ro','ro','ro','ro','ro','ro','ro','ro','ro']
-        wr1 = ['?','?','?','?','?','?','?','?','?']
-        rd1 = ['?','?','?','?','?','?','?','?','?']
-        wr2 = ['?','?','?','?','?','?','?','?','?']
-        rd2 = ['?','?','?','?','?','?','?','?','?']
-        wr3 = ['?','?','?','?','?','?','?','?','?']
-        rd3 = ['?','?','?','?','?','?','?','?','?']
-        num = len(attrs)
-        while num > 0:
-            num -= 1
-            all_info[0].append(attrs[num])
-            all_info[1].append(description[num])
-            all_info[2].append(status[num])
-            all_info[3].append(pre_rd1[num])
-            all_info[4].append(pre_rd2[num])
-            all_info[5].append(wr1[num])
-            all_info[6].append(rd1[num])
-            all_info[7].append(wr2[num])
-            all_info[8].append(rd2[num])
-            all_info[9].append(wr3[num])
-            all_info[10].append(rd3[num])
-        return all_info
-		
+DESC = {
+'ro':'read-only',
+'wo':'write-only',
+'r/w':'read-write',
+'rw/s':'read-write set',
+'rw/l':'read-write lock',
+'rw/o':'read-write once',
+'rw/1c':'read-write (write 1 will clear)',
+'rw/1l':'read-write (write 1 will lock)',
+'rw/1s':'read-write (write 1 will set)',
+'r/wc':'read-write clear',
+'ro/swc':'read returns 0,subsequent reads return 1,write 1 clears, write 0 has no effect',
+'rsv':'reserved (rd and wr masks are disabled)',
+'ro/c':'read-only clear',
+'rw/cr':'read-write cleared by read',
+'wo/1':'write once without read',
+'wo/c':'write only, write will clear',
+'na':'no access. read and write masks are disabled',
+'rw0c_fw':'read-write 0 cleared by FW',
+'rw1c_fw':'read-write 1 cleared by FW',
+'double buffered':'-',
+'r/w hardware clear':'read-write cleared by HW',
+'read/32 bit write only':'read and can only write in 32bit',
+'r/w firmware only':'read-write by FW only',
+'rw/v/p':'Read-Write , Variant , HW loadable, Cleared with Power-good reset only',
+'rw/v/l':'Read-Write Variable Lock',
+'rw/v/p/l':'Read-Write variant with lock, sticky',
+'ro/v/p':'Read-Only, Variant, Sticky',
+'rw/1c/p':'Read-Write 1 to Clear Sticky (set by HW, cleared by FW)',
+'rw/1c/v':'Read-Write 1 to Clear with HW loadable',
+'rw/1c/v/p':'read, write 1 to clear, HW loadable, sticky',
+'rw/1s/v':'Read-Write 1 to Set wirh HW loadable',
+'rw/1s/v/l':'Read-Write 1 to Set with HW loadable, Lock',
+'rw/ac':'Read/Write Auto Clear.Field is RW,but HW may clear the field without intervention',
+'rw/o/p':'Read-Write Once Sticky',
+'rw/o/v/l':'Read-Write Once Variant with Lock',
+'rw/p/l':'Read-Write Sticky Lock',
+'rw/fuse':'Read-Write Fuse',
+'rw/strap':'Read-Write Strap',
+'dc':'-',
+'ro/c/v':'-',
+'ro/p':'-',
+'ro/v':'-',
+'rw/0c/v':'-',
+'rw/l/k':'-',
+'rw/p':'-',
+'rw/s/l':'-',
+'rw/v':'-',
+'rw/v2':'-'
+}
+
+STATUS = {
+'ro':'Ready',
+'wo':'Ready',
+'r/w':'Ready',
+'rw/s':'Ready',
+'rw/l':'Ready',
+'rw/o':'Ready',
+'rw/1c':'Ready',
+'rw/1l':'Ready',
+'rw/1s':'Ready',
+'r/wc':'Ready',
+'ro/swc':'Ready',
+'rsv':'Ready',
+'ro/c':'New',
+'rw/cr':'New',
+'wo/1':'New',
+'wo/c':'New',
+'na':'New',
+'rw0c_fw':'New',
+'rw1c_fw':'New',
+'double buffered':'New',
+'r/w hardware clear':'New',
+'read/32 bit write only':'New',
+'r/w firmware only':'New',
+'rw/v/p':'Undefined',
+'rw/v/l':'Undefined',
+'rw/v/p/l':'Undefined',
+'ro/v/p':'Undefined',
+'rw/1c/p':'Undefined',
+'rw/1c/v':'Undefined',
+'rw/1c/v/p':'Undefined',
+'rw/1s/v':'Undefined',
+'rw/1s/v/l':'Undefined',
+'rw/ac':'Undefined',
+'rw/o/p':'Undefined',
+'rw/o/v/l':'Undefined',
+'rw/p/l':'Undefined',
+'rw/fuse':'Undefined',
+'rw/strap':'Undefined',
+'dc':'Undefined',
+'ro/c/v':'Undefined',
+'ro/p':'Undefined',
+'ro/v':'Undefined',
+'rw/0c/v':'Undefined',
+'rw/l/k':'Undefined',
+'rw/p':'Undefined',
+'rw/s/l':'Undefined',
+'rw/v':'Undefined',
+'rw/v2':'Undefined'
+}
+
+ALGORITHM = {
+'ro':['0/1','0/1','10','pre_rd','01','pre_rd','10','pre_rd'],
+'wo':['0/1','0/1','10','pre_rd','01','pre_rd','10','pre_rd'],
+'r/w':['0/1','0/1','10','10','01','01','10','10'],
+'rw/s':['0/1','0/1','10','1(pre_rd)','01','11','10','11'],
+'rw/l':['0/1','0/1','10','1(pre_rd)','01','11','10','11'],
+'rw/o':['0/1','0/1','10','10','01','10','10','10'],
+'rw/1c':['0/1','0/1','10','0(pre_rd)','01','00','10','00'],
+'rw/1l':['0/1','0/1','10','1(pre_rd)','01','11','10','11'],
+'rw/1s':['0/1','0/1','10','1(pre_rd)','01','11','10','11'],
+'r/wc':['0/1','0/1','10','0(pre_rd)','01','00','10','00'],
+'ro/swc':['0','1','10','1strd=0;2ndrd=0','01','1strd=1;2ndrd=1','10','1strd=0;2ndrd=0'],
+'rsv':['0/1','0/1','10','pre_rd','01','Pre_rd','10','Pre_rd'],
+'ro/c':['?','0','10','0','NA','NA','NA','NA'],
+'rw/cr':['1/0','1/0','10','1strd=10;2ndrd=0','01','1strd=01;2ndrd=0','NA','NA'],
+'wo/1':['1/0','1/0','10','0','01','0','10','0'],
+'wo/c':['1/0','1/0','10','0','01','0','10','0'],
+'na':['0','0','10','0','01','0','10','0'],
+'rw0c_fw':['1/0','1/0','10','10','01','01','10','10'],
+'rw1c_fw':['1/0','1/0','10','10','01','01','10','10'],
+'double buffered':['1/0','1/0','10','10','01','01','10','10'],
+'r/w hardware clear':['1/0','1/0','10','10','01','01','10','10'],
+'read/32 bit write only':['1/0','1/0','10','10','01','01','10','10'],
+'r/w firmware only':['1/0','1/0','10','10','01','01','10','10'],
+'rw/v/p':['r/w','r/w','r/w','r/w','r/w','r/w','r/w','r/w'],
+'rw/v/l':['r/w','r/w','r/w','r/w','r/w','r/w','r/w','r/w'],
+'rw/v/p/l':['r/w','r/w','r/w','r/w','r/w','r/w','r/w','r/w'],
+'ro/v/p':['ro','ro','ro','ro','ro','ro','ro','ro'],
+'rw/1c/p':['ro','ro','ro','ro','ro','ro','ro','ro'],
+'rw/1c/v':['ro','ro','ro','ro','ro','ro','ro','ro'],
+'rw/1c/v/p':['ro','ro','ro','ro','ro','ro','ro','ro'],
+'rw/1s/v':['ro','ro','ro','ro','ro','ro','ro','ro'],
+'rw/1s/v/l':['ro','ro','ro','ro','ro','ro','ro','ro'],
+'rw/ac':['ro','ro','ro','ro','ro','ro','ro','ro'],
+'rw/o/p':['ro','ro','ro','ro','ro','ro','ro','ro'],
+'rw/o/v/l':['ro','ro','ro','ro','ro','ro','ro','ro'],
+'rw/p/l':['ro','ro','ro','ro','ro','ro','ro','ro'],
+'rw/fuse':['ro','ro','ro','ro','ro','ro','ro','ro'],
+'rw/strap':['ro','ro','ro','ro','ro','ro','ro','ro'],
+'dc':['ro','ro','ro','ro','ro','ro','ro','ro'],
+'ro/c/v':['r/w','r/w','?','?','?','?','?','?'],
+'ro/p':['r/w','r/w','?','?','?','?','?','?'],
+'ro/v':['r/w','r/w','?','?','?','?','?','?'],
+'rw/0c/v':['ro','ro','?','?','?','?','?','?'],
+'rw/l/k':['ro','ro','?','?','?','?','?','?'],
+'rw/p':['ro','ro','?','?','?','?','?','?'],
+'rw/s/l':['ro','ro','?','?','?','?','?','?'],
+'rw/v':['ro','ro','?','?','?','?','?','?'],
+'rw/v2':['ro','ro','?','?','?','?','?','?']
+}
 		
 def theory():
     '''
@@ -403,18 +456,12 @@ def theory():
         >>> theory()
     '''
     print('System will not be halted before/during/after all the validation!')
-    all_info = Algorithm._basic_attr()
-    all_info = Algorithm._new_attr(all_info)
-    all_info = Algorithm._undefined_attr(all_info)
-    all_info = Algorithm._na_undefined_attr(all_info)
     headers = ['Attrs','Descriptions','Status','Pre_Rd1','Pre_Rd2','WR1','RD1','WR2','RD2','WR3','RD3']
     table = []
     x = []
-    i=0
-    for attr in all_info[0]:
-        table += [{'Attrs':attr,'Descriptions':all_info[1][i],'Status':all_info[2][i],'Pre_Rd1':all_info[3][i],'Pre_Rd2':all_info[4][i],'WR1':all_info[5][i],'RD1':all_info[6][i],'WR2':all_info[7][i],'RD2':all_info[8][i],'WR3':all_info[9][i],'RD3':all_info[10][i]}] 
-        x = Table.fromDictList(table,headers)
-        i+=1
+    for attr in DESC.keys():
+        table += [{'Attrs':attr,'Descriptions':DESC[attr],'Status':STATUS[attr],'Pre_Rd1':ALGORITHM[attr][0],'Pre_Rd2':ALGORITHM[attr][1],'WR1':ALGORITHM[attr][2],'RD1':ALGORITHM[attr][3],'WR2':ALGORITHM[attr][4],'RD2':ALGORITHM[attr][5],'WR3':ALGORITHM[attr][6],'RD3':ALGORITHM[attr][7]}] 
+    x = Table.fromDictList(table,headers)
     print(x.getTableText())
     
 def error_regs(input_reg,auto,validate=False):#Completed(die,IP, and register)
