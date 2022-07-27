@@ -662,14 +662,9 @@ def debug():
     (fail_x,Fail,alg,flg,fail_fields_name) = rdwr.validate(valid_fields,'rw',0,auto=False)#validation.
 
 def test2():
-    items = list(range(0,50))
-    l = len(items)
+    RED = '\033[31m'
+    print(len(RED+'ds'))
 
-    loadbar(0,l, prefix='Progress:', infix = 'Time_Taken= 0sec', suffix=f'Complete [{items[0]}]', length=l)
-    print(items)
-    for i, item in enumerate(items):
-        time.sleep(0.1)
-        loadbar(i + 1, l, prefix='Progress:', infix = f'Time_Taken= {round(time_taken)}sec', suffix=f'Complete [{item}]', length=l)
 
 def test3():
     print(Fore.RED + 'This text is red in color')
