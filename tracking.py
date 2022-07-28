@@ -94,6 +94,13 @@ def track_dif_errors(error_info):
         if msg not in msg_sorted:
             msg_sorted.append(msg)
     return msg_sorted
+	
+def track_val_time(num_to_print_regs, prev_est_t, current_reg_timetaken):
+    if prev_est_t == 0:
+        prev_est_t = 60
+    estimated_t_perreg = round((current_reg_timetaken + prev_est_t)/2)#calculate average estimated time taken per register.
+    estimated_t = estimated_t_perreg * num_to_print_regs
+    return estimated_t_perreg,estimated_t,current_reg_timetaken
 		
 def fields_2_ips(full_fields):
     print('Detecting all the IPs information...')

@@ -574,6 +574,9 @@ def validate(valid_fields,chosen_attr,dumpchoice,auto):
     #validation.
     num_chosen_attr_fields = len(chosen_attr_fields)
     reserved_print_num=len(chosen_attr_fields)
+    estimated_t = 0
+    prev_timetaken = 0
+    estimated_t_perreg = 0
     for full_field_name in chosen_attr_fields:
         #to ask user for the num of table display.
         if num2print == 0:                                                                                                              
@@ -583,11 +586,14 @@ def validate(valid_fields,chosen_attr,dumpchoice,auto):
             num_chosen_attr_fields-=num2print
             initial_time = time.time()
             reserved_num = 0
+        reserved_num += 1
         time_taken = time.time() - initial_time
         (s,m,h) = disp.time(round(time_taken))
-        reserved_num += 1
+        if repr(reserved_num)[-1] == '1':
+            (estimated_t_perreg,estimated_t,prev_timetaken) = track.track_val_time(reserved_print_num, estimated_t_perreg, round(time_taken)-prev_timetaken)
+            (est_s,est_m,est_h) = disp.time(round(estimated_t))
         #disp.loadbar(reserved_num, reserved_print_num, prefix=f'Progress [{reserved_num}:{reserved_print_num}]:', infix = f'Time_Taken= {h}h{m}m{s}s', suffix=f'Reg: [{full_field_name}]', length=reserved_print_num)
-        disp.progress(reserved_num, reserved_print_num, prefix=f'Progress [{reserved_num}:{reserved_print_num}]:', infix = f'Time_Taken= {h}h{m}m{s}s', suffix=f'Reg: [{full_field_name}]')
+        disp.progress(reserved_num, reserved_print_num, prefix=f'Progress [{reserved_num}:{reserved_print_num}]:', infix1 = f'Time_Taken= {h}h{m}m{s}s', infix2 = f'Estimated= {est_h}h{est_m}m{est_s}s', suffix=f'Reg: [{full_field_name}]')
         ##print(f'{str(num)}/{str(len(chosen_attr_fields))}: {full_field_name}')
         #validate
         try:
@@ -638,6 +644,8 @@ def validate2_fail_regs(fail_fields_name,alg,flg,dumpchoice,Fail,auto):
     num=1
     #2nd validation.
     reserved_print_num = len(fail_fields_name)
+    estimated_t = 0
+    past_t = 0
     for fail_field_name in fail_fields_name:
         #to ask user for the num of table display.
         if num2print == 0:                                                                                                              #to ask user for the num of table display.
@@ -649,8 +657,10 @@ def validate2_fail_regs(fail_fields_name,alg,flg,dumpchoice,Fail,auto):
             reserved_num = 0
         time_taken = time.time() - initial_time
         (s,m,h) = disp.time(round(time_taken))
+        (estimated_t,past_t) = track.track_val_time(reserved_print_num, past_t, round(time.time()),estimated_t)
+        (est_s,est_m,est_h) = disp.time(round(estimated_t))
         reserved_num += 1
-        disp.progress(reserved_num, reserved_print_num, prefix=f'Progress [{reserved_num}:{reserved_print_num}]:', infix = f'Time_Taken= {h}h{m}m{s}s', suffix=f'Reg: [{fail_field_name}]')
+        disp.progress(reserved_num, reserved_print_num, prefix=f'Progress [{reserved_num}:{reserved_print_num}]:', infix1 = f'Time_Taken= {h}h{m}m{s}s', infix2 = f'Estimated= {est_h}h{est_m}m{est_s}s', suffix=f'Reg: [{fail_field_name}]')
         #print(f'{str(num)}/{str(len(fail_fields_name))}: {fail_field_name}')
         #validate
         (pre_rd,wr_in_list,rd_in_list,pass_fail,fail_reason) = validate_1by1(fail_field_name)

@@ -662,9 +662,7 @@ def debug():
     (fail_x,Fail,alg,flg,fail_fields_name) = rdwr.validate(valid_fields,'rw',0,auto=False)#validation.
 
 def test2():
-    RED = '\033[31m'
-    print(len(RED+'ds'))
-
+    return 0
 
 def test3():
     print(Fore.RED + 'This text is red in color')
