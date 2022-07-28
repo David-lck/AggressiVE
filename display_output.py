@@ -159,7 +159,7 @@ def progress(iteration, total, prefix='', infix1 ='', infix2 = '', suffix='', de
     #print(f'\r{prefix}{Fore.LIGHTBLUE_EX + percent}%{Fore.RESET} [{infix}] {suffix}', end='\r')
     LINE_CLEAR = '\x1b[2K' # <-- ANSI sequence
     print(end=LINE_CLEAR)
-    print(f'\r{prefix}{Fore.LIGHTBLUE_EX + percent}%{Fore.RESET} [{infix1}][{Fore.LIGHTBLUE_EX+infix2+Fore.RESET}] {suffix}', end='')
+    print(f'\r{prefix}{Fore.LIGHTBLUE_EX + percent}%{Fore.RESET} [{infix1}] {suffix}', end='')
     if iteration == total:
         print()
 
