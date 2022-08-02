@@ -610,7 +610,7 @@ def validate(valid_fields,chosen_attr,dumpchoice,auto):
             fail_fields_name.append(full_field_name)
         #print the table when reach number user want to print.
         num2print -= 1
-        if num2print == 0:
+        if int(repr(num2print)[-1]) == 0:
             disp.disp_content(rowdictlist,x,dumpchoice,alg,flg)
             disp.disp_total_pass_fail(Pass,Fail,Unknown,Error)
             rowdictlist=[]
