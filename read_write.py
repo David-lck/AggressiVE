@@ -25,6 +25,7 @@ try:
     from tqdm.tqdm import tqdm
 except:
     from tqdm import tqdm
+import pysvtools.fv_common.target as target
 
 
 all_undefined_attrs = ['dc','ro/c/v','ro/p','ro/v','ro/v/p','rw/1c/p','rw/1c/v','rw/1c/v/p','rw/0c/v','rw/1s/v/p','rw/1s/v','rw/1s/v/l','rw/ac','rw/l/k','rw/o/p','rw/o/v/l','rw/p','rw/p/l','rw/s/l','rw/fuse','rw/strap','rw/v','rw/v/p','rw/v/l','rw/v/p/l','rw/v2']
@@ -548,6 +549,9 @@ def validate_1by1(full_field_name):#only on one chosen attr or all attrs.
             pass_fail = 'NA'
     else:
         pass_fail = 'pass'
+    if target.readPostcode() != 0x10AD:
+        pass_fail = 'fail'
+        fail_reason.append('sys_rst')
     return pre_rd,wr_in_list,rd_in_list,pass_fail,fail_reason
 
 def validate(valid_fields,chosen_attr,dumpchoice,auto):
