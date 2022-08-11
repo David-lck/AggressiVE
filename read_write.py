@@ -550,7 +550,7 @@ def validate_1by1(full_field_name):#only on one chosen attr or all attrs.
             pass_fail = 'NA'
     else:
         pass_fail = 'pass'
-    if itp.running() == False:
+    if itp.isrunning() == False:
         pass_fail = 'fail'
         fail_reason.append('hang')
     if target.readPostcode() != 0x10AD:
@@ -679,14 +679,30 @@ def validate2_fail_regs(fail_fields_name,alg,flg,dumpchoice,Fail,auto):
         attr = eval(fail_field_name+'.info["attribute"]')
         (fail_rowdl,fail_x) = disp.store_fail_content(fail_rowdl,fail_x,num,fail_field_name,attr,pass_fail,pre_rd,wr_in_list,rd_in_list,fail_reason)
         (Pass2,Fail2,Unknown2,Error2) = track.track_num_pass_fail(pass_fail,Pass2,Fail2,Unknown2,Error2)
+        if 'hang' in fail_reason:
+            num2print = 0
         num2print -= 1
-        if num2print == 0:
+        if int(repr(num2print)[-1]) == 0:
             disp.disp_fail_content(fail_x,dumpchoice,alg,flg)
             print(f'{Fail} fail(s) in 1st validation.')
             disp.disp_total_pass_fail(Pass2,Fail2,Unknown2,Error2)
             fail_rowdl=[]
             fail_x=[]
         num+=1
+        if 'hang' in fail_reason:
+            machine_chk_error = debug.mca.analyze()
+            if machine_chk_error == []:
+                hang_reason = 'System is not running!'
+                print(hang_reason)
+            else:
+                hang_reason = 'Validation will be stopped due to the present of machine check error'
+                print(hang_reason)
+            if dumpchoice == 0:
+                (alg,flg) = dump.export('store',hang_reason,alg,flg)
+                (alg,flg) = dump.export('store',str(machine_chk_error),alg,flg)
+                (alg,flg) = dump.export('store_fail',hang_reason,alg,flg)
+                (alg,flg) = dump.export('store_fail',str(machine_chk_error),alg,flg)
+            break
     #shows num of passed fields.
     if Fail2 == Fail:
         print('In second validation, no pass sub-register.')
