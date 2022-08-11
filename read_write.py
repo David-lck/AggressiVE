@@ -26,6 +26,7 @@ try:
 except:
     from tqdm import tqdm
 import pysvtools.fv_common.target as target
+from meteorlake import debug
 
 
 all_undefined_attrs = ['dc','ro/c/v','ro/p','ro/v','ro/v/p','rw/1c/p','rw/1c/v','rw/1c/v/p','rw/0c/v','rw/1s/v/p','rw/1s/v','rw/1s/v/l','rw/ac','rw/l/k','rw/o/p','rw/o/v/l','rw/p','rw/p/l','rw/s/l','rw/fuse','rw/strap','rw/v','rw/v/p','rw/v/l','rw/v/p/l','rw/v2']
@@ -549,6 +550,9 @@ def validate_1by1(full_field_name):#only on one chosen attr or all attrs.
             pass_fail = 'NA'
     else:
         pass_fail = 'pass'
+    if itp.running() == False:
+        pass_fail = 'fail'
+        fail_reason.append('hang')
     if target.readPostcode() != 0x10AD:
         pass_fail = 'fail'
         fail_reason.append('sys_rst')
@@ -614,6 +618,8 @@ def validate(valid_fields,chosen_attr,dumpchoice,auto):
             fail_fields_name.append(full_field_name)
         #print the table when reach number user want to print.
         num2print -= 1
+        if 'hang' in fail_reason:
+            num2print = 0
         if int(repr(num2print)[-1]) == 0:
             print('')
             disp.disp_content(rowdictlist,x,dumpchoice,alg,flg)
@@ -621,6 +627,20 @@ def validate(valid_fields,chosen_attr,dumpchoice,auto):
             rowdictlist=[]
             x=[]
         num+=1
+        if 'hang' in fail_reason:
+            machine_chk_error = debug.mca.analyze()
+            if machine_chk_error == []:
+                hang_reason = 'System is not running!'
+                print(hang_reason)
+            else:
+                hang_reason = 'Validation will be stopped due to the present of machine check error'
+                print(hang_reason)
+            if dumpchoice == 0:
+                (alg,flg) = dump.export('store',hang_reason,alg,flg)
+                (alg,flg) = dump.export('store',str(machine_chk_error),alg,flg)
+                (alg,flg) = dump.export('store_fail',hang_reason,alg,flg)
+                (alg,flg) = dump.export('store_fail',str(machine_chk_error),alg,flg)
+            break
     elg = dump.export_invalid('close','NA',elg)
     if dumpchoice == 0 and Fail == 0:
         (alg,flg) = dump.export('close_all','NA',alg,flg)
