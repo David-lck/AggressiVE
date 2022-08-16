@@ -522,6 +522,9 @@ class Val_stage:
             rd_in_list.append(two_read_value[1])
         else:
             rd_in_list.append(rd)
+        if target.readPostcode() != 0x10AD:#only for UEFI.
+            pass_fail = 'fail'
+            fail_reason.append('sys_rst')
         return wr_in_list,rd_in_list,pass_fail
 
     def second_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,val_stage,wr_value):
@@ -550,11 +553,13 @@ def validate_1by1(full_field_name):#only on one chosen attr or all attrs.
             pass_fail = 'NA'
     else:
         pass_fail = 'pass'
-    if itp.isrunning() == False:
-        pass_fail = 'fail'
-        fail_reason.append('hang')
-    if target.readPostcode() != 0x10AD:
-        pass_fail = 'fail'
+    if itp.isrunning() == False:#If system has soft hang or cat error.
+        itp.go()
+        time.sleep(3)
+        if itp.isrunning() == False:
+            pass_fail = 'fail'
+            fail_reason.append('hang')
+    if 'sys_rst' in [pass_fail_pre_rd,pass_fail_1st_val,pass_fail_2nd_val,pass_fail_3rd_val]:
         fail_reason.append('sys_rst')
     return pre_rd,wr_in_list,rd_in_list,pass_fail,fail_reason
 
