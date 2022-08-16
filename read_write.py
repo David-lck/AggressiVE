@@ -555,6 +555,7 @@ def validate_1by1(full_field_name):#only on one chosen attr or all attrs.
     if itp.isrunning() == False:#If system has soft hang or cat error.
         itp.go()
         time.sleep(3)
+        fail_reason.append('halt')
         if itp.isrunning() == False:
             pass_fail = 'fail'
             fail_reason.append('hang')
