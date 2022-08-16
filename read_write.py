@@ -632,6 +632,9 @@ def validate(valid_fields,chosen_attr,dumpchoice,auto):
             disp.disp_total_pass_fail(Pass,Fail,Unknown,Error)
             rowdictlist=[]
             x=[]
+            machine_chk_error = debug.mca.analyze()
+            if machine_chk_error != []:
+                fail_reason.append('hang')
         num+=1
         if 'hang' in fail_reason:
             machine_chk_error = debug.mca.analyze()
