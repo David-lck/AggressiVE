@@ -560,6 +560,7 @@ def validate_1by1(full_field_name):#only on one chosen attr or all attrs.
             fail_reason.append('hang')
     if 'sys_rst' in [pass_fail_1st_val,pass_fail_2nd_val,pass_fail_3rd_val]:
         fail_reason.append('sys_rst')
+        pass_fail = 'fail'
     return pre_rd,wr_in_list,rd_in_list,pass_fail,fail_reason
 
 def validate(valid_fields,chosen_attr,dumpchoice,auto):
