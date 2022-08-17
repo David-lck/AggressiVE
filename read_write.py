@@ -575,9 +575,9 @@ def hang_validate_1by1(full_field_name, confirm_hang_regs, hang_stages):
     (wr_in_list,rd_in_list,pass_fail_3rd_val) = Val_stage.third_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,'3rd_stage_rdwr','A5')
     hang_state = machine_check(hang_state, 3)
     if '1' in hang_state:
-        confirmt_hang_regs.append(full_field_name)
+        confirm_hang_regs.append(full_field_name)
         hang_stages.append(hang_state)
-    return confirmt_hang_regs, hang_stages
+    return confirm_hang_regs, hang_stages
 
 def validate(valid_fields,chosen_attr,dumpchoice,auto):
     num=1
