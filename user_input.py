@@ -170,6 +170,21 @@ class Post_test:
                 if disp_choice != "end":
                     disp.disp_all_errors(disp_choice,msg_sorted,error_info)
                 
+    def disp_hang_choice(fail_reason,auto):
+        if 'hang' in fail_reason:
+            if auto:
+                chk_choice = 'y'
+            else:
+	            while True:
+                    chk_choice = input('Check Hang registers?(y/n): ')
+			        if chk_choice.lower() in ['yes','y']:
+                        break
+                    elif chk_choice.lower() in ['no','n']:
+                        break
+                    print('Pls enter properly!')
+        else:
+            chk_choice = 'n'
+        return chk_choice.lower()
         
     def fail_val_choice(auto):
         if auto == True:

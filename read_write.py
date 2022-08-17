@@ -556,13 +556,28 @@ def validate_1by1(full_field_name):#only on one chosen attr or all attrs.
         itp.go()
         time.sleep(3)
         fail_reason.append('halt')
-        if itp.isrunning() == False:
-            pass_fail = 'fail'
-            fail_reason.append('hang')
     if 'sys_rst' in [pass_fail_1st_val,pass_fail_2nd_val,pass_fail_3rd_val]:
         fail_reason.append('sys_rst')
         pass_fail = 'fail'
     return pre_rd,wr_in_list,rd_in_list,pass_fail,fail_reason
+	
+def hang_validate_1by1(full_field_name, confirm_hang_regs, hang_stages):
+    wr_in_list = []
+    rd_in_list = []
+    fail_reason = []
+    hang_state = [0,0,0,0]
+    (pre_rd,pass_fail_pre_rd) = Val_stage.pre_read(full_field_name)
+    hang_state = machine_check(hang_state, 0)
+    (wr_in_list,rd_in_list,pass_fail_1st_val) = Val_stage.first_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,'1st_stage_rdwr','A5')
+    hang_state = machine_check(hang_state, 1)
+    (wr_in_list,rd_in_list,pass_fail_2nd_val) = Val_stage.second_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,'2nd_stage_rdwr','5A')
+    hang_state = machine_check(hang_state, 2)
+    (wr_in_list,rd_in_list,pass_fail_3rd_val) = Val_stage.third_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,'3rd_stage_rdwr','A5')
+    hang_state = machine_check(hang_state, 3)
+    if '1' in hang_state:
+        confirmt_hang_regs.append(full_field_name)
+        hang_stages.append(hang_state)
+    return confirmt_hang_regs, hang_stages
 
 def validate(valid_fields,chosen_attr,dumpchoice,auto):
     num=1
@@ -624,8 +639,6 @@ def validate(valid_fields,chosen_attr,dumpchoice,auto):
             fail_fields_name.append(full_field_name)
         #print the table when reach number user want to print.
         num2print -= 1
-        if 'hang' in fail_reason:
-            num2print = 0
         if int(repr(num2print)[-1]) == 0:
             print('')
             disp.disp_content(rowdictlist,x,dumpchoice,alg,flg)
@@ -637,25 +650,59 @@ def validate(valid_fields,chosen_attr,dumpchoice,auto):
                 fail_reason.append('hang')
         num+=1
         if 'hang' in fail_reason:
-            machine_chk_error = debug.mca.analyze()
-            if machine_chk_error == []:
-                hang_reason = 'System is not running!'
-                print(hang_reason)
-            else:
-                hang_reason = 'Validation will be stopped due to the present of machine check error'
-                print(hang_reason)
+            print('Validation will be stopped due to the present of machine check error')
             if dumpchoice == 0:
-                (alg,flg) = dump.export('store',hang_reason,alg,flg)
+                (alg,flg) = dump.export('store','Validation will be stopped due to the present of machine check error',alg,flg)
                 (alg,flg) = dump.export('store',str(machine_chk_error),alg,flg)
-                (alg,flg) = dump.export('store_fail',hang_reason,alg,flg)
+                (alg,flg) = dump.export('store_fail','Validation will be stopped due to the present of machine check error',alg,flg)
                 (alg,flg) = dump.export('store_fail',str(machine_chk_error),alg,flg)
             break
     elg = dump.export_invalid('close','NA',elg)
+    #second validation for hang regs if available
+    hang_chk_choice = user.Post_test.disp_hang_choice(fail_reason,auto)
+    if hang_chk_choice in ['yes','y']:
+        sus_hang_regs = chosen_attr_fields[chosen_attr_fields.index(full_field_name)-10:chosen_attr_fields.index(full_field_name)+1]
+        full_field_name in chosen_attr_fields:
+        (alg, flg) = validate2_hang_regs(sus_hang_regs, alg, flg, dumpchoice)
+    #display all or specific error registers.
+    user.Post_test.disp_error_choice(Error,error_info,auto)
     if dumpchoice == 0 and Fail == 0:
         (alg,flg) = dump.export('close_all','NA',alg,flg)
         (alg,flg) = dump.export('close_fail','NA',alg,flg)
-    user.Post_test.disp_error_choice(Error,error_info,auto)
     return fail_x,Fail,alg,flg,fail_fields_name
+
+def machine_check(hang_state, index):
+    machine_chk_error = debug.mca.analyze()
+    if machine_chk_error != []:
+        hang_state[index] = 1
+        itp.resettarget()
+        while True:
+            if target.readPostcode() == 0x10AD:
+                break
+    return hang_state
+
+def validate2_hang_regs(sus_hang_regs, alg, flg, dumpchoice):
+    confirm_hang_regs = []
+    hang_stages = []
+    hang_stage_reason = ['Pre-read','1st read-write','2nd read-write','3rd read-write']
+    for reg in sus_hang_regs:
+        itp.resettarget()
+        while True:
+            if target.readPostcode() == 0x10AD:
+                break
+        (confirm_hang_regs, hang_stages) = hang_validate_1by1(reg, confirm_hang_regs, hang_stages)
+    final_hang_stages = []
+    for hang_stage in hang_stages:
+        temp = []
+        for n in range(4):
+            if hang_stage[n] == 1:
+                temp.append(hang_stage_reason[n])
+        final_hang_stages.append(temp)
+    (alg, flg) = disp.disp_hang_regs(confirm_hang_regs, final_hang_stages, dumpchoice, alg, flg)
+    itp.resettarget()
+    while True:
+        if target.readPostcode() == 0x10AD:
+            return alg, flg
 
 def validate2_fail_regs(fail_fields_name,alg,flg,dumpchoice,Fail,auto):
     num2print=0

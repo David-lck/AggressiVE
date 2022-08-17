@@ -58,6 +58,19 @@ def disp_avail_attr(avail_attrs):
     rowdictlist += [{'Num':'Enter','Attributes in this IP':' All'}] 
     x = asciitable.AsciiTable.fromDictList(rowdictlist,headers)
     print(x.getTableText())
+	
+def disp_hang_regs(confirm_hang_regs, final_hang_stages, dumpchoice, alg, flg):
+    headers=['Hang Registers','Stage that caused Hang']
+    rowdictlist=[]
+    x=[]
+    for confirm_hang_reg in confirm_hang_regs:
+        rowdictlist += [{'Hang Registers':confirm_hang_reg,'Stage that caused Hang':str(final_hang_stages[confirm_hang_regs.index(confirm_hang_reg)])}] 
+        x = asciitable.AsciiTable.fromDictList(rowdictlist,headers)
+    x = asciitable.AsciiTable.fromDictList(rowdictlist,headers)
+    print(x.getTableText())
+    if dump_choice == 0:
+        (alg,flg) = dump.export('store',x.getTableText(),alg,flg)
+    return alg, flg
 
 def store_content(rowdictlist,x,num,full_field_name,attr,pass_fail,pre_rd,wr_in_list,rd_in_list,fail_reason):
     if pass_fail == 'pass':

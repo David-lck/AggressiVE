@@ -463,6 +463,12 @@ def theory():
         table += [{'Attrs':attr,'Descriptions':DESC[attr],'Status':STATUS[attr],'Pre_Rd1':ALGORITHM[attr][0],'Pre_Rd2':ALGORITHM[attr][1],'WR1':ALGORITHM[attr][2],'RD1':ALGORITHM[attr][3],'WR2':ALGORITHM[attr][4],'RD2':ALGORITHM[attr][5],'WR3':ALGORITHM[attr][6],'RD3':ALGORITHM[attr][7]}] 
     x = Table.fromDictList(table,headers)
     print(x.getTableText())
+	print('''
+Other Features:
+Halt - Some registers will halt the system when read/write. It will still mark as 'pass' if the behavior is correct and continue validating.
+System Reset - Some registers will restart the system when read/write. It will mark as 'fail' but it will still continue validating.
+Hang - Some registers will make the system hang. It will mark as 'fail' and stop the validation. It will ask for doing 2nd validation for the last 10 registers and do machine check 1by1.
+	''')
     
 def error_regs(input_reg,auto,validate=False):#Completed(die,IP, and register)
     '''
