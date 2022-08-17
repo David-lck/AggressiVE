@@ -87,21 +87,21 @@ class Pre_test:
             except:
                 error_regsname.append(input_reg+"."+register1)
         return error_regsname, valid_fields
-		
+        
 def track_dif_errors(error_info):
     msg_sorted = []
     for msg in error_info.values():
         if msg not in msg_sorted:
             msg_sorted.append(msg)
     return msg_sorted
-	
+    
 def track_val_time(num_to_print_regs, prev_est_t, current_reg_timetaken):
     if prev_est_t == 0:
         prev_est_t = 60
     estimated_t_perreg = round((current_reg_timetaken + prev_est_t)/2)#calculate average estimated time taken per register.
     estimated_t = estimated_t_perreg * num_to_print_regs
     return estimated_t_perreg,estimated_t,current_reg_timetaken
-		
+        
 def fields_2_ips(full_fields):
     print('Detecting all the IPs information...')
     full_ips = []
@@ -130,7 +130,7 @@ def track_invalidate_fields(full_fields):
         except:
             invalid_fields.append(field)
     return valid_fields,invalid_fields
-	
+    
 def track_field_bits(full_field_name):
     numbit = eval(full_field_name+'.info["numbits"]')
     #lowerbit = eval(full_field_name+'.info["lowerbit"]')

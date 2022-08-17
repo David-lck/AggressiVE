@@ -49,7 +49,7 @@ class Conv:
     def convert_hex_to_bin(hex_value):
         bin_value = bin(int(hex_value, 16))[2:]
         return bin_value
-	
+    
 class Algorithm:
     def val_roc(numbit,val_stage,compare_value):
         wr = compare_value[0]
@@ -88,7 +88,7 @@ class Algorithm:
             return 'pass'
         else:
             return 'fail'
-	
+    
     def val_woc(numbit,val_stage,compare_value):
         pass_fail = Algorithm.val_wo1(numbit,val_stage,compare_value)
         return pass_fail
@@ -117,23 +117,23 @@ class Algorithm:
             return 'pass'
         else:
             return 'fail'
-		
+        
     def val_rw1cfw(numbit,val_stage,compare_value):
         pass_fail = Algorithm.val_rw0cfw(numbit,val_stage,compare_value)
         return pass_fail
-	
+    
     def val_db(numbit,val_stage,compare_value):
         pass_fail = Algorithm.val_rw0cfw(numbit,val_stage,compare_value)
         return pass_fail
-	
+    
     def val_rwhwc(numbit,val_stage,compare_value):
         pass_fail = Algorithm.val_rw0cfw(numbit,val_stage,compare_value)
         return pass_fail
-	
+    
     def val_r32wonly(numbit,val_stage,compare_value):
         pass_fail = Algorithm.val_rw0cfw(numbit,val_stage,compare_value)
         return pass_fail
-	
+    
     def val_rwfwo(numbit,val_stage,compare_value):
         pass_fail = Algorithm.val_rw0cfw(numbit,val_stage,compare_value)
         return pass_fail
@@ -318,7 +318,7 @@ class Bit_Compare:
                 if exp_val0 not in result_value0:
                     return 'pass'
         return 'fail'
-	
+    
     def compare_bit2bit_with_prerd(pre_rd,wr,rd,expect_value):
         i = 0
         result_value0 = result_value1 = ''
@@ -338,7 +338,7 @@ class Bit_Compare:
                 result = 'no_zero'
             i+=1
         return result
-		
+        
     def compare_bit2bit(value1,value2):#in binary
         i=0
         result_value1 = []
@@ -354,7 +354,7 @@ class Bit_Compare:
                 result_value0.append('different')
             i+=1
         return result_value1,result_value0
-		
+        
 def read(full_field_name):
     rd = str(eval(full_field_name))
     return rd
@@ -428,10 +428,10 @@ def compare(attr,full_field_name,wr,rd,pre_rd,numbit,val_stage):
 
 def create_value_10_01(numbit,value):#value = '10'/'01'
     '''Method1: 
-	1bit: 1/0
-	2bit: 10/01
-	odd_bit: multiply by the number of value-1
-	even_bit: multiply by the number of value'''
+    1bit: 1/0
+    2bit: 10/01
+    odd_bit: multiply by the number of value-1
+    even_bit: multiply by the number of value'''
     if numbit == 1:
         created_value = value[0]
     elif numbit == 2:
@@ -441,7 +441,7 @@ def create_value_10_01(numbit,value):#value = '10'/'01'
     elif (numbit%2) == 1:
         created_value = (value * round((round((numbit - 1)) / 2))) + value[0]
     return created_value
-	
+    
 def create_value(numbit, value):#value = 'A5'/'5A'
     '''Method2:'''
     stage = '5' if value == 'A5' else 'A' if value == '5A' else None
@@ -459,8 +459,8 @@ def create_value(numbit, value):#value = 'A5'/'5A'
         add = '1010' if stage == 'A' else '0101'
         created_value = add[-numbit:]
     return created_value
-	
-	
+    
+    
 class Val_stage:
     def pre_read(full_field_name):#It is mainly for attr = ro/swc
         pre_rd1 = str(eval(full_field_name))
@@ -560,7 +560,7 @@ def validate_1by1(full_field_name):#only on one chosen attr or all attrs.
         fail_reason.append('sys_rst')
         pass_fail = 'fail'
     return pre_rd,wr_in_list,rd_in_list,pass_fail,fail_reason
-	
+    
 def hang_validate_1by1(full_field_name, confirm_hang_regs, hang_stages):
     wr_in_list = []
     rd_in_list = []

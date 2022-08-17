@@ -43,7 +43,7 @@ class Pre_test:
             if chosen_access in avail_access['default'] or chosen_access == '':
                 loop = 1
         return chosen_access
-		
+        
     def access_choice(input_reg):
         log_store = []
         if len(input_reg.split('.')) != 1:#for input_reg = ip/reg only
@@ -86,7 +86,7 @@ class Pre_test:
             choice = choice.lower()
             #choice = track.Pre_test.track_attr_typo(avai_attrs,choice)
         return choice
-		
+        
     def invalidate_choice(auto):
         if auto == False:
             result_form = ''
@@ -175,9 +175,9 @@ class Post_test:
             if auto:
                 chk_choice = 'y'
             else:
-	            while True:
+                while True:
                     chk_choice = input('Check Hang registers?(y/n): ')
-			        if chk_choice.lower() in ['yes','y']:
+                    if chk_choice.lower() in ['yes','y']:
                         break
                     elif chk_choice.lower() in ['no','n']:
                         break

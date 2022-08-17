@@ -78,7 +78,7 @@ class Pre_test:
             except:
                 print(f'Special Symbols in the name which cannot be recorded in log file: {error_register}')
         ilg = dump.export_invalid('close','',ilg)
-	
+    
     def convert_str2list(string):
         try:
             list = string.split(',')#make one input (str) into list.
@@ -99,7 +99,7 @@ class Pre_test:
         table_invf = disp.store('Name of IPs','Invalid_Field',invalid_fields)
         table_vf = disp.store('Name of IPs','Valid_Field',valid_fields)
         return table_invip,table_vip,table_invf,table_vf,valid_ips,invalid_ips
-	
+    
     def _dump_invalidate_ver3(total,table_invip,table_invf,table_vip,table_vf,invf,vf):
         (invf,vf) = dump.export_invalidate('store_invalid',f'Number of invalid IPs: {total[0]}',invf,vf)
         (invf,vf) = dump.export_invalidate('store_valid',f'Number of valid IPs: {total[1]}',invf,vf)
@@ -110,7 +110,7 @@ class Pre_test:
         (invf,vf) = dump.export_invalidate('store_valid',table_vip,invf,vf)
         (invf,vf) = dump.export_invalidate('store_valid',table_vf,invf,vf)
         (invf,vf) = dump.export_invalidate('close','',invf,vf)
-	
+    
     def _dump_invalidate_ver2(total,table_invf,table_vf,invf,vf):
         (invf,vf) = dump.export_invalidate('store_invalid',f'Number of invalid fields: {total[2]}',invf,vf)
         (invf,vf) = dump.export_invalidate('store_valid',f'Number of valid fields: {total[3]}',invf,vf)
@@ -123,7 +123,7 @@ class Pre_test:
         (invf,vf) = dump.export_invalidate('store_invalid',table_invf,invf,vf)
         (invf,vf) = dump.export_invalidate('store_valid',table_vf,invf,vf)
         (invf,vf) = dump.export_invalidate('close','',invf,vf)
-	
+    
     def _dump_invalidate_ver1(total,table_invip,table_vip,invf,vf):
         (invf,vf) = dump.export_invalidate('store_invalid',f'Number of invalid IPs: {total[0]}',invf,vf)
         (invf,vf) = dump.export_invalidate('store_valid',f'Number of valid IPs: {total[1]}',invf,vf)
@@ -132,7 +132,7 @@ class Pre_test:
         print(table_invip)
         print(table_vip)
         (invf,vf) = dump.export_invalidate('close','',invf,vf)
-		
+        
     def _get_fields(input_reg):
         print(f'Getting information from {input_reg} ...')
         print('Detecting and storing all the fields information...')
@@ -156,7 +156,7 @@ class Pre_test:
             except:
                 pass
         return fields
-		
+        
     def _get_valid_fields(fields):
         print('Detecting the valid fields...')
         valid_fields = []
@@ -171,7 +171,7 @@ class Pre_test:
             except:
                 pass
         return valid_fields
-	
+    
     def _get_attr_num(fields):
         valid_fields = Pre_test._get_valid_fields(fields)
         print('Detecting and Categorizing attributes information...')
@@ -186,7 +186,7 @@ class Pre_test:
                 pointer = avai_attrs.index(attr)
                 num_avai_attr[pointer] += 1
         return valid_fields,avai_attrs,num_avai_attr
-		
+        
     def _comb_same_attr(avai_attrs,num_avai_attr):
         new_attrs = [] 
         new_num = []
@@ -212,7 +212,7 @@ class Pre_test:
                     new_num.append(num_avai_attr[i])
             i += 1
         return new_attrs,new_num
-		
+        
     def fully_halt():
         itp.halt()
         print('It is halted!')
@@ -229,7 +229,7 @@ class Pre_test:
         print('All the threads are fully awake.')
         itp.halt()
         print('It is halted!')
-		
+        
     def initial_setting():
         refresh()
         itp.unlock()
@@ -245,7 +245,7 @@ class Pre_test:
         #sv.socket0.target_info["tap2sb_timeout"]=5*60
         #sv.pch0.target_info["p2sb_timeout"]=5*60 #does not support pch0 in MTL project.
         #Pre_test.fully_halt()        
-		
+        
     def export_pre_test_msg(dumpchoice,log_store):
         alg,flg = '',''
         if dumpchoice == 0:
@@ -254,7 +254,7 @@ class Pre_test:
                 (alg,flg) = dump.export('store',one_line_msg,alg,flg)
             (alg,flg) = dump.export('close_all','NA',alg,flg)
             (alg,flg) = dump.export('close_fail','NA',alg,flg)
-		
+        
     def _main(input_reg,auto_attr,auto):
         full_fields = error_regs(input_reg,auto,True)#detect for error regs and fields. Exclude them out from good regs and fields.
         valid_fields = invalidate(full_fields,auto,True)#detect for invalid regs and fields without attribute info. Exclude them out.
@@ -269,7 +269,7 @@ class Pre_test:
         dumpchoice = user.Pre_test.dump_choice(auto)#dump validation information to AggressiVE.log and AggressiVE_fail.log?(0/1)
         Pre_test.export_pre_test_msg(dumpchoice,log_store)#store access method info in 'AggressiVE.log'.
         return valid_fields,chosen_attr,dumpchoice
-	
+    
 class Post_test:
     def _fail_main(Fail,fail_fields_name,alg,flg,dumpchoice,fail_x,auto):
         if Fail > 0 :
@@ -284,7 +284,7 @@ class Post_test:
             if dumpchoice == 0:#close the log file if opened.
                 (alg,flg) = dump.export('close_all','NA',alg,flg)
                 (alg,flg) = dump.export('close_fail','NA',alg,flg)
-	
+    
 DESC = {
 'ro':'read-only',
 'wo':'write-only',
@@ -437,7 +437,7 @@ ALGORITHM = {
 'rw/v':['ro','ro','?','?','?','?','?','?'],
 'rw/v2':['ro','ro','?','?','?','?','?','?']
 }
-		
+        
 def theory():
     '''
     Command:
@@ -458,7 +458,7 @@ def theory():
     print('System will not be halted before/during/after all the validation!')
     headers = ['Attrs','Descriptions','Status','Pre_Rd1','Pre_Rd2','WR1','RD1','WR2','RD2','WR3','RD3']
     table = []
-    x = []
+    x = []    
     for attr in DESC.keys():
         table += [{'Attrs':attr,'Descriptions':DESC[attr],'Status':STATUS[attr],'Pre_Rd1':ALGORITHM[attr][0],'Pre_Rd2':ALGORITHM[attr][1],'WR1':ALGORITHM[attr][2],'RD1':ALGORITHM[attr][3],'WR2':ALGORITHM[attr][4],'RD2':ALGORITHM[attr][5],'WR3':ALGORITHM[attr][6],'RD3':ALGORITHM[attr][7]}] 
     x = Table.fromDictList(table,headers)
@@ -499,7 +499,7 @@ def error_regs(input_reg,auto,validate=False):#Completed(die,IP, and register)
     user.Pre_test.disp_error_reg_choice(error_regsname,auto)#display all error regs and fields.
     if validate == True:
         return valid_fields
-	
+    
 def invalidate(input_reg,auto,validate=False):#Completed(die,ip,fields)
     '''
     Command:
@@ -549,7 +549,7 @@ def invalidate(input_reg,auto,validate=False):#Completed(die,ip,fields)
     print('C>>Users>>pgsvlab>>Documents>>PythonSv>>valid_fields.py.' + Fore.RESET)
     if validate == True:
         return valid_fields
-		
+        
 def attr_all(input_regs,validate=False):#for die, ip, register, and fields
     '''
     Command:
@@ -617,7 +617,7 @@ def aggressive(input_regs, auto=False, auto_attr=''):#WIP (register level)
     Details:
         Validate the fields of all the chosen regs.
         Dependencies = access method and attr
-		If auto=True, it's a function without user input.
+        If auto=True, it's a function without user input.
 
     Inputs:
         input_regs = Name of die/ Name of IP/ Name of reg
@@ -661,7 +661,7 @@ def test():
     print(eval(temp2))
     eval(temp2+'.write('+'0xaaaaaaaaaaaaaaaa'+')')
     print(eval(temp2))
-	
+    
 def debug():
     Pre_test.initial_setting()
     valid_fields = ['cpu.gfx.display.vga_control.vga_display_disable']

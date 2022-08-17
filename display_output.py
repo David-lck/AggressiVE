@@ -58,7 +58,7 @@ def disp_avail_attr(avail_attrs):
     rowdictlist += [{'Num':'Enter','Attributes in this IP':' All'}] 
     x = asciitable.AsciiTable.fromDictList(rowdictlist,headers)
     print(x.getTableText())
-	
+    
 def disp_hang_regs(confirm_hang_regs, final_hang_stages, dumpchoice, alg, flg):
     headers=['Hang Registers','Stage that caused Hang']
     rowdictlist=[]
@@ -96,7 +96,7 @@ def store_content(rowdictlist,x,num,full_field_name,attr,pass_fail,pre_rd,wr_in_
             RD2 = str(rd_in_list[1])
             WR3 = str(wr_in_list[2])
             RD3 = str(rd_in_list[2])
-            rowdictlist += [{'Num':str(num),'Field Name':full_field_name,'Attr':attr,Fore.LIGHTWHITE_EX+'Status'+Fore.RESET:pass_fail+str(fail_reason),'1st_Pre_RD':Pre_RD1,'2nd_Pre_RD':Pre_RD2,'1st_Val_WR':WR1,'1st_Val_RD':RD1,'2nd_Val_WR':WR2,'2nd_Val_RD':RD2,'3rd_Val_WR':WR3,'3rd_Val_RD':RD3}]	
+            rowdictlist += [{'Num':str(num),'Field Name':full_field_name,'Attr':attr,Fore.LIGHTWHITE_EX+'Status'+Fore.RESET:pass_fail+str(fail_reason),'1st_Pre_RD':Pre_RD1,'2nd_Pre_RD':Pre_RD2,'1st_Val_WR':WR1,'1st_Val_RD':RD1,'2nd_Val_WR':WR2,'2nd_Val_RD':RD2,'3rd_Val_WR':WR3,'3rd_Val_RD':RD3}]    
     x = asciitable.AsciiTable.fromDictList(rowdictlist,headers)
     return rowdictlist,x
     
@@ -165,7 +165,7 @@ def loadbar(iteration, total, prefix='', infix ='', suffix='', decimals=1, lengt
     print(f'\r{prefix} |{bar}| {percent}% [{infix}] {suffix}', end='\r')
     if iteration == total:
         print()  
-		
+        
 def progress(iteration, total, prefix='', infix1 ='', infix2 = '', suffix='', decimals=1):
     #percent = 0
     percent = ('{0:.' + str(decimals) + 'f}').format(100 * (iteration/float(total)))
@@ -195,7 +195,7 @@ def disp_all_errors(disp_choice,msg_sorted,error_info):
     if disp_choice == '':
         for msg in msg_sorted:
             i = 1
-            print(f'Error = {msg}')		
+            print(f'Error = {msg}')        
             for reg in error_info.keys():
                 if msg == error_info[reg]:
                     rowdictlist += [{'Num':str(i),'Registers':reg}]
