@@ -662,7 +662,6 @@ def validate(valid_fields,chosen_attr,dumpchoice,auto):
     hang_chk_choice = user.Post_test.disp_hang_choice(fail_reason,auto)
     if hang_chk_choice in ['yes','y']:
         sus_hang_regs = chosen_attr_fields[chosen_attr_fields.index(full_field_name)-10:chosen_attr_fields.index(full_field_name)+1]
-        full_field_name in chosen_attr_fields:
         (alg, flg) = validate2_hang_regs(sus_hang_regs, alg, flg, dumpchoice)
     #display all or specific error registers.
     user.Post_test.disp_error_choice(Error,error_info,auto)
