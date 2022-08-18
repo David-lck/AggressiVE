@@ -609,7 +609,7 @@ def attr_all(input_regs,validate=False):#for die, ip, register, and fields
     if validate == True:
         return new_attrs
 
-def aggressive(input_regs, auto=False, auto_attr=''):#WIP (register level)
+def aggressive(input_regs, auto=True, auto_attr=''):#WIP (register level)
     '''
     Command:
         aggressive()
@@ -631,8 +631,8 @@ def aggressive(input_regs, auto=False, auto_attr=''):#WIP (register level)
         >>> aggressive('cpu')
         >>> aggressive('cpu.gfx.display')
         >>> aggressive('cpu.gfx.display.vga_control')
-        >>> aggressive('cpu.gfx.display',auto=True)
-        >>> aggressive('cpu.gfx.display',auto=True,auto_attr='rw')
+        >>> aggressive('cpu.gfx.display',auto=False)
+        >>> aggressive('cpu.gfx.display',auto_attr='rw')
     '''
     try:
         eval('__main__.'+input_regs)
