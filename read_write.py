@@ -677,6 +677,7 @@ def machine_check(hang_state, index):
         target.powerCycle(waitOff=1,waitAfter=1)
         while True:
             if target.readPostcode() == 0x10AD:
+                itp.unlock()
                 break
     return hang_state
 
@@ -688,6 +689,7 @@ def validate2_hang_regs(sus_hang_regs, alg, flg, dumpchoice):
         target.powerCycle(waitOff=1,waitAfter=1)
         while True:
             if target.readPostcode() == 0x10AD:
+                itp.unlock()
                 break
         (confirm_hang_regs, hang_stages) = hang_validate_1by1(reg, confirm_hang_regs, hang_stages)
     final_hang_stages = []
@@ -701,6 +703,7 @@ def validate2_hang_regs(sus_hang_regs, alg, flg, dumpchoice):
     target.powerCycle(waitOff=1,waitAfter=1)
     while True:
         if target.readPostcode() == 0x10AD:
+            unlock()
             return alg, flg
 
 def validate2_fail_regs(fail_fields_name,alg,flg,dumpchoice,Fail,auto):
