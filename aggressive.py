@@ -58,6 +58,7 @@ AVAIL_FUNCS = {
 'invalidate' : 'To display all the fields which have the information of attribute.',
 'attr_all' : 'To display the number of fields we have with the specific attributes.',
 'aggressive' : 'Main function of AggressiVE. (Require the initial declaration from user if automatable.)',
+'log':'To display logs that AgressiVE may generate.'
 }
 def list_all_cmd():
     headers = ['Available Functions','Description']
@@ -438,6 +439,17 @@ ALGORITHM = {
 'rw/v2':['ro','ro','?','?','?','?','?','?']
 }
         
+def log():
+    headers = ['Logs Path','Descriptions']
+    table = []
+    x = []    
+	logs_path = ['C>>Users>>pgsvlab>>PythonSv>>invalid_fields.py','C>>Users>>pgsvlab>>PythonSv>>valid_fields.py','C>>Users>>pgsvlab>>PythonSv>>error_reg.py','C>>Users>>pgsvlab>>PythonSv>>AggressiVE.py','C>>Users>>pgsvlab>>PythonSv>>AggressiVE_fail.py','C>>Users>>pgsvlab>>PythonSv>>attr_all.py','C>>Users>>pgsvlab>>PythonSv>>pass_regs.py','C>>Users>>pgsvlab>>PythonSv>>fail_regs.py']
+    desc = ["Fields that don't have attribute information.","Fields that have attribute information.","Registers that have naming issue.","All the information when running aggressive().","All the fail validation information when running aggressive().","List of available attributes.","List of passing registers.","List of failing registers."]
+    for log_path in logs_path:
+        table += [{'Logs Path':log_path,'Descriptions':desc[log_paths.index(log_path)]}]
+    x = Table.fromDictList(table,headers)
+    print(x.getTableText())
+		
 def theory():
     '''
     Command:
