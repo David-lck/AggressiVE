@@ -68,7 +68,7 @@ def disp_hang_regs(confirm_hang_regs, final_hang_stages, dumpchoice, alg, flg):
         x = asciitable.AsciiTable.fromDictList(rowdictlist,headers)
     x = asciitable.AsciiTable.fromDictList(rowdictlist,headers)
     print(x.getTableText())
-    if dump_choice == 0:
+    if dumpchoice == 0:
         (alg,flg) = dump.export('store',x.getTableText(),alg,flg)
     return alg, flg
 

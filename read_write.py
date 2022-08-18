@@ -574,7 +574,7 @@ def hang_validate_1by1(full_field_name, confirm_hang_regs, hang_stages):
     hang_state = machine_check(hang_state, 2)
     (wr_in_list,rd_in_list,pass_fail_3rd_val) = Val_stage.third_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,'3rd_stage_rdwr','A5')
     hang_state = machine_check(hang_state, 3)
-    if '1' in hang_state:
+    if 1 in hang_state:
         confirm_hang_regs.append(full_field_name)
         hang_stages.append(hang_state)
     return confirm_hang_regs, hang_stages
@@ -661,7 +661,7 @@ def validate(valid_fields,chosen_attr,dumpchoice,auto):
     #second validation for hang regs if available
     hang_chk_choice = user.Post_test.disp_hang_choice(fail_reason,auto)
     if hang_chk_choice in ['yes','y']:
-        sus_hang_regs = chosen_attr_fields[chosen_attr_fields.index(full_field_name)-10:chosen_attr_fields.index(full_field_name)+1]
+        sus_hang_regs = chosen_attr_fields[chosen_attr_fields.index(full_field_name)-9:chosen_attr_fields.index(full_field_name)+1]
         (alg, flg) = validate2_hang_regs(sus_hang_regs, alg, flg, dumpchoice)
     #display all or specific error registers.
     user.Post_test.disp_error_choice(Error,error_info,auto)
@@ -686,6 +686,7 @@ def validate2_hang_regs(sus_hang_regs, alg, flg, dumpchoice):
     hang_stage_reason = ['Pre-read','1st read-write','2nd read-write','3rd read-write']
     for reg in sus_hang_regs:
         itp.resettarget()
+        time.sleep(3)
         while True:
             if target.readPostcode() == 0x10AD:
                 break
