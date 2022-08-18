@@ -685,12 +685,12 @@ def validate2_hang_regs(sus_hang_regs, alg, flg, dumpchoice):
     confirm_hang_regs = []
     hang_stages = []
     hang_stage_reason = ['Pre-read','1st read-write','2nd read-write','3rd read-write']
+    target.powerCycle(waitOff=1,waitAfter=1)
+    while True:
+        if target.readPostcode() == 0x10AD:
+            itp.unlock()
+            break
     for reg in sus_hang_regs:
-        target.powerCycle(waitOff=1,waitAfter=1)
-        while True:
-            if target.readPostcode() == 0x10AD:
-                itp.unlock()
-                break
         (confirm_hang_regs, hang_stages) = hang_validate_1by1(reg, confirm_hang_regs, hang_stages)
     final_hang_stages = []
     for hang_stage in hang_stages:
