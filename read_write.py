@@ -674,7 +674,7 @@ def machine_check(hang_state, index):
     machine_chk_error = debug.mca.analyze()
     if machine_chk_error != []:
         hang_state[index] = 1
-        itp.resettarget()
+        target.powerCycle(waitOff=1,waitAfter=1)
         while True:
             if target.readPostcode() == 0x10AD:
                 break
@@ -685,8 +685,7 @@ def validate2_hang_regs(sus_hang_regs, alg, flg, dumpchoice):
     hang_stages = []
     hang_stage_reason = ['Pre-read','1st read-write','2nd read-write','3rd read-write']
     for reg in sus_hang_regs:
-        itp.resettarget()
-        time.sleep(3)
+        target.powerCycle(waitOff=1,waitAfter=1)
         while True:
             if target.readPostcode() == 0x10AD:
                 break
@@ -699,7 +698,7 @@ def validate2_hang_regs(sus_hang_regs, alg, flg, dumpchoice):
                 temp.append(hang_stage_reason[n])
         final_hang_stages.append(temp)
     (alg, flg) = disp.disp_hang_regs(confirm_hang_regs, final_hang_stages, dumpchoice, alg, flg)
-    itp.resettarget()
+    target.powerCycle(waitOff=1,waitAfter=1)
     while True:
         if target.readPostcode() == 0x10AD:
             return alg, flg
