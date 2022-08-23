@@ -25,11 +25,11 @@ except:
 
 
 class Pre_test:
-    def disp_invalidate(invalid_ips,valid_ips,invalid_fields,valid_fields):
-        total_invalid = len(invalid_ips)
-        total_valid = len(valid_ips)
-        total_invalid_f = len(invalid_fields)
-        total_valid_f = len(valid_fields)
+    def disp_invalidate(no_attr_ips,attr_ips,no_attr_fields,attr_fields):
+        total_invalid = len(no_attr_ips)
+        total_valid = len(attr_ips)
+        total_invalid_f = len(no_attr_fields)
+        total_valid_f = len(attr_fields)
         print(f'{Fore.LIGHTBLUE_EX}Number of invalid IPs: {total_invalid}')
         print(f'Number of valid IPs: {total_valid}')
         print(f'Number of invalid fields: {total_invalid_f}')
@@ -59,7 +59,7 @@ def disp_avail_attr(avail_attrs):
     x = asciitable.AsciiTable.fromDictList(rowdictlist,headers)
     print(x.getTableText())
     
-def disp_hang_regs(confirm_hang_regs, final_hang_stages, dumpchoice, alg, flg):
+def disp_hang_regs(confirm_hang_regs, final_hang_stages, alg, flg, hlg):
     headers=['Hang Registers','Stage that caused Hang']
     rowdictlist=[]
     x=[]
@@ -72,9 +72,9 @@ def disp_hang_regs(confirm_hang_regs, final_hang_stages, dumpchoice, alg, flg):
     except:
         temp = 'Confirm Hang Registers = '+str(len(confirm_hang_regs))
         print(temp)
-    if dumpchoice == 0:
-        (alg,flg) = dump.export('store',temp,alg,flg)
-    return alg, flg
+    (alg,flg) = dump.export('store',temp,alg,flg)
+    hlg.write(temp)
+    return alg, flg, hlg
 
 def store_content(rowdictlist,x,num,full_field_name,attr,pass_fail,pre_rd,wr_in_list,rd_in_list,fail_reason):
     if pass_fail == 'pass':
@@ -127,18 +127,16 @@ def store_fail_content(fail_rowdl,fail_x,num,full_field_name,attr,pass_fail,pre_
     fail_x = asciitable.AsciiTable.fromDictList(fail_rowdl,headers)
     return fail_rowdl,fail_x
 
-def disp_content(rowdictlist,x,dump_choice,alg,flg):
+def disp_content(rowdictlist,x,alg,flg):
     content_in_content = x.getTableText()
     print(content_in_content)
-    if dump_choice == 0:
-        (alg,flg) = dump.export('store',content_in_content,alg,flg)
+    (alg,flg) = dump.export('store',content_in_content,alg,flg)
 
-def disp_fail_content(x,dump_choice,alg,flg):
+def disp_fail_content(x,alg,flg):
     fail_content = x.getTableText()
     print(fail_content)
-    if dump_choice == 0:
-        (alg,flg) = dump.export('store',fail_content,alg,flg)
-        (alg,flg) = dump.export('store_fail',fail_content,alg,flg)
+    (alg,flg) = dump.export('store',fail_content,alg,flg)
+    (alg,flg) = dump.export('store_fail',fail_content,alg,flg)
     
 def disp_total_pass_fail(Pass,Fail,Unknown,Error):
     print(Fore.LIGHTBLUE_EX+'Pass:'+str(Pass))
@@ -212,6 +210,7 @@ def disp_all_errors(disp_choice,msg_sorted,error_info):
                 i += 1
     x = asciitable.AsciiTable.fromDictList(rowdictlist,headers)
     print(x.getTableText())
+    return x.getTableText()
 
 def time(sec):
     min = 0
@@ -225,3 +224,7 @@ def time(sec):
             min -= 60
             hour += 1
     return sec,min,hour
+	
+class Exec:
+	
+class Post_test:

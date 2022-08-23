@@ -15,6 +15,8 @@ from namednodes import sv as _sv
 cpu = _sv.socket.get_all()[0]
 import display_output as disp
 import tracking as track
+import read_write as rw
+import aggressive as ags
 from pysvtools.asciitable import AsciiTable as Table
 import colorama
 from colorama import Fore
@@ -98,28 +100,18 @@ class Pre_test:
                 result_form = '3'
         return result_form
 
-    def dump_choice(auto):
-        if auto == False:
-            choice = input('Dump Log File?[y/n]: ')
-        elif auto == True:
-            choice = 'y'
-        if choice in ['y','yes','']:
-            return 0
-        elif choice in ['n','no']:
-            return 1
-
-    def disp_error_reg_choice(error_names,auto):
+    def disp_badname_reg_choice(badname_registers,auto):
         if auto == True:
             choice = 'n'
         elif auto == False:
             choice = input('Display error regs?(y/n)')
         if choice == 'y' or choice == '':
             print('-'*100)
-            for error_name in error_names:
-                print(error_name)
+            for badname_register in badname_registers:
+                print(badname_register)
             print('-'*100)
-        print(f"{Fore.LIGHTBLUE_EX}There's {len(error_names)} error registers.")
-        print('All the error registers names have been saved to C>>Users>>pgsvlab>>Documents>>PythonSv>>error_reg.py.'+Fore.RESET)
+        print(f"{Fore.LIGHTBLUE_EX}There's {len(badname_registers)} unacceptable name registers.")
+        print('All the error registers names have been saved to C>>Users>>pgsvlab>>Documents>>PythonSv>>bad_name_regs.py.'+Fore.RESET)
    
 class Exec:
     def _auto_generate_print_limit(total_field2print):
@@ -150,41 +142,62 @@ class Exec:
         return num2print,reserved_print_limit
         
 class Post_test:
-    def disp_error_choice(Error, error_info, auto):
-        if Error > 0:
+    def disp_error_choice(Error, error_messages, auto):
+        msg_sorted = track.track_dif_errors(error_messages)
+        disp_choice = 0
+        disp.error_table(msg_sorted)
+        elg = open("AggressiVE_error.log","w")
+        while disp_choice != 'end':
             if auto:
-                chk_choice = 'y'
+                disp_choice == ''
             else:
-                chk_choice = input('Check Errors?(y/n): ')
-        else:
-            chk_choice = 'n'
-        if chk_choice.lower() in ['y','yes','']:
-            msg_sorted = track.track_dif_errors(error_info)
-            disp_choice = 0
-            disp.error_table(msg_sorted)
-            while disp_choice != 'end':
-                if auto:
-                    disp_choice == ''
-                else:
-                    disp_choice = input('Which error of registers to display?(Enter=All;"end"=stop):')
-                if disp_choice != "end":
-                    disp.disp_all_errors(disp_choice,msg_sorted,error_info)
-                
-    def disp_hang_choice(fail_reason,auto):
-        if 'hang' in fail_reason:
-            if auto:
-                chk_choice = 'y'
-            else:
-                while True:
-                    chk_choice = input('Check Hang registers?(y/n): ')
-                    if chk_choice.lower() in ['yes','y']:
-                        break
-                    elif chk_choice.lower() in ['no','n']:
-                        break
-                    print('Pls enter properly!')
-        else:
-            chk_choice = 'n'
-        return chk_choice.lower()
+                disp_choice = input('Which error of registers to display?(Enter=All;"end"=stop):')
+            if disp_choice != "end":
+                printed_error_msg = disp.disp_all_errors(disp_choice,msg_sorted,error_messages)
+                elg.write(printed_error_msg)
+                elg.write('\n')
+        elg.close()
+        print('All the printed error infos have been saved in C>>Users>>pgsvlab>>PythonSv>>AggressiVE_error.log')
+
+    def choose_post_test(Pass,Fail,Error,Hang,alg,flg,fail_infos,hang_infos,error_infos):
+        avail_choice = []
+        print('Second Validation!')
+        if Pass != 0:
+            avail_choice.append('Pass Registers.')
+        if Fail != 0:
+            avail_choice.append('Fail Registers.')
+        if Hang != 0:
+            avail_choice.append('Hang Registers.')		
+        if Error != 0:
+            avail_choice.append('Errors Check.')
+        while True:
+            for choice in avail_choice:
+                print(f'{str(avail_choice.index(choice)+1)}. {choice}')
+
+            while True:
+                val_choice = input('Choice["end" to exit]: ')
+                if val_choice in ['1','2','3','4','end']:
+                    break
+                print('Please enter properly!')
+
+            if val_choice == 'end':
+                break
+            elif 'Pass' in avail_choice[int(val_choice)-1]:
+                (alg, flg) = rw.Post_test.validate_pass(alg, flg)
+                avail_choice.remove('Pass Registers.')
+            elif 'Fail' in avail_choice[int(val_choice)-1]:
+                (alg, flg) = ags.Post_test._fail_main(fail_infos, alg, flg)#run post feature (Validate or display fail fields only).
+                avail_choice.remove('Fail Registers.')
+            elif 'Hang' in avail_choice[int(val_choice)-1]:
+                [sus_hang_regs] = hang_infos
+                (alg, flg) = rw.Post_test.validate2_hang_regs(sus_hang_regs, alg, flg)
+                avail_choice.remove('Hang Registers.')
+            elif 'Error' in avail_choice[int(val_choice)-1]:
+                [error_messages] = error_infos
+                Post_test.disp_error_choice(Error,error_messages,auto)
+                avail_choice.remove('Errors Check.')
+        return alg, flg
+            
         
     def fail_val_choice(auto):
         if auto == True:
@@ -201,4 +214,5 @@ class Post_test:
             else:
                 print('Please enter properly!')
         return int(chosen_fail_val)
+
 

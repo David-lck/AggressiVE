@@ -1,3 +1,4 @@
+import tracking as track
 
 def export(choice,content,alg,flg):#Write/store only
     dump_mode = "a" if choice == "open" else "w"
@@ -18,23 +19,41 @@ def export(choice,content,alg,flg):#Write/store only
     
 def export_invalid(choice,content,ilg):
     if choice == 'open':
-        ilg = open("error_reg.log","w")
+        ilg = open("bad_name_regs.log","w")
     elif choice == 'close':
         ilg.close()
     elif choice == 'store':
         ilg.write(content)
         ilg.write('\n')
     return ilg
-    
-def export_error(choice,content,elg):
-    if choice == 'open':
-        elg = open("error.log","w")
-    elif choice == 'close':
-        elg.close()
-    elif choice == 'store':
-        elg.write(content+' \n')
-    return elg
-    
+	
+def export_regs(pass_regs, fail_regs, error_regs, hang_regs):
+    prlg, frlg, erlg, hrlg = '', '', '', ''
+    prlg = track.create_pass_regs_log(prlg)
+    frlg = open("fail_regs.log","w")
+    erlg = open("error_regs.log","w")
+    hrlg = open("hang_regs.log","w")
+    for pass_reg in pass_regs:
+        prlg.write(pass_reg)
+        prlg.write('\n')
+    for fail_reg in fail_regs:
+        frlg.write(fail_reg)
+        frlg.write('\n')
+    for error_reg in error_regs:
+        erlg.write(error_reg)
+        erlg.write('\n')
+    for hang_reg in hang_regs:
+        hrlg.write(hang_reg)
+        hrlg.write('\n')
+    print('All current list of pass registers have been saved to C>>Users>>pgsvlab>>PythonSv>>pass_regs.log')
+    print('All current list of pass registers have been saved to C>>Users>>pgsvlab>>PythonSv>>fail_regs.log')
+    print('All current list of error registers have been saved to C>>Users>>pgsvlab>>PythonSv>> error_regs.log')
+    print('All current list of suspect hang registers have been saved to C>>Users>>pgsvlab>>PythonSv>>hang_regs.log')
+    prlg.close()
+    frlg.close()
+    erlg.close()
+    hrlg.close()
+
 def export_attr_all(choice,content,aa):
     if choice == 'open':
         aa = open("attr_all.log","w")
@@ -47,8 +66,8 @@ def export_attr_all(choice,content,aa):
     
 def export_invalidate(choice,content,invf,vf):
     if choice == 'open':
-        invf = open("invalid_fields.log","w")
-        vf = open("valid_fields.log","w")
+        invf = open("no_attr_fields.log","w")
+        vf = open("attr_fields.log","w")
     elif choice == 'close':
         invf.close()
         vf.close()
@@ -60,8 +79,7 @@ def export_invalidate(choice,content,invf,vf):
         vf.write('\n')
     return invf,vf
 
-def test():
-    alg = open("aaa.log", "w")
-    alg.write("test")
-    alg.write('\n')
-    alg.close()
+def export_write_pass(plg,content):
+    plg.write(content)
+    plg.write('\n')
+    return plg

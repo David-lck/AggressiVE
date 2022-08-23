@@ -63,11 +63,11 @@ class Pre_test:
             if input_attr in attr:
                 return attr
 
-    def track_error_regsname(input_reg):
+    def track_badname_regs(input_reg):
         print(f'Getting information from {input_reg} ...')
-        print('Detecting and storing all the error naming registers...')
+        print('Detecting and storing all the bad naming registers...')
         valid_fields = []
-        error_regsname = []
+        bad_regsname = []
         registers_1stsearch = eval(input_reg+".search('')")
         for register1 in tqdm(registers_1stsearch):
             try:
@@ -83,10 +83,10 @@ class Pre_test:
                             else:
                                 print(f'{input_reg+"."+register1+"."+register2} has more fields.')
                         except:
-                            error_regsname.append(input_reg+"."+register1+"."+register2)
+                            bad_regsname.append(input_reg+"."+register1+"."+register2)
             except:
-                error_regsname.append(input_reg+"."+register1)
-        return error_regsname, valid_fields
+                bad_regsname.append(input_reg+"."+register1)
+        return bad_regsname, valid_fields
         
 def track_dif_errors(error_info):
     msg_sorted = []
@@ -121,15 +121,15 @@ def fields_2_ips(full_fields):
 
 def track_invalidate_fields(full_fields):
     print('Detecting the valid and invalid fields...')
-    valid_fields = []
-    invalid_fields = []
+    attr_fields = []
+    no_attr_fields = []
     for field in tqdm(full_fields):
         try:
             eval(field+'.info["attribute"]')
-            valid_fields.append(field)
+            attr_fields.append(field)
         except:
-            invalid_fields.append(field)
-    return valid_fields,invalid_fields
+            no_attr_fields.append(field)
+    return attr_fields,no_attr_fields
     
 def track_field_bits(full_field_name):
     numbit = eval(full_field_name+'.info["numbits"]')
@@ -147,6 +147,20 @@ def track_num_pass_fail(pass_fail,Pass,Fail,Unknown,Error):
         Error+=1
     return Pass,Fail,Unknown,Error
     
+def create_pass_regs_log(prlg):
+    num = 1
+    while num > 0:
+        try:
+            prlg = open("pass_regs_"+str(num)+".log",'r')
+            print('Detected pass_regs_'+str(num)+'.log')
+            prlg.close()
+        except:
+            print('pass_regs_'+str(num)+'.log is not available, creating it...')
+            prlg = open("pass_regs_"+str(num)+".log",'w')
+            break
+        num+=1
+    return prlg
+	
 def track_chosen_attr_fields(valid_fields,chosen_attr):
     num_chosen_attr_fields = 0
     chosen_attr_fields = []
