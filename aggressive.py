@@ -473,6 +473,13 @@ class Logs:
     'hang_regs' : 'List of registers that caused the system hang.',
 	}
 
+class Exec:
+    def check_attribute(badname_regs):
+        for badname_reg in badname_regs:
+            pass
+        return attr_badname_regs, their_attr
+        
+
 def theory():
     '''
     Command:
@@ -505,7 +512,7 @@ System Reset - Some registers will restart the system when read/write. It will m
 Hang - Some registers will make the system hang. It will mark as 'fail' and stop the validation. It will ask for doing 2nd validation for the last 10 registers and do machine check 1by1.
     ''')
     
-def badname_regs(input_reg,auto,validate=False):#Completed(die,IP, and register)
+def badname_regs(input_reg,auto=True,validate=False):#Completed(die,IP, and register)
     '''
     Command:
         badname_regs()
@@ -535,7 +542,11 @@ def badname_regs(input_reg,auto,validate=False):#Completed(die,IP, and register)
     if validate == True:
         return attr_fields
     
-def invalidate(input_reg,auto,validate=False):#Completed(die,ip,fields)
+def aggressive_badname(input_reg,auto=True):
+    (badname_regs,attr_fields) = track.Pre_test.track_badname_regs(input_reg)
+    (attr_badname_regs, their_attr) = Exec.check_attribute(badname_regs)
+	
+def invalidate(input_reg,auto=True,validate=False):#Completed(die,ip,fields)
     '''
     Command:
         invalidate()

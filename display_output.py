@@ -225,6 +225,3 @@ def time(sec):
             hour += 1
     return sec,min,hour
 	
-class Exec:
-	
-class Post_test:
