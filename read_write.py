@@ -478,7 +478,7 @@ class Val_stage:
             return pre_rd,pass_fail
         return pre_rd,'pass'
 
-    def first_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,val_stage,wr_value):
+    def first_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,val_stage,wr_value,is_targsim):
         new_defined_attrs = ['ro/c','rw/cr','wo/1','wo/c','na','rw0c_fw','rw1c_fw','double buffered','r/w hardware clear','read/32 bit write only','r/w firmware only']
         numbit = track.track_field_bits(full_field_name)
         #identify attr of this field in universal attr name.
@@ -521,16 +521,17 @@ class Val_stage:
             rd_in_list.append(two_read_value[1])
         else:
             rd_in_list.append(rd)
-        if target.readPostcode() != 0x10AD:#only for UEFI.
-            pass_fail = 'sys_rst'
+        if not is_targsim:
+            if target.readPostcode() != 0x10AD:#only for UEFI.
+                pass_fail = 'sys_rst'
         return wr_in_list,rd_in_list,pass_fail
 
-    def second_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,val_stage,wr_value):
-        (wr_in_list,rd_in_list,pass_fail_1st_val) = Val_stage.first_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,val_stage,wr_value)
+    def second_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,val_stage,wr_value,is_targsim):
+        (wr_in_list,rd_in_list,pass_fail_1st_val) = Val_stage.first_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,val_stage,wr_value,is_targsim)
         return wr_in_list,rd_in_list,pass_fail_1st_val
 
-    def third_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,val_stage,wr_value):
-        (wr_in_list,rd_in_list,pass_fail_1st_val) = Val_stage.first_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,val_stage,wr_value)
+    def third_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,val_stage,wr_value,is_targsim):
+        (wr_in_list,rd_in_list,pass_fail_1st_val) = Val_stage.first_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,val_stage,wr_value,is_targsim)
         return wr_in_list,rd_in_list,pass_fail_1st_val
 
 class Exec:
@@ -546,14 +547,14 @@ class Exec:
             sus_hang_regs.append(chosen_attr_fields[chosen_attr_fields.index(full_field_name)-9:chosen_attr_fields.index(full_field_name)+1])
         return pass_regs, fail_regs, error_regs, sus_hang_regs
 
-    def validate_1by1(full_field_name):#only on one chosen attr or all attrs.
+    def validate_1by1(full_field_name,is_targsim):#only on one chosen attr or all attrs.
         wr_in_list = []
         rd_in_list = []
         fail_reason = []
         (pre_rd,pass_fail_pre_rd) = Val_stage.pre_read(full_field_name)
-        (wr_in_list,rd_in_list,pass_fail_1st_val) = Val_stage.first_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,'1st_stage_rdwr','A5')
-        (wr_in_list,rd_in_list,pass_fail_2nd_val) = Val_stage.second_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,'2nd_stage_rdwr','5A')
-        (wr_in_list,rd_in_list,pass_fail_3rd_val) = Val_stage.third_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,'3rd_stage_rdwr','A5')
+        (wr_in_list,rd_in_list,pass_fail_1st_val) = Val_stage.first_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,'1st_stage_rdwr','A5',is_targsim)
+        (wr_in_list,rd_in_list,pass_fail_2nd_val) = Val_stage.second_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,'2nd_stage_rdwr','5A',is_targsim)
+        (wr_in_list,rd_in_list,pass_fail_3rd_val) = Val_stage.third_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,'3rd_stage_rdwr','A5',is_targsim)
         if 'fail' in [pass_fail_pre_rd,pass_fail_1st_val,pass_fail_2nd_val,pass_fail_3rd_val]:
             pass_fail = 'fail'
             fail_reason = track.track_fail_reason(pass_fail_pre_rd,pass_fail_1st_val,pass_fail_2nd_val,pass_fail_3rd_val)
@@ -573,7 +574,7 @@ class Exec:
             pass_fail = 'fail'
         return pre_rd,wr_in_list,rd_in_list,pass_fail,fail_reason
         
-    def validate(valid_fields,chosen_attr,auto):
+    def validate(valid_fields,chosen_attr,auto,is_targsim):
         num=1
         Pass, Fail, Unknown, Error, Hang = 0, 0, 0, 0, 0
         num2print=0
@@ -595,12 +596,12 @@ class Exec:
                 if num2print == 'end':
                     break
                 num_chosen_attr_fields-=num2print
-                initial_time = time.time()
+                ##initial_time = time.time()
                 reserved_num = 0
             reserved_num += 1
-            time_taken = time.time() - initial_time
-            (s,m,h) = disp.time(round(time_taken))
-            disp.progress(reserved_num, reserved_print_num, prefix=f'Progress [{reserved_num}:{reserved_print_num}]:', infix1 = f'Time_Taken= {h}h{m}m{s}s', suffix=f'Reg: [{full_field_name}]')
+            ##time_taken = time.time() - initial_time
+            ##(s,m,h) = disp.time(round(time_taken))
+            disp.progress(reserved_num, reserved_print_num, prefix=f'Progress [{reserved_num}:{reserved_print_num}]:', infix1 = f'StartTime= {time.ctime()}', suffix=f'Reg: [{full_field_name}]')
             #validate
             try:
                 (pre_rd,wr_in_list,rd_in_list,pass_fail,fail_reason) = Exec.validate_1by1(full_field_name)
@@ -638,7 +639,7 @@ class Exec:
             cath_regs = [pass_regs, fail_regs, error_regs, sus_hang_regs]
             (pass_regs, fail_regs, error_regs, sus_hang_regs) = Exec.categorize_regs(pass_fail, full_field_name, chosen_attr_fields, cath_regs)
             #detect hang and stop.
-            if 'hang' in pass_fail:
+            if 'hang' in pass_fail and not is_targsim:
                 target.powerCycle(waitOff=1,waitAfter=1)
                 while True:
                     if target.readPostcode() == 0x10AD:
@@ -673,11 +674,11 @@ class Post_test:
         hang_state = [0,0,0,0]
         (pre_rd,pass_fail_pre_rd) = Val_stage.pre_read(full_field_name)
         hang_state = Post_test.machine_check(hang_state, 0)
-        (wr_in_list,rd_in_list,pass_fail_1st_val) = Val_stage.first_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,'1st_stage_rdwr','A5')
+        (wr_in_list,rd_in_list,pass_fail_1st_val) = Val_stage.first_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,'1st_stage_rdwr','A5',False)
         hang_state = Post_test.machine_check(hang_state, 1)
-        (wr_in_list,rd_in_list,pass_fail_2nd_val) = Val_stage.second_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,'2nd_stage_rdwr','5A')
+        (wr_in_list,rd_in_list,pass_fail_2nd_val) = Val_stage.second_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,'2nd_stage_rdwr','5A',False)
         hang_state = Post_test.machine_check(hang_state, 2)
-        (wr_in_list,rd_in_list,pass_fail_3rd_val) = Val_stage.third_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,'3rd_stage_rdwr','A5')
+        (wr_in_list,rd_in_list,pass_fail_3rd_val) = Val_stage.third_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,'3rd_stage_rdwr','A5',False)
         hang_state = Post_test.machine_check(hang_state, 3)
         if 1 in hang_state:
             confirm_hang_regs.append(full_field_name)
@@ -731,12 +732,12 @@ class Post_test:
                 if num2print == 'end':
                     return alg,flg
                 num_chosen_attr_fields-=num2print
-                initial_time = time.time()
+                ##initial_time = time.time()
                 reserved_num = 0
-            time_taken = time.time() - initial_time
-            (s,m,h) = disp.time(round(time_taken))
+            ##time_taken = time.time() - initial_time
+            ##(s,m,h) = disp.time(round(time_taken))
             reserved_num += 1
-            disp.progress(reserved_num, reserved_print_num, prefix=f'Progress [{reserved_num}:{reserved_print_num}]:', infix1 = f'Time_Taken= {h}h{m}m{s}s', suffix=f'Reg: [{fail_field_name}]')
+            disp.progress(reserved_num, reserved_print_num, prefix=f'Progress [{reserved_num}:{reserved_print_num}]:', infix1 = f'StartTime= {time.ctime()}', suffix=f'Reg: [{fail_field_name}]')
             #validate
             (pre_rd,wr_in_list,rd_in_list,pass_fail,fail_reason) = Exec.validate_1by1(fail_field_name)
             attr = eval(fail_field_name+'.info["attribute"]')
@@ -817,12 +818,12 @@ class Post_test:
                 if num2print == 'end':
                     break
                 num_chosen_attr_fields-=num2print
-                initial_time = time.time()
+                ##initial_time = time.time()
                 reserved_num = 0
             reserved_num += 1
-            time_taken = time.time() - initial_time
-            (s,m,h) = disp.time(round(time_taken))
-            disp.progress(reserved_num, reserved_print_num, prefix=f'Progress [{reserved_num}:{reserved_print_num}]:', infix1 = f'Time_Taken= {h}h{m}m{s}s', suffix=f'Reg: [{reg}]')
+            ##time_taken = time.time() - initial_time
+            ##(s,m,h) = disp.time(round(time_taken))
+            disp.progress(reserved_num, reserved_print_num, prefix=f'Progress [{reserved_num}:{reserved_print_num}]:', infix1 = f'StartTime= {time.ctime()}', suffix=f'Reg: [{reg}]')
             #validate
             try:
                 (pre_rd,wr_in_list,rd_in_list,pass_fail,fail_reason) = Exec.validate_1by1(reg)
