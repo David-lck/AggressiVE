@@ -535,7 +535,7 @@ class Val_stage:
 
 class Exec:
     def categorize_regs(pass_fail, full_field_name, chosen_attr_fields, cath_regs):
-        cath_regs = [pass_regs, fail_regs, error_regs, hang_regs]
+        [pass_regs, fail_regs, error_regs, sus_hang_regs] = cath_regs
         if pass_fail == 'pass':
             pass_regs.append(full_field_name)
         elif pass_fail == 'fail':
@@ -543,7 +543,7 @@ class Exec:
         elif pass_fail == 'error':
             error_regs.append(full_field_name)
         elif pass_fail == 'hang':
-            sus_hang_regs = chosen_attr_fields[chosen_attr_fields.index(full_field_name)-9:chosen_attr_fields.index(full_field_name)+1]
+            sus_hang_regs.append(chosen_attr_fields[chosen_attr_fields.index(full_field_name)-9:chosen_attr_fields.index(full_field_name)+1])
         return pass_regs, fail_regs, error_regs, sus_hang_regs
 
     def validate_1by1(full_field_name):#only on one chosen attr or all attrs.
@@ -581,7 +581,7 @@ class Exec:
         x, fail_x = [], []
         alg, flg = '', ''
         error_messages = {}
-        pass_regs, fail_regs, error_regs, hang_regs = [], [], [], []
+        pass_regs, fail_regs, error_regs, sus_hang_regs = [], [], [], []
         (alg,flg) = dump.export('open','NA',alg,flg)
         #Exclude all the fields with non-chosen attr.
         chosen_attr_fields = track.track_chosen_attr_fields(valid_fields,chosen_attr)
@@ -625,38 +625,32 @@ class Exec:
             num2print -= 1
             if int(repr(num2print)[-1]) == 0:
                 print('')
-                disp.disp_content(rowdictlist,x,alg,flg)
-                disp.disp_total_pass_fail(Pass,Fail,Unknown,Error)
-                rowdictlist=[]
-                x=[]
                 machine_chk_error = debug.mca.analyze()
                 if machine_chk_error != []:
                     pass_fail = 'hang'
+                    Hang+=1
+                disp.disp_content(rowdictlist,x,alg,flg)
+                disp.disp_total_pass_fail(Pass,Fail,Unknown,Error,Hang)
+                rowdictlist=[]
+                x=[]
             num+=1
             #categorize registers in different logs.
-            cath_regs = [pass_regs, fail_regs, error_regs, hang_regs]
-            (pass_regs, fail_regs, error_regs, hang_regs) = Exec.categorize_regs(pass_fail, full_field_name, chosen_attr_fields, cath_regs)
+            cath_regs = [pass_regs, fail_regs, error_regs, sus_hang_regs]
+            (pass_regs, fail_regs, error_regs, sus_hang_regs) = Exec.categorize_regs(pass_fail, full_field_name, chosen_attr_fields, cath_regs)
             #detect hang and stop.
             if 'hang' in pass_fail:
-                print('Validation will be stopped due to the present of machine check error')
-                (alg,flg) = dump.export('store','Validation will be stopped due to the present of machine check error',alg,flg)
-                (alg,flg) = dump.export('store',str(machine_chk_error),alg,flg)
-                (alg,flg) = dump.export('store_fail','Validation will be stopped due to the present of machine check error',alg,flg)
-                (alg,flg) = dump.export('store_fail',str(machine_chk_error),alg,flg)
-                Hang=1
                 target.powerCycle(waitOff=1,waitAfter=1)
                 while True:
                     if target.readPostcode() == 0x10AD:
                         itp.unlock()
                         break
-                break
         #store categorized registers in different logs.
-        dump.export_regs(pass_regs, fail_regs, error_regs, hang_regs)
+        dump.export_regs(pass_regs, fail_regs, error_regs, sus_hang_regs)
         #Post Validation
         fail_infos = [Fail,fail_regs,fail_x,auto]
-        hang_infos = [hang_regs]
+        sus_hang_infos = [sus_hang_regs]
         error_infos = [error_messages]
-        (alg, flg) = user.Post_test.choose_post_test(Pass,Fail,Error,Hang,alg,flg,fail_infos,hang_infos,error_infos)
+        (alg, flg) = user.Post_test.choose_post_test(Pass,Fail,Error,Hang,alg,flg,fail_infos,sus_hang_infos,error_infos)
         (alg,flg) = dump.export('close_all','NA',alg,flg)
         (alg,flg) = dump.export('close_fail','NA',alg,flg)
         
@@ -694,24 +688,27 @@ class Post_test:
         confirm_hang_regs = []
         hang_stages = []
         hang_stage_reason = ['Pre-read','1st read-write','2nd read-write','3rd read-write']
-        for reg in sus_hang_regs:
-            (confirm_hang_regs, hang_stages) = Post_test.hang_validate_1by1(reg, confirm_hang_regs, hang_stages)
+        for sus_regs in sus_hang_regs:
+            for reg in sus_regs:
+                (confirm_hang_regs, hang_stages) = Post_test.hang_validate_1by1(reg, confirm_hang_regs, hang_stages)
         final_hang_stages = []
-        for hang_stage in hang_stages:
-            temp = []
-            for n in range(4):
-                if hang_stage[n] == 1:
-                    temp.append(hang_stage_reason[n])
-            final_hang_stages.append(temp)
+        for reg_hang_stages in hang_stages:
+            for hang_stage in reg_hang_stages:
+                temp = []
+                for n in range(4):
+                    if hang_stage[n] == 1:
+                        temp.append(hang_stage_reason[n])
+                final_hang_stages.append(temp)
         hlg = ''
         hlg = open("AggressiVE_hang.log","w")
-        (alg, flg) = disp.disp_hang_regs(confirm_hang_regs, final_hang_stages, alg, flg, hlg)
+        (alg, flg, hlg) = disp.disp_hang_regs(confirm_hang_regs, final_hang_stages, alg, flg, hlg)
         hlg.close()
+        dump.export_hang_regs(confirm_hang_regs)
         print('All the hang infos are stored in C>>Users>>pgsvlab>>PythonSv>>AggressiVE_hang.log')
         target.powerCycle(waitOff=1,waitAfter=1)
         while True:
             if target.readPostcode() == 0x10AD:
-                unlock()
+                itp.unlock()
                 return alg, flg
 
     def validate2_fail_regs(fail_regs,alg,flg,Fail,auto):
@@ -751,7 +748,7 @@ class Post_test:
             if int(repr(num2print)[-1]) == 0:
                 disp.disp_fail_content(fail_x,alg,flg)
                 print(f'{Fail} fail(s) in 1st validation.')
-                disp.disp_total_pass_fail(Pass2,Fail2,Unknown2,Error2)
+                disp.disp_total_pass_fail(Pass2,Fail2,Unknown2,Error2,0)
                 fail_rowdl=[]
                 fail_x=[]
             num+=1
@@ -846,18 +843,20 @@ class Post_test:
             num2print -= 1
             if int(repr(num2print)[-1]) == 0:
                 print('')
+                machine_chk_error = debug.mca.analyze()
+                if machine_chk_error != []:
+                    pass_fail = 'hang'
+                    Hang += 1
                 disp.disp_content(rowdictlist,x,alg,flg)
-                disp.disp_total_pass_fail(Pass,Fail,Unknown,Error)
+                disp.disp_total_pass_fail(Pass,Fail,Unknown,Error2,Hang)
                 plg = dump.export_write_pass(plg,x.getTableText())
                 plg = dump.export_write_pass(plg,f'Pass:{Pass}')
                 plg = dump.export_write_pass(plg,f'Fail:{Fail}')
                 plg = dump.export_write_pass(plg,f'Unknown:{Unknown}')
                 plg = dump.export_write_pass(plg,f'Error:{Error}')
+                plg = dump.export_write_pass(plg,f'Hang:{Hang}')
                 rowdictlist=[]
                 x=[]
-                machine_chk_error = debug.mca.analyze()
-                if machine_chk_error != []:
-                    pass_fail = 'hang'
             num+=1
             #detect hang and stop.
             if 'hang' in pass_fail:

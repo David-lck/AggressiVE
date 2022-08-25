@@ -458,6 +458,7 @@ class Logs:
     'pass_regs' : 'C>>Users>>pgsvlab>>PythonSv>>pass_regs.log',
     'fail_regs' : 'C>>Users>>pgsvlab>>PythonSv>>fail_regs.log',
     'error_regs' : 'C>>Users>>pgsvlab>>PythonSv>>error_regs.log',
+    'sus_hang_regs' : 'C>>Users>>pgsvlab>>PythonSv>>sus_hang_regs.log',
     'hang_regs' : 'C>>Users>>pgsvlab>>PythonSv>>hang_regs.log',
 	}
     DESC = {
@@ -470,6 +471,7 @@ class Logs:
     'pass_regs' : "List of passing registers.",
     'fail_regs' : "List of failing registers.",
     'error_regs' : 'List of registers that are not able to read and write and show error message.',
+    'sus_hang_regs' : 'List of registers that might caused the system hang.',
     'hang_regs' : 'List of registers that caused the system hang.',
 	}
 
@@ -591,8 +593,8 @@ def invalidate(input_reg,auto=True,validate=False):#Completed(die,ip,fields)
     elif int(result_form) == 1:
         Pre_test._dump_invalidate_ver1(total,table_invip,table_vip,invf,vf)
     print('All the with attr fields & non attr fields names have been saved to:')
-    print(Fore.LIGHTBLUE_EX + 'C>>Users>>pgsvlab>>Documents>>PythonSv>>no_attr_fields.py.')
-    print('C>>Users>>pgsvlab>>Documents>>PythonSv>>attr_fields.py.' + Fore.RESET)
+    print(Fore.LIGHTBLUE_EX + 'C>>Users>>pgsvlab>>Documents>>PythonSv>>no_attr_fields.log.')
+    print('C>>Users>>pgsvlab>>Documents>>PythonSv>>attr_fields.log.' + Fore.RESET)
     if validate == True:
         return attr_fields
         
@@ -690,7 +692,7 @@ def aggressive(input_regs, auto=True, auto_attr=''):#WIP (register level)
     input_regs = Pre_test.convert_str2list(input_regs)
     for input_reg in input_regs:
         (attr_fields,chosen_attr) = Pre_test._main(input_reg,auto_attr,auto)#run all pretest features.
-        Exec.rdwr.validate(attr_fields,chosen_attr,auto)#validation.
+        rdwr.Exec.validate(attr_fields,chosen_attr,auto)#validation.
 
 
 

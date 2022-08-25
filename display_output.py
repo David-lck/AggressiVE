@@ -138,11 +138,12 @@ def disp_fail_content(x,alg,flg):
     (alg,flg) = dump.export('store',fail_content,alg,flg)
     (alg,flg) = dump.export('store_fail',fail_content,alg,flg)
     
-def disp_total_pass_fail(Pass,Fail,Unknown,Error):
+def disp_total_pass_fail(Pass,Fail,Unknown,Error,Hang):
     print(Fore.LIGHTBLUE_EX+'Pass:'+str(Pass))
     print('Fail:'+str(Fail))
     print('Unknown:'+str(Unknown))
-    print('Error:'+str(Error)+Fore.RESET)
+    print('Error:'+str(Error))
+    print('Hang:'+str(Hang)+Fore.RESET)
 
 def store(name,mode,content):
     if content == []:

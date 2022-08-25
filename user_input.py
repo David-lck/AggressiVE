@@ -114,17 +114,11 @@ class Pre_test:
         print('All the error registers names have been saved to C>>Users>>pgsvlab>>Documents>>PythonSv>>bad_name_regs.py.'+Fore.RESET)
    
 class Exec:
-    def _auto_generate_print_limit(total_field2print):
-        if total_field2print < 10:
-            return total_field2print
-        else:
-            return 10
-
     def print_limit(total_field2print,reserved_print_limit,auto):
         loop=0
         while loop == 0:
             if auto == True:
-                num2print = Exec._auto_generate_print_limit(total_field2print)
+                num2print = total_field2print
             elif auto == False:
                 print('')
                 num2print = input(f'Display_Number[Left:{total_field2print}]["end"=stop]: ')
@@ -159,7 +153,7 @@ class Post_test:
         elg.close()
         print('All the printed error infos have been saved in C>>Users>>pgsvlab>>PythonSv>>AggressiVE_error.log')
 
-    def choose_post_test(Pass,Fail,Error,Hang,alg,flg,fail_infos,hang_infos,error_infos):
+    def choose_post_test(Pass,Fail,Error,Hang,alg,flg,fail_infos,sus_hang_infos,error_infos):
         avail_choice = []
         print('Second Validation!')
         if Pass != 0:
@@ -189,7 +183,7 @@ class Post_test:
                 (alg, flg) = ags.Post_test._fail_main(fail_infos, alg, flg)#run post feature (Validate or display fail fields only).
                 avail_choice.remove('Fail Registers.')
             elif 'Hang' in avail_choice[int(val_choice)-1]:
-                [sus_hang_regs] = hang_infos
+                [sus_hang_regs] = sus_hang_infos
                 (alg, flg) = rw.Post_test.validate2_hang_regs(sus_hang_regs, alg, flg)
                 avail_choice.remove('Hang Registers.')
             elif 'Error' in avail_choice[int(val_choice)-1]:
