@@ -626,10 +626,11 @@ class Exec:
             num2print -= 1
             if int(repr(num2print)[-1]) == 0:
                 print('')
-                machine_chk_error = debug.mca.analyze()
-                if machine_chk_error != []:
-                    pass_fail = 'hang'
-                    Hang+=1
+                if not is_targsim:
+                    machine_chk_error = debug.mca.analyze()
+                    if machine_chk_error != []:
+                        pass_fail = 'hang'
+                        Hang+=1
                 disp.disp_content(rowdictlist,x,alg,flg)
                 disp.disp_total_pass_fail(Pass,Fail,Unknown,Error,Hang)
                 rowdictlist=[]
@@ -844,10 +845,11 @@ class Post_test:
             num2print -= 1
             if int(repr(num2print)[-1]) == 0:
                 print('')
-                machine_chk_error = debug.mca.analyze()
-                if machine_chk_error != []:
-                    pass_fail = 'hang'
-                    Hang += 1
+                if not is_targsim:
+                    machine_chk_error = debug.mca.analyze()
+                    if machine_chk_error != []:
+                        pass_fail = 'hang'
+                        Hang += 1
                 disp.disp_content(rowdictlist,x,alg,flg)
                 disp.disp_total_pass_fail(Pass,Fail,Unknown,Error2,Hang)
                 plg = dump.export_write_pass(plg,x.getTableText())
