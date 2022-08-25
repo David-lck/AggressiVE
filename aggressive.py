@@ -657,7 +657,7 @@ def attr_all(input_regs,validate=False):#for die, ip, register, and fields
     if validate == True:
         return new_attrs
 
-def aggressive(input_regs, auto=True, auto_attr=''):#WIP (register level)
+def aggressive(input_regs, auto=True, auto_attr='', is_targsim = False):#WIP (register level)
     '''
     Command:
         aggressive()
@@ -681,6 +681,7 @@ def aggressive(input_regs, auto=True, auto_attr=''):#WIP (register level)
         >>> aggressive('cpu.gfx.display.vga_control')
         >>> aggressive('cpu.gfx.display',auto=False)
         >>> aggressive('cpu.gfx.display',auto_attr='rw')
+        >>> aggressive('cpu.gfx.display',is_targsim=True)
     '''
     try:
         eval('__main__.'+input_regs)
@@ -692,7 +693,7 @@ def aggressive(input_regs, auto=True, auto_attr=''):#WIP (register level)
     input_regs = Pre_test.convert_str2list(input_regs)
     for input_reg in input_regs:
         (attr_fields,chosen_attr) = Pre_test._main(input_reg,auto_attr,auto)#run all pretest features.
-        rdwr.Exec.validate(attr_fields,chosen_attr,auto)#validation.
+        rdwr.Exec.validate(attr_fields,chosen_attr,auto,is_targsim)#validation.
 
 
 
