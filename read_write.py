@@ -604,7 +604,7 @@ class Exec:
             disp.progress(reserved_num, reserved_print_num, prefix=f'Progress [{reserved_num}:{reserved_print_num}]:', infix1 = f'StartTime= {time.ctime()}', suffix=f'Reg: [{full_field_name}]')
             #validate
             try:
-                (pre_rd,wr_in_list,rd_in_list,pass_fail,fail_reason) = Exec.validate_1by1(full_field_name)
+                (pre_rd,wr_in_list,rd_in_list,pass_fail,fail_reason) = Exec.validate_1by1(full_field_name,is_targsim)
             except:
                 message = sys.exc_info()[1]
                 fail_reason = str(message)
