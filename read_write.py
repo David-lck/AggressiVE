@@ -574,7 +574,7 @@ class Exec:
             pass_fail = 'fail'
         return pre_rd,wr_in_list,rd_in_list,pass_fail,fail_reason
         
-    def validate(valid_fields,chosen_attr,auto,is_targsim):
+    def validate(valid_fields,chosen_attr,auto,is_targsim,is_cont):
         num=1
         Pass, Fail, Unknown, Error, Hang = 0, 0, 0, 0, 0
         num2print=0
@@ -583,7 +583,10 @@ class Exec:
         alg, flg = '', ''
         error_messages = {}
         pass_regs, fail_regs, error_regs, sus_hang_regs = [], [], [], []
-        (alg,flg) = dump.export('open','NA',alg,flg)
+        if is_cont:
+            (alg,flg) = dump.export_cont('open','NA',alg,flg)
+        else:
+            (alg,flg) = dump.export('open','NA',alg,flg)
         #Exclude all the fields with non-chosen attr.
         chosen_attr_fields = track.track_chosen_attr_fields(valid_fields,chosen_attr)
         #validation.
@@ -652,9 +655,13 @@ class Exec:
         fail_infos = [Fail,fail_regs,fail_x,auto]
         sus_hang_infos = [sus_hang_regs]
         error_infos = [error_messages]
-        (alg, flg) = user.Post_test.choose_post_test(Pass,Fail,Error,Hang,alg,flg,fail_infos,sus_hang_infos,error_infos)
-        (alg,flg) = dump.export('close_all','NA',alg,flg)
-        (alg,flg) = dump.export('close_fail','NA',alg,flg)
+        (alg, flg) = user.Post_test.choose_post_test(Pass,Fail,Error,Hang,alg,flg,fail_infos,sus_hang_infos,error_infos,is_cont)
+        if is_cont:
+            (alg,flg) = dump.export_cont('close_all','NA',alg,flg)
+            (alg,flg) = dump.export_cont('close_fail','NA',alg,flg)
+        else:
+            (alg,flg) = dump.export('close_all','NA',alg,flg)
+            (alg,flg) = dump.export('close_fail','NA',alg,flg)
         
 class Post_test:
     def machine_check(hang_state, index):
@@ -713,7 +720,7 @@ class Post_test:
                 itp.unlock()
                 return alg, flg
 
-    def validate2_fail_regs(fail_regs,alg,flg,Fail,auto):
+    def validate2_fail_regs(fail_regs,alg,flg,Fail,auto,is_cont):
         num2print=0
         num_chosen_attr_fields = len(fail_regs)
         reserved_print_num = num_chosen_attr_fields
@@ -762,10 +769,16 @@ class Post_test:
                 else:
                     hang_reason = 'Validation will be stopped due to the present of machine check error'
                     print(hang_reason)
-                (alg,flg) = dump.export('store',hang_reason,alg,flg)
-                (alg,flg) = dump.export('store',str(machine_chk_error),alg,flg)
-                (alg,flg) = dump.export('store_fail',hang_reason,alg,flg)
-                (alg,flg) = dump.export('store_fail',str(machine_chk_error),alg,flg)
+                if is_cont:
+                    (alg,flg) = dump.export_cont('store',hang_reason,alg,flg)
+                    (alg,flg) = dump.export_cont('store',str(machine_chk_error),alg,flg)
+                    (alg,flg) = dump.export_cont('store_fail',hang_reason,alg,flg)
+                    (alg,flg) = dump.export_cont('store_fail',str(machine_chk_error),alg,flg)
+                else:
+                    (alg,flg) = dump.export('store',hang_reason,alg,flg)
+                    (alg,flg) = dump.export('store',str(machine_chk_error),alg,flg)
+                    (alg,flg) = dump.export('store_fail',hang_reason,alg,flg)
+                    (alg,flg) = dump.export('store_fail',str(machine_chk_error),alg,flg)
                 break
         #shows num of passed fields.
         if Fail2 == Fail:
@@ -774,8 +787,11 @@ class Post_test:
             print(f"In second validation, there's {Pass2} pass registers.")
         return alg,flg
 
-    def validate_pass(alg, flg):#wip...
-        (alg,flg) = dump.export('store',temp,alg,flg)
+    def validate_pass(alg, flg,is_cont):#wip...
+        if is_cont:
+            (alg,flg) = dump.export_cont('store',temp,alg,flg)
+        else:
+            (alg,flg) = dump.export('store',temp,alg,flg)
         num = 1
         plg = []
         pass_regs_sets = []
@@ -794,11 +810,8 @@ class Post_test:
             if final_list_regs == []:
                 final_list_regs = pass_regs_set
             else:
-                final_list_regs = list(set(final_list_regs) & set(pass_regs_set))
-        #validation
-		
+                final_list_regs = list(set(final_list_regs) & set(pass_regs_set))		
         plg = open("AggressiVE_pass.log","w")
-	
         num=1
         num2print=0
         rowdictlist,x = [],[]
@@ -809,7 +822,10 @@ class Post_test:
         Pass,Fail,Unknown,Error = 0,0,0,0
 		
         print('2nd validation for pass regs only!')
-        (alg,flg) = dump.export('store','2nd validation for pass regs only!',alg,flg)
+        if is_cont:
+            (alg,flg) = dump.export_cont('store','2nd validation for pass regs only!',alg,flg)
+        else:
+            (alg,flg) = dump.export('store','2nd validation for pass regs only!',alg,flg)
         plg = dump.export_write_pass(plg,content)
 		
         for reg in final_list_regs:
@@ -864,10 +880,16 @@ class Post_test:
             #detect hang and stop.
             if 'hang' in pass_fail:
                 print('Validation will be stopped due to the present of machine check error')
-                (alg,flg) = dump.export('store','Validation will be stopped due to the present of machine check error',alg,flg)
-                (alg,flg) = dump.export('store',str(machine_chk_error),alg,flg)
-                (alg,flg) = dump.export('store_fail','Validation will be stopped due to the present of machine check error',alg,flg)
-                (alg,flg) = dump.export('store_fail',str(machine_chk_error),alg,flg)
+                if is_cont:
+                    (alg,flg) = dump.export_cont('store','Validation will be stopped due to the present of machine check error',alg,flg)
+                    (alg,flg) = dump.export_cont('store',str(machine_chk_error),alg,flg)
+                    (alg,flg) = dump.export_cont('store_fail','Validation will be stopped due to the present of machine check error',alg,flg)
+                    (alg,flg) = dump.export_cont('store_fail',str(machine_chk_error),alg,flg)
+                else:
+                    (alg,flg) = dump.export('store','Validation will be stopped due to the present of machine check error',alg,flg)
+                    (alg,flg) = dump.export('store',str(machine_chk_error),alg,flg)
+                    (alg,flg) = dump.export('store_fail','Validation will be stopped due to the present of machine check error',alg,flg)
+                    (alg,flg) = dump.export('store_fail',str(machine_chk_error),alg,flg)
                 plg = dump.export_write_pass(plg,'Validation will be stopped due to the present of machine check error')
                 plg = dump.export_write_pass(plg,str(machine_chk_error))
                 target.powerCycle(waitOff=1,waitAfter=1)

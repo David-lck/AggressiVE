@@ -1,7 +1,7 @@
 import tracking as track
 
 def export(choice,content,alg,flg):#Write/store only
-    dump_mode = "a" if choice == "open" else "w"
+    dump_mode = "a" if choice == "open" else "a"
     if choice == 'close_all':
         alg.close()
     elif choice == 'close_fail':
@@ -15,6 +15,23 @@ def export(choice,content,alg,flg):#Write/store only
     else:
         alg = open("AggressiVE.log", dump_mode)
         flg = open("AggressiVE_fail.log", dump_mode)
+    return alg,flg
+	
+def export_cont(choice,content,alg,flg):#Write/store only
+    dump_mode = "a" if choice == "open" else "a"
+    if choice == 'close_all':
+        alg.close()
+    elif choice == 'close_fail':
+        flg.close()
+    elif choice == 'store':
+        alg.write(content)
+        alg.write('\n')
+    elif choice == 'store_fail':
+        flg.write(content)
+        flg.write('\n')
+    else:
+        alg = open("AggressiVE_cont.log", dump_mode)
+        flg = open("AggressiVE_cont_fail.log", dump_mode)
     return alg,flg
     
 def export_badname(choice,content,ilg):

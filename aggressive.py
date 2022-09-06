@@ -58,7 +58,8 @@ AVAIL_FUNCS = {
 'invalidate' : 'To display all the fields which have the information of attribute.',
 'attr_all' : 'To display the number of fields we have with the specific attributes.',
 'aggressive' : 'Main function of AggressiVE. (Require the initial declaration from user if automatable.)',
-'log':'To display logs that AgressiVE may generate.'
+'aggressive_cont' : 'Another main function of AggressiVE. To continue the previous unfinish validation or validate specific regs.(Require log files that was generated from aggressive main function.)',
+'log' : 'To display logs that AgressiVE may generate.'
 }
 def list_all_cmd():
     headers = ['Available Functions','Description']
@@ -69,11 +70,11 @@ def list_all_cmd():
     print(x.getTableText())
 	
 def log():
-    headers = ['Logs Path','Descriptions']
+    headers = ['Logs Path','Descriptions','Delete for']
     table = []
     x = []    
     for title,path in Logs.PATH.items():
-        table += [{'Logs Path':path,'Descriptions':Logs.DESC[title]}]
+        table += [{'Logs Path':path,'Descriptions':Logs.DESC[title],'Delete for':Logs.AR[title]}]
     x = Table.fromDictList(table,headers)
     print(x.getTableText())
 
@@ -253,7 +254,7 @@ class Pre_test:
         #    pass
         #sv.socket0.target_info["tap2sb_timeout"]=5*60
         #sv.pch0.target_info["p2sb_timeout"]=5*60 #does not support pch0 in MTL project.
-        #Pre_test.fully_halt()        
+        #Pre_test.fully_halt()  		
         
     def export_pre_test_msg(log_store):
         alg,flg = '',''
@@ -263,6 +264,25 @@ class Pre_test:
         (alg,flg) = dump.export('close_all','NA',alg,flg)
         (alg,flg) = dump.export('close_fail','NA',alg,flg)
         
+    def _get_logs_regs(pass_regs, fail_regs, error_regs, hang_regs):
+        if pass_regs:
+            p_regs = track.detect_pass_regs_log()
+        else:
+            p_regs = []
+        if fail_regs:
+            f_regs = track.detect_fail_regs_log()
+        else:
+            f_regs = []
+        if error_regs:
+            e_regs = track.detect_error_regs_log()
+        else:
+            e_regs = []
+        if hang_regs:
+            h_regs = track.detect_hang_regs_log()
+        else:
+            h_regs = []
+        return p_regs,f_regs,e_regs,h_regs
+		
     def _main(input_reg,auto_attr,auto):
         full_fields = badname_regs(input_reg,auto,True)#detect for error regs and fields. Exclude them out from good regs and fields.
         attr_fields = invalidate(full_fields,auto,True)#detect for invalid regs and fields without attribute info. Exclude them out.
@@ -277,15 +297,24 @@ class Pre_test:
         Pre_test.export_pre_test_msg(log_store)#store access method info in 'AggressiVE.log'.
         return attr_fields,chosen_attr
     
+    def _exclude_regs(input_regs,auto_attr,to_be_exc_regs):
+        Pre_test.initial_setting()
+        input_regs = Pre_test.convert_str2list(input_regs)
+        regs = []
+        for input_reg in input_regs:
+            (attr_fields,chosen_attr) = Pre_test._main(input_reg,auto_attr,auto)#run all pretest features.
+            regs += attr_fields
+        return regs
+
 class Post_test:
-    def _fail_main(fail_infos,alg,flg):
+    def _fail_main(fail_infos,alg,flg,is_cont):
         [Fail,fail_regs,fail_x,auto] = fail_infos
         if Fail > 0 :
             chosen_fail_val = 1
             while chosen_fail_val == 1:
                 chosen_fail_val = user.Post_test.fail_val_choice(auto)#choose the way to deal with fail fields.
                 if chosen_fail_val == 2:
-                    (alg,flg) = rdwr.Post_test.validate2_fail_regs(fail_regs,alg,flg,Fail,auto)#2nd validation for fail fields(re-write)
+                    (alg,flg) = rdwr.Post_test.validate2_fail_regs(fail_regs,alg,flg,Fail,auto,is_cont)#2nd validation for fail fields(re-write)
                 elif chosen_fail_val == 1:
                     disp.disp_fail_content(fail_x,alg,flg)#re-print fail fields
                     print('Fail:'+str(Fail))
@@ -460,6 +489,9 @@ class Logs:
     'error_regs' : 'C>>Users>>pgsvlab>>PythonSv>>error_regs.log',
     'sus_hang_regs' : 'C>>Users>>pgsvlab>>PythonSv>>sus_hang_regs.log',
     'hang_regs' : 'C>>Users>>pgsvlab>>PythonSv>>hang_regs.log',
+    'AggressiVE_cont' : 'C>>Users>>pgsvlab>>PythonSv>>AggressiVE_cont.log',
+    'AggressiVE_cont_fail' : 'C>>Users>>pgsvlab>>PythonSv>>AggressiVE_cont_fail.log',
+    'AggressiVE_badname' : 'C>>Users>>pgsvlab>>PythonSv>>AggressiVE_badname.log'
 	}
     DESC = {
     'wout_attr_fields' : "Fields that don't have attribute information.",
@@ -467,16 +499,39 @@ class Logs:
     'bad_name_regs' : "Registers that have naming issue.",
     'AggressiVE' : "All the information when running aggressive().",
     'AggressiVE_fail' : "All the fail validation information when running aggressive().",
+    'AggressiVE_error' : "All the error validation information when running aggressive().",
+    'AggressiVE_hang' : 'All the error validation information when running aggressive().',
     'attr_all' : "List of available attributes.",
     'pass_regs' : "List of passing registers.",
     'fail_regs' : "List of failing registers.",
     'error_regs' : 'List of registers that are not able to read and write and show error message.',
     'sus_hang_regs' : 'List of registers that might caused the system hang.',
     'hang_regs' : 'List of registers that caused the system hang.',
+    'AggressiVE_cont' : 'All the information when validating specified regs by running aggressive_cont().',
+    'AggressiVE_cont_fail' : 'All the fail validation information when validating specified regs by running aggressive_cont().',
+    'AggressiVE_badname' : 'All the information when validating unacceptable name regs by running aggressive_badname().'
 	}
+    AR = {
+    'wout_attr_fields' : 'NA',
+    'with_attr_fields' : 'NA',
+    'bad_name_regs' : 'NA',
+    'AggressiVE' : 'aggressive()',
+    'AggressiVE_fail' : 'aggressive()',
+    'AggressiVE_error' : 'NA',
+    'AggressiVE_hang' : 'NA',
+    'attr_all' : 'NA',
+    'pass_regs' : 'NA',
+    'fail_regs' : 'NA',
+    'error_regs' : 'NA',
+    'sus_hang_regs' : 'NA',
+    'hang_regs' : 'NA',
+    'AggressiVE_cont' : 'aggressive_cont()',
+    'AggressiVE_cont_fail' : 'aggressive_cont()',
+    'AggressiVE_badname' : 'NA'
+    }
 
 class Exec:
-    def check_attribute(badname_regs):
+    def check_attribute(badname_regs):#wip...#for aggressive_badname()
         for badname_reg in badname_regs:
             pass
         return attr_badname_regs, their_attr
@@ -693,8 +748,99 @@ def aggressive(input_regs, auto=True, auto_attr='', is_targsim = False):#WIP (re
     input_regs = Pre_test.convert_str2list(input_regs)
     for input_reg in input_regs:
         (attr_fields,chosen_attr) = Pre_test._main(input_reg,auto_attr,auto)#run all pretest features.
-        rdwr.Exec.validate(attr_fields,chosen_attr,auto,is_targsim)#validation.
+        rdwr.Exec.validate(attr_fields,chosen_attr,auto,is_targsim,is_cont=False)#validation.
 
+def aggressive_cont(input_regs = "socket",to_exclude = True, auto_attr='', pass_regs = True, fail_regs = True, error_regs = True, hang_regs = True):
+    '''
+    Command:
+        aggressive_cont()
 
+    Details:
+        Feature 1: Continue to validate the regs that user didn't finish by referring to the previous logs.
+        Feature 2: Validate with regs that has been filtered. (Excluded some categories of regs)
+        Feature 2: Validate only the 'regs' that only marked as True.
 
- 
+    Inputs:
+        input_regs = Name of die/ Name of IP/ Name of reg.
+        to_exclude = If True, it will exclude the "regs" you marked as True from the input_regs. If False, it will ignore input_regs & validate the "regs" that marked as True only.
+        pass_regs = If True, it will refer to the registers from pass_regs.log
+        fail_regs = If True, it will refer to the registers from fail_regs.log
+        error_regs = If True, it will refer to the registers from error_regs.log
+        hang_regs = If True, it will refer to the registers from hang_regs.log
+
+    Outputs:
+        Table with the information of validation.
+
+    EX:
+        >>> aggressive_cont('cpu')
+        >>> aggressive_cont('cpu.gfx.display')
+        >>> aggressive_cont('cpu.gfx.display.vga_control')
+        >>> aggressive_cont('cpu.gfx.display',to_exclude=False)
+        >>> aggressive_cont('cpu.gfx.display',auto_attr='rw')
+        >>> aggressive_cont('cpu.gfx.display',pass_regs=False)
+        >>> aggressive_cont('cpu.gfx.display',fail_regs=False)
+        >>> aggressive_cont('cpu.gfx.display',error_regs=False)
+        >>> aggressive_cont('cpu.gfx.display',hang_regs=False)
+    '''
+    #validate only the reg in logs
+		#multiple type of logs.(pass_regs_x, fail_regs, error_regs, hang_regs)
+		#run them seperately.
+		##where should I dump?
+    ##validate only the reg not in logs./aka to be continue... => how to differentiate it?
+		#multiple type of logs.
+		#run them normally.
+		##where should I dump?
+    #--------------------
+    try:
+        eval('__main__.'+input_regs)
+    except:
+        print('No such die exist in this project!')
+        print('Please enter the correct one!')
+        return 
+    (p_regs, f_regs, e_regs, h_regs) = Pre_test._get_logs_regs(pass_regs, fail_regs, error_regs, hang_regs)
+    if to_exclude:#continue unfinish work/ eclude the regs
+        to_be_exc_regs = p_regs + f_regs + e_regs + h_regs
+        regs = Pre_test._exclude_regs(input_regs,auto_attr,to_be_exc_regs)
+        rdwr.Exec.validate(regs,chosen_attr,True,is_targsim,is_cont=True)#validation.
+    else:
+        #validate pass regs
+        rdwr.Exec.validate(p_regs,chosen_attr,True,is_targsim,is_cont=True)
+        #validate fail regs
+        rdwr.Exec.validate(f_regs,chosen_attr,True,is_targsim,is_cont=True)
+        #validate error regs
+        rdwr.Exec.validate(e_regs,chosen_attr,True,is_targsim,is_cont=True)
+        #validate hang regs
+        rdwr.Exec.validate(h_regs,chosen_attr,True,is_targsim,is_cont=True)
+		
+def aggressive_badname(input_regs="socket",auto=True,auto_attr,is_targsim=False)
+    '''
+    Command:
+        aggressive_badname()
+
+    Details:
+        Validate the fields of all the unacceptable name regs.
+        Dependencies = access method and attr
+
+    Inputs:
+        input_regs = Name of die/ Name of IP/ Name of reg.
+        to_exclude = If True, it will exclude the "regs" you marked as True from the input_regs. If False, it will ignore input_regs & validate the "regs" that marked as True only.
+        pass_regs = If True, it will refer to the registers from pass_regs.log
+        fail_regs = If True, it will refer to the registers from fail_regs.log
+        error_regs = If True, it will refer to the registers from error_regs.log
+        hang_regs = If True, it will refer to the registers from hang_regs.log
+
+    Outputs:
+        Table with the information of validation.
+
+    EX:
+        >>> aggressive_badname('cpu')
+        >>> aggressive_badname('cpu.gfx.display')
+        >>> aggressive_badname('cpu.gfx.display.vga_control')
+        >>> aggressive_badname('cpu.gfx.display',to_exclude=False)
+        >>> aggressive_badname('cpu.gfx.display',auto_attr='rw')
+        >>> aggressive_badname('cpu.gfx.display',pass_regs=False)
+        >>> aggressive_badname('cpu.gfx.display',fail_regs=False)
+        >>> aggressive_badname('cpu.gfx.display',error_regs=False)
+        >>> aggressive_badname('cpu.gfx.display',hang_regs=False)
+    '''
+    return

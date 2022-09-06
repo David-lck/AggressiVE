@@ -147,6 +147,69 @@ def track_num_pass_fail(pass_fail,Pass,Fail,Unknown,Error):
         Error+=1
     return Pass,Fail,Unknown,Error
     
+def detect_pass_regs_log():
+    p_regs = []
+    p_regs_temp = []
+    num = 1
+    while num > 0:
+        try:
+            prlg = open("pass_regs_"+str(num)+".log",'r')
+            print('Detected pass_regs_'+str(num)+'.log')
+            print('Extracting pass_regs from log...')
+            p_regs_temp.append(prlg.readlines())
+            prlg.close()
+        except:
+            print('Failed to detect pass_regs_'+str(num)+'.log')
+            print('Will continue without it.')
+            break
+        if num == 1:
+            p_regs.append(p_regs_temp)
+        else:
+            for p_reg_temp in p_regs_temp:
+                if p_reg_temp not in p_regs:
+                    p_regs.append(p_reg_temp)
+        num+=1
+    return p_regs    
+
+def detect_fail_regs_log():
+    f_regs = []
+    try:
+        frlg = open("fail_regs.log",'r')
+        print('Detected fail_regs.log')
+        print('Extracting fail regs from log...')
+        f_regs.append(frlg.readlines())
+        frlg.close()
+    except:
+        print('Failed to detect fail_regs.log')
+        print('Will continue without it.')
+    return f_regs
+
+def detect_error_regs_log():
+    e_regs = []
+    try:
+        erlg = open("error_regs.log",'r')
+        print('Detected error_regs.log')
+        print('Extracting error regs from log...')
+        e_regs.append(erlg.readlines())
+        erlg.close()
+    except:
+        print('Failed to detect error_regs.log')
+        print('Will continue without it.')
+    return e_regs
+
+def detect_hang_regs_log():
+    h_regs = []
+    try:
+        hrlg = open("hang_regs.log",'r')
+        print('Detected hang_regs.log')
+        print('Extracting hang regs from log...')
+        h_regs.append(hrlg.readlines())
+        hrlg.close()
+    except:
+        print('Failed to detect hang_regs.log')
+        print('Will continue without it.')
+    return h_regs
+	
 def create_pass_regs_log(prlg):
     num = 1
     while num > 0:
