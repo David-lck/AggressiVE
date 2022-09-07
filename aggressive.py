@@ -843,4 +843,15 @@ def aggressive_badname(input_regs="socket",auto=True,auto_attr,is_targsim=False)
         >>> aggressive_badname('cpu.gfx.display',error_regs=False)
         >>> aggressive_badname('cpu.gfx.display',hang_regs=False)
     '''
+    #open dump.
+    #check for the input correction
+    #detect the badname regs
+        #if yes, cont. if no, end with message.
+    #get attrs #dump
+    #choose attr #dump
+    #choose access method if available #dump
+    #validation #dump
+    #categorize regs with pass/fail/error/hang. #dump to each logs.
+    #2nd pass/fail/error/hang regs validation if possible. #dump
+    #close dump.
     return
