@@ -812,7 +812,7 @@ def aggressive_cont(input_regs = "socket",to_exclude = True, auto_attr='', pass_
         #validate hang regs
         rdwr.Exec.validate(h_regs,chosen_attr,True,is_targsim,is_cont=True)
 		
-def aggressive_badname(input_regs="socket",auto=True,auto_attr,is_targsim=False):
+def aggressive_badname(input_regs="socket",auto=True,auto_attr='',is_targsim=False):
     '''
     Command:
         aggressive_badname()
