@@ -1,4 +1,5 @@
 import tracking as track
+import os
 
 def export(choice,content,alg,flg):#Write/store only
     dump_mode = "a" if choice == "open" else "a"
@@ -47,8 +48,8 @@ def export_badname(choice,content,ilg):
 def export_regs(pass_regs, fail_regs, error_regs, sus_hang_regs):
     prlg, frlg, erlg, shrlg = '', '', '', ''
     prlg = track.create_pass_regs_log(prlg)
-    frlg = open("fail_regs.log","w")
-    erlg = open("error_regs.log","w")
+    frlg = open("fail_regs.log","a")
+    erlg = open("error_regs.log","a")
     shrlg = open("sus_hang_regs.log","w")
     for pass_reg in pass_regs:
         prlg.write(pass_reg)
@@ -73,7 +74,7 @@ def export_regs(pass_regs, fail_regs, error_regs, sus_hang_regs):
     
 def export_hang_regs(confirm_hang_regs):
     hrlg = ''
-    hrlg = open("hang_regs.log","w")
+    hrlg = open("hang_regs.log","a")
     for reg in confirm_hang_regs:
         hrlg.write(reg)
         hrlg.write('\n')
@@ -89,7 +90,7 @@ def export_attr_all(choice,content,aa):
         aa.write(content)
         aa.write('\n')
     return aa
-    
+	
 def export_invalidate(choice,content,invf,vf):
     if choice == 'open':
         invf = open("no_attr_fields.log","w")
@@ -109,3 +110,58 @@ def export_write_pass(plg,content):
     plg.write(content)
     plg.write('\n')
     return plg
+	
+def det_del_ags_logs():
+    try:
+        a = open('AggressiVE.log','r')
+        a.close()
+        os.remove('AggressiVE.log')
+        print('AggressiVE.log has been deleted.')
+    except:
+        pass
+    try:
+        a = open('AggressiVE_fail.log','r')
+        a.close()
+        os.remove('AggressiVE_fail.log')
+        print('AggressiVE_fail.log has been deleted.')
+    except:
+        pass
+		
+def det_del_ags_cont_logs():
+    try:
+        a = open('AggressiVE_cont.log','r')
+        a.close()
+        os.remove('AggressiVE_cont.log')
+        print('AggressiVE_cont.log has been deleted.')
+    except:
+        pass
+    try:
+        a = open('AggressiVE_cont_fail.log','r')
+        a.close()
+        os.remove('AggressiVE_cont_fail.log')
+        print('AggressiVE_cont_fail.log has been deleted.')
+    except:
+        pass
+	
+def det_del_regs_logs():
+    try:
+        a = open('fail_regs.log','r')
+        a.close()
+        os.remove('fail_regs.log')
+        print('fail_regs.log has been deleted.')
+    except:
+        pass
+    try:
+        a = open('error_regs.log','r')
+        a.close()
+        os.remove('error_regs.log')
+        print('error_regs.log has been deleted.')
+    except:
+        pass
+    try:
+        a = open('hang_regs.log','r')
+        a.close()
+        os.remove('hang_regs.log')
+        print('hang_regs.log has been deleted.')
+    except:
+        pass

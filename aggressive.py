@@ -491,6 +491,8 @@ class Logs:
     'hang_regs' : 'C>>Users>>pgsvlab>>PythonSv>>hang_regs.log',
     'AggressiVE_cont' : 'C>>Users>>pgsvlab>>PythonSv>>AggressiVE_cont.log',
     'AggressiVE_cont_fail' : 'C>>Users>>pgsvlab>>PythonSv>>AggressiVE_cont_fail.log',
+    'AggressiVE_cont_error' : 'C>>Users>>pgsvlab>>PythonSv>>AggressiVE_cont_error.log',
+    'AggressiVE_cont_hang' : 'C>>Users>>pgsvlab>>PythonSv>>AggressiVE_cont_hang.log',
     'AggressiVE_badname' : 'C>>Users>>pgsvlab>>PythonSv>>AggressiVE_badname.log'
 	}
     DESC = {
@@ -500,7 +502,7 @@ class Logs:
     'AggressiVE' : "All the information when running aggressive().",
     'AggressiVE_fail' : "All the fail validation information when running aggressive().",
     'AggressiVE_error' : "All the error validation information when running aggressive().",
-    'AggressiVE_hang' : 'All the error validation information when running aggressive().',
+    'AggressiVE_hang' : 'All the hang validation information when running aggressive().',
     'attr_all' : "List of available attributes.",
     'pass_regs' : "List of passing registers.",
     'fail_regs' : "List of failing registers.",
@@ -509,6 +511,8 @@ class Logs:
     'hang_regs' : 'List of registers that caused the system hang.',
     'AggressiVE_cont' : 'All the information when validating specified regs by running aggressive_cont().',
     'AggressiVE_cont_fail' : 'All the fail validation information when validating specified regs by running aggressive_cont().',
+    'AggressiVE_cont_error' : "All the error validation information when running aggressive_cont().",
+    'AggressiVE_cont_hang' : 'All the hang validation information when running aggressive_cont().',
     'AggressiVE_badname' : 'All the information when validating unacceptable name regs by running aggressive_badname().'
 	}
     AR = {
@@ -517,16 +521,18 @@ class Logs:
     'bad_name_regs' : 'NA',
     'AggressiVE' : 'aggressive()',
     'AggressiVE_fail' : 'aggressive()',
-    'AggressiVE_error' : 'NA',
-    'AggressiVE_hang' : 'NA',
+    'AggressiVE_error' : 'aggressive()',
+    'AggressiVE_hang' : 'aggressive()',
     'attr_all' : 'NA',
     'pass_regs' : 'NA',
-    'fail_regs' : 'NA',
-    'error_regs' : 'NA',
+    'fail_regs' : 'aggressive() & cont()',
+    'error_regs' : 'aggressive() & cont()',
     'sus_hang_regs' : 'NA',
-    'hang_regs' : 'NA',
+    'hang_regs' : 'aggressive() & cont()',
     'AggressiVE_cont' : 'aggressive_cont()',
     'AggressiVE_cont_fail' : 'aggressive_cont()',
+    'AggressiVE_cont_error' : 'aggressive_cont()',
+    'AggressiVE_cont_hang' : 'aggressive_cont()',
     'AggressiVE_badname' : 'NA'
     }
 
@@ -744,6 +750,8 @@ def aggressive(input_regs, auto=True, auto_attr='', is_targsim = False):#WIP (re
         print('No such die exist in this project!')
         print('Please enter the correct one!')
         return 
+    dump.det_del_ags_logs()#dump is in append mode, need to delete just not to combine with previous data.
+    dump.det_del_regs_logs()#dump is in append mode, need to delete just not to combine with previous data.
     Pre_test.initial_setting()
     input_regs = Pre_test.convert_str2list(input_regs)
     for input_reg in input_regs:
@@ -804,6 +812,8 @@ def aggressive_cont(input_regs = "socket",to_exclude = True, auto_attr='', pass_
         rdwr.Exec.validate(regs,chosen_attr,True,is_targsim,is_cont=True)#validation.
     else:
         #validate pass regs
+        dump.det_del_ags_cont_logs()#dump is in append mode, need to delete just not to combine with previous data.
+        dump.det_del_regs_logs()#dump is in append mode, need to delete just not to combine with previous data.
         rdwr.Exec.validate(p_regs,chosen_attr,True,is_targsim,is_cont=True)
         #validate fail regs
         rdwr.Exec.validate(f_regs,chosen_attr,True,is_targsim,is_cont=True)

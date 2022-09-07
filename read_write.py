@@ -693,7 +693,7 @@ class Post_test:
             hang_stages.append(hang_state)
         return confirm_hang_regs, hang_stages
 
-    def validate2_hang_regs(sus_hang_regs, alg, flg):
+    def validate2_hang_regs(sus_hang_regs, alg, flg, is_cont):
         confirm_hang_regs = []
         hang_stages = []
         hang_stage_reason = ['Pre-read','1st read-write','2nd read-write','3rd read-write']
@@ -708,12 +708,17 @@ class Post_test:
                     if hang_stage[n] == 1:
                         temp.append(hang_stage_reason[n])
                 final_hang_stages.append(temp)
-        hlg = ''
-        hlg = open("AggressiVE_hang.log","w")
+        if is_cont:
+            hlg = open("AggressiVE_cont_hang.log","a")
+        else:
+            hlg = open("AggressiVE_hang.log","a")
         (alg, flg, hlg) = disp.disp_hang_regs(confirm_hang_regs, final_hang_stages, alg, flg, hlg)
         hlg.close()
         dump.export_hang_regs(confirm_hang_regs)
-        print('All the hang infos are stored in C>>Users>>pgsvlab>>PythonSv>>AggressiVE_hang.log')
+        if is_cont:
+            print('All the hang infos are stored in C>>Users>>pgsvlab>>PythonSv>>AggressiVE_cont_hang.log')
+        else:
+            print('All the hang infos are stored in C>>Users>>pgsvlab>>PythonSv>>AggressiVE_hang.log')
         target.powerCycle(waitOff=1,waitAfter=1)
         while True:
             if target.readPostcode() == 0x10AD:

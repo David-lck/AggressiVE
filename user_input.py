@@ -136,11 +136,14 @@ class Exec:
         return num2print,reserved_print_limit
         
 class Post_test:
-    def disp_error_choice(Error, error_messages, auto):
+    def disp_error_choice(Error, error_messages, auto, is_cont):
         msg_sorted = track.track_dif_errors(error_messages)
         disp_choice = 0
         disp.error_table(msg_sorted)
-        elg = open("AggressiVE_error.log","w")
+        if is_cont:
+            elg = open("AggressiVE_cont_error.log","a")
+        else:
+            elg = open("AggressiVE_error.log","a")
         while disp_choice != 'end':
             if auto:
                 disp_choice == ''
@@ -151,9 +154,12 @@ class Post_test:
                 elg.write(printed_error_msg)
                 elg.write('\n')
         elg.close()
-        print('All the printed error infos have been saved in C>>Users>>pgsvlab>>PythonSv>>AggressiVE_error.log')
+        if is_cont:
+            print('All the printed error infos have been saved in C>>Users>>pgsvlab>>PythonSv>>AggressiVE_error.log')
+        else:
+            print('All the printed error infos have been saved in C>>Users>>pgsvlab>>PythonSv>>AggressiVE_cont_error.log')
 
-    def choose_post_test(Pass,Fail,Error,Hang,alg,flg,fail_infos,sus_hang_infos,error_infos):
+    def choose_post_test(Pass,Fail,Error,Hang,alg,flg,fail_infos,sus_hang_infos,error_infos,is_cont):
         avail_choice = []
         print('Second Validation!')
         if Pass != 0:
@@ -177,18 +183,18 @@ class Post_test:
             if val_choice == 'end':
                 break
             elif 'Pass' in avail_choice[int(val_choice)-1]:
-                (alg, flg) = rw.Post_test.validate_pass(alg, flg)
+                (alg, flg) = rw.Post_test.validate_pass(alg, flg,is_cont)
                 avail_choice.remove('Pass Registers.')
             elif 'Fail' in avail_choice[int(val_choice)-1]:
-                (alg, flg) = ags.Post_test._fail_main(fail_infos, alg, flg)#run post feature (Validate or display fail fields only).
+                (alg, flg) = ags.Post_test._fail_main(fail_infos, alg, flg,is_cont)#run post feature (Validate or display fail fields only).
                 avail_choice.remove('Fail Registers.')
             elif 'Hang' in avail_choice[int(val_choice)-1]:
                 [sus_hang_regs] = sus_hang_infos
-                (alg, flg) = rw.Post_test.validate2_hang_regs(sus_hang_regs, alg, flg)
+                (alg, flg) = rw.Post_test.validate2_hang_regs(sus_hang_regs, alg, flg, is_cont)
                 avail_choice.remove('Hang Registers.')
             elif 'Error' in avail_choice[int(val_choice)-1]:
                 [error_messages] = error_infos
-                Post_test.disp_error_choice(Error,error_messages,auto)
+                Post_test.disp_error_choice(Error,error_messages,auto,is_cont)
                 avail_choice.remove('Errors Check.')
         return alg, flg
             

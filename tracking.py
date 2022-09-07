@@ -210,6 +210,7 @@ def detect_hang_regs_log():
         print('Will continue without it.')
     return h_regs
 	
+	
 def create_pass_regs_log(prlg):
     num = 1
     while num > 0:
