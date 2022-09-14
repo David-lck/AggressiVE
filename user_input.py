@@ -159,7 +159,9 @@ class Post_test:
         else:
             print('All the printed error infos have been saved in C>>Users>>pgsvlab>>PythonSv>>AggressiVE_cont_error.log')
 
-    def choose_post_test(Pass,Fail,Error,Hang,alg,flg,fail_infos,sus_hang_infos,error_infos,is_cont):
+    def choose_post_test(num_status,alg,flg,status_infos,is_cont,is_targsim,auto):
+        [Pass,Fail,Error,Hang] = num_status
+        [fail_infos,sus_hang_infos,error_infos] = status_infos
         avail_choice = []
         print('Second Validation!')
         if Pass != 0:
@@ -173,9 +175,11 @@ class Post_test:
         while True:
             for choice in avail_choice:
                 print(f'{str(avail_choice.index(choice)+1)}. {choice}')
-
             while True:
-                val_choice = input('Choice["end" to exit]: ')
+                if auto:
+                    val_choice = '1'
+                else:
+                    val_choice = input('Choice["end" to exit]: ')
                 if val_choice in ['1','2','3','4','end']:
                     break
                 print('Please enter properly!')
@@ -183,10 +187,10 @@ class Post_test:
             if val_choice == 'end':
                 break
             elif 'Pass' in avail_choice[int(val_choice)-1]:
-                (alg, flg) = rw.Post_test.validate_pass(alg, flg,is_cont)
+                (alg, flg) = rw.Post_test.validate_pass(alg, flg,is_cont,is_targsim,auto)
                 avail_choice.remove('Pass Registers.')
             elif 'Fail' in avail_choice[int(val_choice)-1]:
-                (alg, flg) = ags.Post_test._fail_main(fail_infos, alg, flg,is_cont)#run post feature (Validate or display fail fields only).
+                (alg, flg) = ags.Post_test._fail_main(fail_infos, alg, flg,is_cont,is_targsim)#run post feature (Validate or display fail fields only).
                 avail_choice.remove('Fail Registers.')
             elif 'Hang' in avail_choice[int(val_choice)-1]:
                 [sus_hang_regs] = sus_hang_infos
@@ -196,11 +200,14 @@ class Post_test:
                 [error_messages] = error_infos
                 Post_test.disp_error_choice(Error,error_messages,auto,is_cont)
                 avail_choice.remove('Errors Check.')
+            if avail_choice == []:
+                break
         return alg, flg
             
         
     def fail_val_choice(auto):
-        if auto == True:
+        if auto:
+            print('Re-write is chosen!')
             return 2
         loop = 0
         while loop == 0:

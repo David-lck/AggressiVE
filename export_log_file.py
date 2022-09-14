@@ -107,6 +107,7 @@ def export_invalidate(choice,content,invf,vf):
     return invf,vf
 
 def export_write_pass(plg,content):
+    #For AggressiVE_pass.log
     plg.write(content)
     plg.write('\n')
     return plg
@@ -126,6 +127,27 @@ def det_del_ags_logs():
         print('AggressiVE_fail.log has been deleted.')
     except:
         pass
+    try:
+        a = open('AggressiVE_pass.log','r')
+        a.close()
+        os.remove('AggressiVE_pass.log')
+        print('AggressiVE_pass.log has been deleted.')
+    except:
+        pass
+    try:
+        a = open('AggressiVE_error.log','r')
+        a.close()
+        os.remove('AggressiVE_error.log')
+        print('AggressiVE_error.log has been deleted.')
+    except:
+        pass
+    try:
+        a = open('AggressiVE_hang.log','r')
+        a.close()
+        os.remove('AggressiVE_hang.log')
+        print('AggressiVE_hang.log has been deleted.')
+    except:
+        pass    
 		
 def det_del_ags_cont_logs():
     try:
@@ -140,6 +162,27 @@ def det_del_ags_cont_logs():
         a.close()
         os.remove('AggressiVE_cont_fail.log')
         print('AggressiVE_cont_fail.log has been deleted.')
+    except:
+        pass
+    try:
+        a = open('AggressiVE_cont_pass.log','r')
+        a.close()
+        os.remove('AggressiVE_cont_pass.log')
+        print('AggressiVE_cont_pass.log has been deleted.')
+    except:
+        pass
+    try:
+        a = open('AggressiVE_cont_error.log','r')
+        a.close()
+        os.remove('AggressiVE_cont_error.log')
+        print('AggressiVE_cont_error.log has been deleted.')
+    except:
+        pass
+    try:
+        a = open('AggressiVE_cont_hang.log','r')
+        a.close()
+        os.remove('AggressiVE_cont_hang.log')
+        print('AggressiVE_cont_hang.log has been deleted.')
     except:
         pass
 	

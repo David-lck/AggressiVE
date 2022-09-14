@@ -297,7 +297,7 @@ class Pre_test:
         Pre_test.export_pre_test_msg(log_store)#store access method info in 'AggressiVE.log'.
         return attr_fields,chosen_attr
     
-    def _exclude_regs(input_regs,auto_attr,to_be_exc_regs):
+    def _exclude_regs(input_regs,auto_attr,to_be_exc_regs,auto):
         Pre_test.initial_setting()
         input_regs = Pre_test.convert_str2list(input_regs)
         regs = []
@@ -307,14 +307,16 @@ class Pre_test:
         return regs
 
 class Post_test:
-    def _fail_main(fail_infos,alg,flg,is_cont):
+    def _fail_main(fail_infos,alg,flg,is_cont,is_targsim):
         [Fail,fail_regs,fail_x,auto] = fail_infos
         if Fail > 0 :
             chosen_fail_val = 1
             while chosen_fail_val == 1:
                 chosen_fail_val = user.Post_test.fail_val_choice(auto)#choose the way to deal with fail fields.
                 if chosen_fail_val == 2:
-                    (alg,flg) = rdwr.Post_test.validate2_fail_regs(fail_regs,alg,flg,Fail,auto,is_cont)#2nd validation for fail fields(re-write)
+                    (alg,flg) = dump.export('store','Fail Registers Re-write is chosen!',alg,flg)
+                    (alg,flg) = dump.export('store_fail','Fail Registers Re-write is chosen!',alg,flg)
+                    (alg,flg) = rdwr.Post_test.validate2_fail_regs(fail_regs,alg,flg,Fail,auto,is_cont,is_targsim)#2nd validation for fail fields(re-write)
                 elif chosen_fail_val == 1:
                     disp.disp_fail_content(fail_x,alg,flg)#re-print fail fields
                     print('Fail:'+str(Fail))
@@ -591,6 +593,7 @@ def badname_regs(input_reg,auto=True,validate=False):#Completed(die,IP, and regi
 
     Outputs:
         Name of error IPs/regs/fields.
+        Log File: bad_name_regs.log
 
     EX:
         >>> badname_regs('cpu')
@@ -604,11 +607,7 @@ def badname_regs(input_reg,auto=True,validate=False):#Completed(die,IP, and regi
     user.Pre_test.disp_badname_reg_choice(badname_registers,auto)
     if validate == True:
         return attr_fields
-    
-def aggressive_badname(input_reg,auto=True):
-    (badname_regs,attr_fields) = track.Pre_test.track_badname_regs(input_reg)
-    (attr_badname_regs, their_attr) = Exec.check_attribute(badname_regs)
-	
+
 def invalidate(input_reg,auto=True,validate=False):#Completed(die,ip,fields)
     '''
     Command:
@@ -622,6 +621,9 @@ def invalidate(input_reg,auto=True,validate=False):#Completed(die,ip,fields)
 
     Outputs:
         All the name of valid and invalid fields/IPs.
+        Log Files: 
+            - no_attr_fields.log
+            - attr_fields.log
 
     EX:
         >>> invalidate('cpu')
@@ -672,6 +674,7 @@ def attr_all(input_regs,validate=False):#for die, ip, register, and fields
 
     Outputs:
         Table with the all the available attributes and the numbers of fields in all the specific attributes.
+        Log File: atrt_all.log
 
     EX:
         >>> attr_all('soc')
@@ -735,6 +738,21 @@ def aggressive(input_regs, auto=True, auto_attr='', is_targsim = False):#WIP (re
 
     Outputs:
         Table with the information of validation.
+        Log Files:
+            - no_attr_fields.log [override]
+            - attr_fields.log [override]
+            - badname_regs.log [override]
+            - attr_all.log [override]
+            - AggressiVE.log [override]
+            - AggressiVE_fail.log [override]
+            - AggressiVE_pass.log [override]
+            - AggressiVE_error.log [override]
+            - AggressiVE_hang.log [override]
+            - pass_regs.log [generate new log]
+            - fail_regs.log [override]
+            - error_regs.log [override]
+            - sus_hang_regs.log [override]
+            - hang_regs.log [override]
 
     EX:
         >>> aggressive('cpu')
@@ -750,15 +768,17 @@ def aggressive(input_regs, auto=True, auto_attr='', is_targsim = False):#WIP (re
         print('No such die exist in this project!')
         print('Please enter the correct one!')
         return 
-    dump.det_del_ags_logs()#dump is in append mode, need to delete just not to combine with previous data.
-    dump.det_del_regs_logs()#dump is in append mode, need to delete just not to combine with previous data.
+    dump.det_del_ags_logs()#dump is in append mode, remove ags.log & ags_fail.log & ags_pass.log & ags_error.log & ags_hang.log
+    dump.det_del_ags_cont_logs()#dump is in append mode, remove ags_cont.log & ags_cont_fail.log & ags_cont_pass.log & ags_cont_error.log & ags_cont_hang.log bcz user run new validation.
+    dump.det_del_regs_logs()#dump is in append mode, remove fail_regs.log & error_regs.log & hang_regs.log
+    #AggressiVE_error.log & AggressiVE_hang.log & AggressiVE_pass.log?
     Pre_test.initial_setting()
     input_regs = Pre_test.convert_str2list(input_regs)
     for input_reg in input_regs:
         (attr_fields,chosen_attr) = Pre_test._main(input_reg,auto_attr,auto)#run all pretest features.
         rdwr.Exec.validate(attr_fields,chosen_attr,auto,is_targsim,is_cont=False)#validation.
 
-def aggressive_cont(input_regs = "socket",to_exclude = True, auto_attr='', pass_regs = True, fail_regs = True, error_regs = True, hang_regs = True):
+def aggressive_cont(input_regs = "socket",to_exclude = True, auto_attr='', pass_regs = True, fail_regs = True, error_regs = True, hang_regs = True,is_targsim = False):
     '''
     Command:
         aggressive_cont()
@@ -775,9 +795,25 @@ def aggressive_cont(input_regs = "socket",to_exclude = True, auto_attr='', pass_
         fail_regs = If True, it will refer to the registers from fail_regs.log
         error_regs = If True, it will refer to the registers from error_regs.log
         hang_regs = If True, it will refer to the registers from hang_regs.log
+        is_targsim = If True, it will assume it is in targsim mode and will not expect the hang register.
+        Log Files:
+            - pass_regs.log
+            - fail_regs.log
+            - error_regs.log
+            - hang_regs.log
 
     Outputs:
         Table with the information of validation.
+        Log Files:
+            - pass_regs.log [generate new log]
+            - fail_regs.log [append[to_exclude=True];override[to_exclude=False]]
+            - error_regs.log [append[to_exclude=True];override[to_exclude=False]]
+            - hang_regs.log [append[to_exclude=True];override[to_exclude=False]]
+            - AggressiVE_cont.log [append[to_exclude=True];override[to_exclude=False]]
+            - AggressiVE_cont_fail.log [append[to_exclude=True];override[to_exclude=False]]
+            - AggressiVE_cont_pass.log [append[to_exclude=True];override[to_exclude=False]]
+            - AggresiVE_cont_error.log [append[to_exclude=True];override[to_exclude=False]]
+            - AggressiVE_cont_hang.log [append[to_exclude=True];override[to_exclude=False]]
 
     EX:
         >>> aggressive_cont('cpu')
@@ -808,18 +844,44 @@ def aggressive_cont(input_regs = "socket",to_exclude = True, auto_attr='', pass_
     (p_regs, f_regs, e_regs, h_regs) = Pre_test._get_logs_regs(pass_regs, fail_regs, error_regs, hang_regs)
     if to_exclude:#continue unfinish work/ eclude the regs
         to_be_exc_regs = p_regs + f_regs + e_regs + h_regs
-        regs = Pre_test._exclude_regs(input_regs,auto_attr,to_be_exc_regs)
+        regs = Pre_test._exclude_regs(input_regs,auto_attr,to_be_exc_regs,True)
+        avai_attrs = attr_all(regs,True)#display available attributes
+        chosen_attr = user.Pre_test.attr_choice(avai_attrs,True,auto_attr)#choose the one for validation.('r/w' or '')
         rdwr.Exec.validate(regs,chosen_attr,True,is_targsim,is_cont=True)#validation.
     else:
         #validate pass regs
         dump.det_del_ags_cont_logs()#dump is in append mode, need to delete just not to combine with previous data.
         dump.det_del_regs_logs()#dump is in append mode, need to delete just not to combine with previous data.
+        print('Validate pass_regs!')
+        dump.export_cont('open','',alg,flg)
+        dump.export_cont('store','Validate pass_regs!',alg,flg)
+        dump.export_cont('close','',alg,flg)
+        avai_attrs = attr_all(p_regs,True)#display available attributes
+        chosen_attr = user.Pre_test.attr_choice(avai_attrs,True,auto_attr)#choose the one for validation.('r/w' or '')
         rdwr.Exec.validate(p_regs,chosen_attr,True,is_targsim,is_cont=True)
         #validate fail regs
+        print('Validate fail_regs!')
+        dump.export_cont('open','',alg,flg)
+        dump.export_cont('store','Validate fail_regs!',alg,flg)
+        dump.export_cont('close','',alg,flg)
+        avai_attrs = attr_all(f_regs,True)#display available attributes
+        chosen_attr = user.Pre_test.attr_choice(avai_attrs,True,auto_attr)#choose the one for validation.('r/w' or '')
         rdwr.Exec.validate(f_regs,chosen_attr,True,is_targsim,is_cont=True)
         #validate error regs
+        print('Validate error_regs!')
+        dump.export_cont('open','',alg,flg)
+        dump.export_cont('store','Validate error_regs!',alg,flg)
+        dump.export_cont('close','',alg,flg)
+        avai_attrs = attr_all(e_regs,True)#display available attributes
+        chosen_attr = user.Pre_test.attr_choice(avai_attrs,True,auto_attr)#choose the one for validation.('r/w' or '')
         rdwr.Exec.validate(e_regs,chosen_attr,True,is_targsim,is_cont=True)
         #validate hang regs
+        print('Validate hang_regs!')
+        dump.export_cont('open','',alg,flg)
+        dump.export_cont('store','Validate hang_regs!',alg,flg)
+        dump.export_cont('close','',alg,flg)
+        avai_attrs = attr_all(h_regs,True)#display available attributes
+        chosen_attr = user.Pre_test.attr_choice(h_regs,True,auto_attr)#choose the one for validation.('r/w' or '')
         rdwr.Exec.validate(h_regs,chosen_attr,True,is_targsim,is_cont=True)
 		
 def aggressive_badname(input_regs="socket",auto=True,auto_attr='',is_targsim=False):
@@ -833,25 +895,17 @@ def aggressive_badname(input_regs="socket",auto=True,auto_attr='',is_targsim=Fal
 
     Inputs:
         input_regs = Name of die/ Name of IP/ Name of reg.
-        to_exclude = If True, it will exclude the "regs" you marked as True from the input_regs. If False, it will ignore input_regs & validate the "regs" that marked as True only.
-        pass_regs = If True, it will refer to the registers from pass_regs.log
-        fail_regs = If True, it will refer to the registers from fail_regs.log
-        error_regs = If True, it will refer to the registers from error_regs.log
-        hang_regs = If True, it will refer to the registers from hang_regs.log
+        Log Files:
+            - badname_regs.log
 
     Outputs:
-        Table with the information of validation.
+        Table with the information of bad_name regs validation.
+        Log File: AggressiVE_badname.log
 
     EX:
         >>> aggressive_badname('cpu')
         >>> aggressive_badname('cpu.gfx.display')
         >>> aggressive_badname('cpu.gfx.display.vga_control')
-        >>> aggressive_badname('cpu.gfx.display',to_exclude=False)
-        >>> aggressive_badname('cpu.gfx.display',auto_attr='rw')
-        >>> aggressive_badname('cpu.gfx.display',pass_regs=False)
-        >>> aggressive_badname('cpu.gfx.display',fail_regs=False)
-        >>> aggressive_badname('cpu.gfx.display',error_regs=False)
-        >>> aggressive_badname('cpu.gfx.display',hang_regs=False)
     '''
     #open dump.
     #check for the input correction

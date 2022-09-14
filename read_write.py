@@ -502,7 +502,7 @@ class Val_stage:
         #read and compare to get result(pass/fail) for field with algorithm.
         if wr != 'NA':
             if attr in ['ro/v','rw/v']:
-                time.sleep(10)
+                time.sleep(1)#regs of this attr needs time to update value...
             rd = read(full_field_name)
             if attr in ['roswc','rw/cr'] or attr in all_undefined_attrs:#double read
                 rd2 =read(full_field_name)
@@ -608,6 +608,11 @@ class Exec:
             #validate
             try:
                 (pre_rd,wr_in_list,rd_in_list,pass_fail,fail_reason) = Exec.validate_1by1(full_field_name,is_targsim)
+            except KeyboardInterrupt:
+                print('\n' + Fore.RED + 'Validation forced to stopped!' + Fore.RESET)
+                disp.disp_content(rowdictlist,x,alg,flg)
+                disp.disp_total_pass_fail(Pass,Fail,Unknown,Error,Hang)
+                break
             except:
                 message = sys.exc_info()[1]
                 fail_reason = str(message)
@@ -624,7 +629,6 @@ class Exec:
             #store fail fields validation info.
             if pass_fail == 'fail':
                 (fail_rowdl,fail_x) = disp.store_fail_content(fail_rowdl,fail_x,num,full_field_name,attr,pass_fail,pre_rd,wr_in_list,rd_in_list,fail_reason)
-                fail_regs.append(full_field_name)
             #print the table when reach number user want to print.
             num2print -= 1
             if int(repr(num2print)[-1]) == 0:
@@ -655,7 +659,9 @@ class Exec:
         fail_infos = [Fail,fail_regs,fail_x,auto]
         sus_hang_infos = [sus_hang_regs]
         error_infos = [error_messages]
-        (alg, flg) = user.Post_test.choose_post_test(Pass,Fail,Error,Hang,alg,flg,fail_infos,sus_hang_infos,error_infos,is_cont)
+        num_status = [Pass, Fail, Error, Hang]
+        status_infos = [fail_infos,sus_hang_infos,error_infos]
+        (alg, flg) = user.Post_test.choose_post_test(num_status,alg,flg,status_infos,is_cont,is_targsim,auto)
         if is_cont:
             (alg,flg) = dump.export_cont('close_all','NA',alg,flg)
             (alg,flg) = dump.export_cont('close_fail','NA',alg,flg)
@@ -725,7 +731,7 @@ class Post_test:
                 itp.unlock()
                 return alg, flg
 
-    def validate2_fail_regs(fail_regs,alg,flg,Fail,auto,is_cont):
+    def validate2_fail_regs(fail_regs,alg,flg,Fail,auto,is_cont,is_targsim):
         num2print=0
         num_chosen_attr_fields = len(fail_regs)
         reserved_print_num = num_chosen_attr_fields
@@ -752,7 +758,7 @@ class Post_test:
             reserved_num += 1
             disp.progress(reserved_num, reserved_print_num, prefix=f'Progress [{reserved_num}:{reserved_print_num}]:', infix1 = f'StartTime= {time.ctime()}', suffix=f'Reg: [{fail_field_name}]')
             #validate
-            (pre_rd,wr_in_list,rd_in_list,pass_fail,fail_reason) = Exec.validate_1by1(fail_field_name)
+            (pre_rd,wr_in_list,rd_in_list,pass_fail,fail_reason) = Exec.validate_1by1(fail_field_name,is_targsim)
             attr = eval(fail_field_name+'.info["attribute"]')
             (fail_rowdl,fail_x) = disp.store_fail_content(fail_rowdl,fail_x,num,fail_field_name,attr,pass_fail,pre_rd,wr_in_list,rd_in_list,fail_reason)
             (Pass2,Fail2,Unknown2,Error2) = track.track_num_pass_fail(pass_fail,Pass2,Fail2,Unknown2,Error2)
@@ -760,6 +766,7 @@ class Post_test:
                 num2print = 0
             num2print -= 1
             if int(repr(num2print)[-1]) == 0:
+                print('')
                 disp.disp_fail_content(fail_x,alg,flg)
                 print(f'{Fail} fail(s) in 1st validation.')
                 disp.disp_total_pass_fail(Pass2,Fail2,Unknown2,Error2,0)
@@ -792,18 +799,15 @@ class Post_test:
             print(f"In second validation, there's {Pass2} pass registers.")
         return alg,flg
 
-    def validate_pass(alg, flg,is_cont):#wip...
-        if is_cont:
-            (alg,flg) = dump.export_cont('store',temp,alg,flg)
-        else:
-            (alg,flg) = dump.export('store',temp,alg,flg)
+    def validate_pass(alg, flg,is_cont,is_targsim,auto):#wip...
         num = 1
         plg = []
         pass_regs_sets = []
         while num > 0:
             try:
-                plg.append(open("pass_regs_"+str(num)+".log",'r'))
+                plg = open("pass_regs_"+str(num)+".log",'r')
                 pass_regs_sets.append(plg.readlines())
+                plg.close()
                 print('Detected pass_regs_'+str(num)+'.log')
             except:
                 break
@@ -815,8 +819,8 @@ class Post_test:
             if final_list_regs == []:
                 final_list_regs = pass_regs_set
             else:
-                final_list_regs = list(set(final_list_regs) & set(pass_regs_set))		
-        plg = open("AggressiVE_pass.log","w")
+                final_list_regs = list(set(final_list_regs) | set(pass_regs_set))		
+        plg = open("AggressiVE_pass.log","a")
         num=1
         num2print=0
         rowdictlist,x = [],[]
@@ -824,15 +828,14 @@ class Post_test:
         #validation.
         num_chosen_attr_fields = len(final_list_regs)
         reserved_print_num=len(final_list_regs)
-        Pass,Fail,Unknown,Error = 0,0,0,0
+        Pass,Fail,Unknown,Error,Hang = 0,0,0,0,0
 		
         print('2nd validation for pass regs only!')
         if is_cont:
             (alg,flg) = dump.export_cont('store','2nd validation for pass regs only!',alg,flg)
         else:
             (alg,flg) = dump.export('store','2nd validation for pass regs only!',alg,flg)
-        plg = dump.export_write_pass(plg,content)
-		
+        plg = dump.export_write_pass(plg,'2nd validation for pass regs only!')
         for reg in final_list_regs:
             #to ask user for the num of table display.
             if num2print == 0:                                                                                                              
@@ -848,7 +851,7 @@ class Post_test:
             disp.progress(reserved_num, reserved_print_num, prefix=f'Progress [{reserved_num}:{reserved_print_num}]:', infix1 = f'StartTime= {time.ctime()}', suffix=f'Reg: [{reg}]')
             #validate
             try:
-                (pre_rd,wr_in_list,rd_in_list,pass_fail,fail_reason) = Exec.validate_1by1(reg)
+                (pre_rd,wr_in_list,rd_in_list,pass_fail,fail_reason) = Exec.validate_1by1(reg,is_targsim)
             except:
                 message = sys.exc_info()[1]
                 fail_reason = str(message)
@@ -872,7 +875,7 @@ class Post_test:
                         pass_fail = 'hang'
                         Hang += 1
                 disp.disp_content(rowdictlist,x,alg,flg)
-                disp.disp_total_pass_fail(Pass,Fail,Unknown,Error2,Hang)
+                disp.disp_total_pass_fail(Pass,Fail,Unknown,Error,Hang)
                 plg = dump.export_write_pass(plg,x.getTableText())
                 plg = dump.export_write_pass(plg,f'Pass:{Pass}')
                 plg = dump.export_write_pass(plg,f'Fail:{Fail}')
