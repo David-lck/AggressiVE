@@ -30,6 +30,8 @@ from meteorlake import debug
 
 
 all_undefined_attrs = ['dc','ro/c/v','ro/p','ro/v','ro/v/p','rw/1c/p','rw/1c/v','rw/1c/v/p','rw/0c/v','rw/1s/v/p','rw/1s/v','rw/1s/v/l','rw/ac','rw/l/k','rw/o/p','rw/o/v/l','rw/p','rw/p/l','rw/s/l','rw/fuse','rw/strap','rw/v','rw/v/p','rw/v/l','rw/v/p/l','rw/v2']
+new_defined_attrs = ['ro/c','rw/cr','wo/1','wo/c','na','rw0c_fw','rw1c_fw','double buffered','r/w hardware clear','read/32 bit write only','r/w firmware only']
+
 
 class Conv:
     def convert_bin_to_hex(bin_value):
@@ -479,7 +481,6 @@ class Val_stage:
         return pre_rd,'pass'
 
     def first_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,val_stage,wr_value,is_targsim):
-        new_defined_attrs = ['ro/c','rw/cr','wo/1','wo/c','na','rw0c_fw','rw1c_fw','double buffered','r/w hardware clear','read/32 bit write only','r/w firmware only']
         numbit = track.track_field_bits(full_field_name)
         #identify attr of this field in universal attr name.
         attr = eval(full_field_name+'.info["attribute"]')
@@ -501,8 +502,8 @@ class Val_stage:
             wr='NA'
         #read and compare to get result(pass/fail) for field with algorithm.
         if wr != 'NA':
-            if attr in ['ro/v','rw/v']:
-                time.sleep(1)#regs of this attr needs time to update value...
+            #//if attr in ['ro/v','rw/v']:
+            #//    time.sleep(1)#regs of this attr needs time to update value...
             rd = read(full_field_name)
             if attr in ['roswc','rw/cr'] or attr in all_undefined_attrs:#double read
                 rd2 =read(full_field_name)
@@ -703,9 +704,17 @@ class Post_test:
         confirm_hang_regs = []
         hang_stages = []
         hang_stage_reason = ['Pre-read','1st read-write','2nd read-write','3rd read-write']
-        for sus_regs in sus_hang_regs:
-            for reg in sus_regs:
-                (confirm_hang_regs, hang_stages) = Post_test.hang_validate_1by1(reg, confirm_hang_regs, hang_stages)
+        #validate the suspect hang registers once and for all. Do machine check in every validation stages.
+        try:
+            for sus_regs in sus_hang_regs:
+                for reg in sus_regs:
+                    (confirm_hang_regs, hang_stages) = Post_test.hang_validate_1by1(reg, confirm_hang_regs, hang_stages)
+        except KeyboardInterrupt:
+            print('\n' + Fore.RED + 'Hang 2nd Validation forced to stopped!' + Fore.RESET)
+            (alg, flg, hlg) = disp.disp_hang_regs(confirm_hang_regs, final_hang_stages, alg, flg, hlg)
+            hlg.close()
+            dump.export_hang_regs(confirm_hang_regs)
+            return alg, flg
         final_hang_stages = []
         for reg_hang_stages in hang_stages:
             for hang_stage in reg_hang_stages:
@@ -742,7 +751,6 @@ class Post_test:
         Unknown2 = 0
         Error2 = 0
         num=1
-        #2nd validation.
         reserved_print_num = len(fail_regs)
         for fail_field_name in fail_regs:
             #to ask user for the num of table display.
@@ -751,14 +759,17 @@ class Post_test:
                 if num2print == 'end':
                     return alg,flg
                 num_chosen_attr_fields-=num2print
-                ##initial_time = time.time()
                 reserved_num = 0
-            ##time_taken = time.time() - initial_time
-            ##(s,m,h) = disp.time(round(time_taken))
             reserved_num += 1
             disp.progress(reserved_num, reserved_print_num, prefix=f'Progress [{reserved_num}:{reserved_print_num}]:', infix1 = f'StartTime= {time.ctime()}', suffix=f'Reg: [{fail_field_name}]')
             #validate
-            (pre_rd,wr_in_list,rd_in_list,pass_fail,fail_reason) = Exec.validate_1by1(fail_field_name,is_targsim)
+            try:
+                (pre_rd,wr_in_list,rd_in_list,pass_fail,fail_reason) = Exec.validate_1by1(fail_field_name,is_targsim)
+            except KeyboardInterrupt:
+                print('\n' + Fore.RED + 'Fail 2nd Validation forced to stopped!' + Fore.RESET)
+                disp.disp_fail_content(fail_x,alg,flg)
+                disp.disp_total_pass_fail(Pass2,Fail2,Unknown2,Error2,0)
+                break
             attr = eval(fail_field_name+'.info["attribute"]')
             (fail_rowdl,fail_x) = disp.store_fail_content(fail_rowdl,fail_x,num,fail_field_name,attr,pass_fail,pre_rd,wr_in_list,rd_in_list,fail_reason)
             (Pass2,Fail2,Unknown2,Error2) = track.track_num_pass_fail(pass_fail,Pass2,Fail2,Unknown2,Error2)
@@ -819,8 +830,11 @@ class Post_test:
             if final_list_regs == []:
                 final_list_regs = pass_regs_set
             else:
-                final_list_regs = list(set(final_list_regs) | set(pass_regs_set))		
-        plg = open("AggressiVE_pass.log","a")
+                final_list_regs = list(set(final_list_regs) | set(pass_regs_set))	
+        if is_cont:
+            plg = open("AggressiVE_cont_pass.log","a")
+        else:       
+            plg = open("AggressiVE_pass.log","a")
         num=1
         num2print=0
         rowdictlist,x = [],[]
@@ -852,6 +866,11 @@ class Post_test:
             #validate
             try:
                 (pre_rd,wr_in_list,rd_in_list,pass_fail,fail_reason) = Exec.validate_1by1(reg,is_targsim)
+            except KeyboardInterrupt:
+                print('\n' + Fore.RED + 'Pass 2nd Validation forced to stopped!' + Fore.RESET)
+                disp.disp_content(rowdictlist,x,alg,flg)
+                disp.disp_total_pass_fail(Pass,Fail,Unknown,Error,Hang)
+                break
             except:
                 message = sys.exc_info()[1]
                 fail_reason = str(message)

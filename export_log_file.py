@@ -117,35 +117,35 @@ def det_del_ags_logs():
         a = open('AggressiVE.log','r')
         a.close()
         os.remove('AggressiVE.log')
-        print('AggressiVE.log has been deleted.')
+        print(Fore.LIGHTBLUE_EX+'AggressiVE.log has been deleted.'+Fore.RESET)
     except:
         pass
     try:
         a = open('AggressiVE_fail.log','r')
         a.close()
         os.remove('AggressiVE_fail.log')
-        print('AggressiVE_fail.log has been deleted.')
+        print(Fore.LIGHTBLUE_EX+'AggressiVE_fail.log has been deleted.'+Fore.RESET)
     except:
         pass
     try:
         a = open('AggressiVE_pass.log','r')
         a.close()
         os.remove('AggressiVE_pass.log')
-        print('AggressiVE_pass.log has been deleted.')
+        print(Fore.LIGHTBLUE_EX+'AggressiVE_pass.log has been deleted.'+Fore.RESET)
     except:
         pass
     try:
         a = open('AggressiVE_error.log','r')
         a.close()
         os.remove('AggressiVE_error.log')
-        print('AggressiVE_error.log has been deleted.')
+        print(Fore.LIGHTBLUE_EX+'AggressiVE_error.log has been deleted.'+Fore.RESET)
     except:
         pass
     try:
         a = open('AggressiVE_hang.log','r')
         a.close()
         os.remove('AggressiVE_hang.log')
-        print('AggressiVE_hang.log has been deleted.')
+        print(Fore.LIGHTBLUE_EX+'AggressiVE_hang.log has been deleted.'+Fore.RESET)
     except:
         pass    
 		
@@ -154,35 +154,35 @@ def det_del_ags_cont_logs():
         a = open('AggressiVE_cont.log','r')
         a.close()
         os.remove('AggressiVE_cont.log')
-        print('AggressiVE_cont.log has been deleted.')
+        print(Fore.LIGHTBLUE_EX+'AggressiVE_cont.log has been deleted.'+Fore.RESET)
     except:
         pass
     try:
         a = open('AggressiVE_cont_fail.log','r')
         a.close()
         os.remove('AggressiVE_cont_fail.log')
-        print('AggressiVE_cont_fail.log has been deleted.')
+        print(Fore.LIGHTBLUE_EX+'AggressiVE_cont_fail.log has been deleted.'+Fore.RESET)
     except:
         pass
     try:
         a = open('AggressiVE_cont_pass.log','r')
         a.close()
         os.remove('AggressiVE_cont_pass.log')
-        print('AggressiVE_cont_pass.log has been deleted.')
+        print(Fore.LIGHTBLUE_EX+'AggressiVE_cont_pass.log has been deleted.'+Fore.RESET)
     except:
         pass
     try:
         a = open('AggressiVE_cont_error.log','r')
         a.close()
         os.remove('AggressiVE_cont_error.log')
-        print('AggressiVE_cont_error.log has been deleted.')
+        print(Fore.LIGHTBLUE_EX+'AggressiVE_cont_error.log has been deleted.'+Fore.RESET)
     except:
         pass
     try:
         a = open('AggressiVE_cont_hang.log','r')
         a.close()
         os.remove('AggressiVE_cont_hang.log')
-        print('AggressiVE_cont_hang.log has been deleted.')
+        print(Fore.LIGHTBLUE_EX+'AggressiVE_cont_hang.log has been deleted.'+Fore.RESET)
     except:
         pass
 	
@@ -191,20 +191,20 @@ def det_del_regs_logs():
         a = open('fail_regs.log','r')
         a.close()
         os.remove('fail_regs.log')
-        print('fail_regs.log has been deleted.')
+        print(Fore.LIGHTBLUE_EX+'fail_regs.log has been deleted.'+Fore.RESET)
     except:
         pass
     try:
         a = open('error_regs.log','r')
         a.close()
         os.remove('error_regs.log')
-        print('error_regs.log has been deleted.')
+        print(Fore.LIGHTBLUE_EX+'error_regs.log has been deleted.'+Fore.RESET)
     except:
         pass
     try:
         a = open('hang_regs.log','r')
         a.close()
         os.remove('hang_regs.log')
-        print('hang_regs.log has been deleted.')
+        print(Fore.LIGHTBLUE_EX+'hang_regs.log has been deleted.'+Fore.RESET)
     except:
         pass

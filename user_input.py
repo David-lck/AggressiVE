@@ -150,9 +150,13 @@ class Post_test:
             else:
                 disp_choice = input('Which error of registers to display?(Enter=All;"end"=stop):')
             if disp_choice != "end":
-                printed_error_msg = disp.disp_all_errors(disp_choice,msg_sorted,error_messages)
-                elg.write(printed_error_msg)
-                elg.write('\n')
+                try:
+                    printed_error_msg = disp.disp_all_errors(disp_choice,msg_sorted,error_messages)
+                    elg.write(printed_error_msg)
+                    elg.write('\n')
+                except KeyboardInterrupt:
+                    print('\n' + Fore.RED + 'Error 2nd Validation forced to stopped!' + Fore.RESET)
+                    break
         elg.close()
         if is_cont:
             print('All the printed error infos have been saved in C>>Users>>pgsvlab>>PythonSv>>AggressiVE_error.log')

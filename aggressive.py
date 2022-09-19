@@ -688,14 +688,17 @@ def attr_all(input_regs,validate=False):#for die, ip, register, and fields
     #make the one string to list.
     if ',' not in str(input_regs):
         input_regs = input_regs.split(',')
+    if len(input_regs) >= 5:
+        fields_input_mode = True
+    else:
+        fields_input_mode = False
     headers = ['Num','Attributes','Num of fields','Algorithm']
     table = []
     x = []
     total_num_valid_fields = 0
-    for input_reg in input_regs:
-        fields = Pre_test._get_fields(input_reg)#search for all the fields
+    if fields_input_mode:
         #detect the attribute info for valid_fields.
-        (attr_fields,avai_attrs,num_avai_attr) = Pre_test._get_attr_num(fields)
+        (attr_fields,avai_attrs,num_avai_attr) = Pre_test._get_attr_num(input_regs)
         #combine the attributes with same category into one.
         (new_attrs,new_num) = Pre_test._comb_same_attr(avai_attrs,num_avai_attr)
         #display all the attrs and num of fields.
@@ -711,7 +714,28 @@ def attr_all(input_regs,validate=False):#for die, ip, register, and fields
                 algo = 'Undefined'
             table += [{'Num':i+1,'Attributes':new_attr ,'Num of fields':new_num[i],'Algorithm':algo}]
             i+=1
-        total_num_valid_fields += len(attr_fields)
+        total_num_valid_fields = len(attr_fields)
+    else:
+        for input_reg in input_regs:
+            fields = Pre_test._get_fields(input_reg)#search for all the fields
+            #detect the attribute info for valid_fields.
+            (attr_fields,avai_attrs,num_avai_attr) = Pre_test._get_attr_num(fields)
+            #combine the attributes with same category into one.
+            (new_attrs,new_num) = Pre_test._comb_same_attr(avai_attrs,num_avai_attr)
+            #display all the attrs and num of fields.
+            i = 0
+            for new_attr in new_attrs:
+                if new_attr == 'rw':
+                    new_attr = 'r/w'
+                elif new_attr == 'rw/c':
+                    new_attr = 'r/wc'
+                if new_attr in Algorithm.STATUS:
+                    algo = Algorithm.STATUS[new_attr]
+                else:
+                    algo = 'Undefined'
+                table += [{'Num':i+1,'Attributes':new_attr ,'Num of fields':new_num[i],'Algorithm':algo}]
+                i+=1
+            total_num_valid_fields += len(attr_fields)
     table += [{'Num':'-','Attributes':'Total num of fields' ,'Num of fields':total_num_valid_fields,'Algorithm':'-'}]
     x = Table.fromDictList(table,headers)
     print(x.getTableText())
@@ -790,7 +814,7 @@ def aggressive_cont(input_regs = "socket",to_exclude = True, auto_attr='', pass_
 
     Inputs:
         input_regs = Name of die/ Name of IP/ Name of reg.
-        to_exclude = If True, it will exclude the "regs" you marked as True from the input_regs. If False, it will ignore input_regs & validate the "regs" that marked as True only.
+        to_exclude = If True, it will exclude the "regs" you marked as True from the input_regs[continue unfinished work from aggressive()]. If False, it will ignore input_regs & validate the "regs" that marked as True only.
         pass_regs = If True, it will refer to the registers from pass_regs.log
         fail_regs = If True, it will refer to the registers from fail_regs.log
         error_regs = If True, it will refer to the registers from error_regs.log
@@ -825,6 +849,8 @@ def aggressive_cont(input_regs = "socket",to_exclude = True, auto_attr='', pass_
         >>> aggressive_cont('cpu.gfx.display',fail_regs=False)
         >>> aggressive_cont('cpu.gfx.display',error_regs=False)
         >>> aggressive_cont('cpu.gfx.display',hang_regs=False)
+        >>> aggressive_cont('cdie',is_targsim = False)#to continue the unfinished work from aggressive().
+        >>> aggressive_cont('cdie',to_exclude=False,pass_regs = True, fail_regs = False, error_regs = False, hang_regs = False,is_targsim = False)#to validate 2nd/3rd time of 'speficied' regs.
     '''
     #validate only the reg in logs
 		#multiple type of logs.(pass_regs_x, fail_regs, error_regs, hang_regs)
