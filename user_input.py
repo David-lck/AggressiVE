@@ -41,14 +41,16 @@ class Pre_test:
     def _access_choice_input(avail_access):
         loop = 0
         while loop == 0:
-            chosen_access = input('Access Method: ')
+            chosen_access = input('Access Method [Only access from default group]: ')
             if chosen_access in avail_access['default'] or chosen_access == '':
                 loop = 1
+            else:
+                print("Please enter the available access displayed in 'default' group!")
         return chosen_access
         
-    def access_choice(input_reg):
+    def access_choice(input_reg,auto):
         log_store = []
-        if len(input_reg.split('.')) != 1:#for input_reg = ip/reg only
+        if not auto:
             (avail_access,unit) = Pre_test._get_access_method(input_reg)
             disp.disp_avail_access(avail_access)
             chosen_access = Pre_test._access_choice_input(avail_access)
@@ -56,26 +58,10 @@ class Pre_test:
             chosen_access = ''
         if chosen_access != '':#not default
             eval(unit[0]+".setaccess('"+chosen_access+"')")
-            temp = ''
-            input_reg = input_reg.split('.')
-            for n_level in input_reg:
-                if temp=='':
-                    temp+=n_level
-                else:
-                    temp+='.'+n_level
-                if eval(temp+'.getaccess()') == chosen_access:
-                    print(f'{Fore.LIGHTBLUE_EX + chosen_access} has successfully been set in {temp + Fore.RESET}')
-                    log_store.append(f'{chosen_access} has successfully been set in {temp}')
-                else:
-                    print(f'{Fore.LIGHTBLUE_EX+chosen_access} has unsuccessfully been set in {temp+Fore.RESET}')
-                    log_store.append(f'{chosen_access} has unsuccessfully been set in {temp}')
         else:#default
-            print(f'{Fore.LIGHTBLUE_EX}User has chosen default access for {input_reg}.')
+            print(f'{Fore.LIGHTBLUE_EX}User has chosen default access for {input_reg}.{Fore.RESET}')
             log_store.append(f'User has chosen default access for {input_reg}.')
-            default_access = eval(input_reg+'.getaccess()')
-            print(f'Default access for {input_reg} is {default_access}.{Fore.RESET}')
-            log_store.append(f'Default access for {input_reg} is {default_access}.')
-        return log_store
+        return log_store,chosen_access
 
     def attr_choice(avai_attrs,auto,auto_attr):
         if auto == True:
@@ -112,6 +98,18 @@ class Pre_test:
             print('-'*100)
         print(f"{Fore.LIGHTBLUE_EX}There's {len(badname_registers)} unacceptable name registers.")
         print('All the error registers names have been saved to C>>Users>>pgsvlab>>Documents>>PythonSv>>bad_name_regs.py.'+Fore.RESET)
+        
+    def badname_attr_choice(avail_attrs,auto):
+        if auto:
+            choice = ''
+        else:
+            choice = input('Attribute (Enter for All):')
+        if choice.isdigit() and choice != '':
+            choice = avai_attrs[int(choice)-1]
+        elif choice != '' and choice.isdigit() == False:
+            choice = choice.lower()
+        return chosen_attr
+
    
 class Exec:
     def print_limit(total_field2print,reserved_print_limit,auto):

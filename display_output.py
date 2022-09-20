@@ -38,11 +38,11 @@ class Pre_test:
         return total
         
 def disp_avail_access(avail_access):
-    headers=['Heads','Access_Methods']
+    headers=['Groups','Access_Methods']
     rowdictlist=[]
     x=[]
     for head in avail_access:
-        rowdictlist += [{'Heads':head,'Access_Methods':str(avail_access[head])}]  
+        rowdictlist += [{'Groups':head,'Access_Methods':str(avail_access[head])}]  
         x = asciitable.AsciiTable.fromDictList(rowdictlist,headers)
     print(x.getTableText())
     

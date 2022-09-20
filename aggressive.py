@@ -59,7 +59,8 @@ AVAIL_FUNCS = {
 'attr_all' : 'To display the number of fields we have with the specific attributes.',
 'aggressive' : 'Main function of AggressiVE. (Require the initial declaration from user if automatable.)',
 'aggressive_cont' : 'Another main function of AggressiVE. To continue the previous unfinish validation or validate specific regs.(Require log files that was generated from aggressive main function.)',
-'log' : 'To display logs that AgressiVE may generate.'
+'log' : 'To display logs that AgressiVE may generate.',
+'set_access_method' : 'To set and check for the access method'
 }
 def list_all_cmd():
     headers = ['Available Functions','Description']
@@ -285,10 +286,10 @@ class Pre_test:
 		
     def _main(input_reg,auto_attr,auto):
         full_fields = badname_regs(input_reg,auto,True)#detect for error regs and fields. Exclude them out from good regs and fields.
-        attr_fields = invalidate(full_fields,auto,True)#detect for invalid regs and fields without attribute info. Exclude them out.
+        (attr_fields,attr_ips) = invalidate(full_fields,auto,True)#detect for invalid regs and fields without attribute info. Exclude them out.
         #try:
-        eval(input_reg+'.getaccess()')
-        log_store = user.Pre_test.access_choice(input_reg)#display available access method and choose access method.(only for ip, how about die? how to choose?)
+        (log_store,chosen_access) = user.Pre_test.access_choice(input_reg,auto)#display available access method and choose access method.(only for ip)
+        log_store = track.feedback_access_method(chosen_access,attr_ips,log_store)
         #except Exception as e:
         #    log_store = ['']
         #    print(e)
@@ -305,6 +306,24 @@ class Pre_test:
             (attr_fields,chosen_attr) = Pre_test._main(input_reg,auto_attr,auto)#run all pretest features.
             regs += attr_fields
         return regs
+        
+    def _get_badname_attrs(badname_registers):
+        no_last_list = []
+        last_level_list = []
+        avail_attrs = []
+        attr_badname_regs = []
+        for badname_reg in badname_registers:
+            #Extract the last level out since unacceptable
+            no_last_lvl_reg = ".".join(badname_reg.split('.')[:-1]) if badname_reg[-1] != '.' else ".".join(badname_reg.split('.')[:-2])
+            last_lvl_reg = badname_reg.split('.')[-1] if badname_reg[-1] != '.' else badname_reg.split('.')[-2]
+            try:
+                avail_attrs.append(eval(no_last_lvl_reg+".getfielddefinition('"+last_lvl_reg+"').attribute"))
+                attr_badname_regs.append(badname_reg)
+                no_last_list.append(no_last_lvl_reg)
+                last_level_list.append(last_lvl_reg)
+            except:
+                pass
+        return avail_attrs,attr_badname_regs,no_last_list,last_level_list
 
 class Post_test:
     def _fail_main(fail_infos,alg,flg,is_cont,is_targsim):
@@ -543,7 +562,6 @@ class Exec:
         for badname_reg in badname_regs:
             pass
         return attr_badname_regs, their_attr
-        
 
 def theory():
     '''
@@ -577,6 +595,34 @@ System Reset - Some registers will restart the system when read/write. It will m
 Hang - Some registers will make the system hang. It will mark as 'fail' and stop the validation. It will ask for doing 2nd validation for the last 10 registers and do machine check 1by1.
     ''')
     
+def set_access_method(input_reg):
+    '''
+    Command:
+        set_access_method()
+
+    Details:
+        Set new access method and read all the current access method of IPs using under the input_reg.
+
+    Inputs:
+        input_regs = Name of die/ Name of IP. [Not recommended since not able to re-set access method] Name of reg/ Name of field
+
+    Outputs:
+        Successfulness of setting access method to all IPs under input_reg.
+        Log File: AggressiVE.log
+
+    EX:
+        >>> set_access_method('cdie')
+        >>> set_access_method('soc')
+        >>> set_access_method('gcd')
+        >>> set_access_method('ioe')
+        >>> set_access_method('cdie.taps')
+        >>> set_access_method('cdie.taps.core2_corepma')
+    '''
+    (log_store,chosen_access) = user.Pre_test.access_choice(input_reg,auto=False)#display available access method and choose access method.(only for ip)
+    full_fields = badname_regs(input_reg,True,True)#detect for error regs and fields. Exclude them out from good regs and fields.
+    (attr_fields,attr_ips) = invalidate(full_fields,True,True)#detect for invalid regs and fields without attribute info. Exclude them out.
+    log_store = track.feedback_access_method(chosen_access,attr_ips,log_store)
+    
 def badname_regs(input_reg,auto=True,validate=False):#Completed(die,IP, and register)
     '''
     Command:
@@ -596,11 +642,10 @@ def badname_regs(input_reg,auto=True,validate=False):#Completed(die,IP, and regi
         Log File: bad_name_regs.log
 
     EX:
-        >>> badname_regs('cpu')
-        >>> badname_regs('cpu',auto=True)
-        >>> badname_regs('cpu',validate=True)
-        >>> badname_regs('cpu.gfx.display')
-        >>> badname_regs('cpu.gfx.display.vga_control')
+        >>> badname_regs('cdie')
+        >>> badname_regs('cdie',auto=True)
+        >>> badname_regs('cdie',validate=True)
+        >>> badname_regs('cdie.taps.core2_corepma')
     '''
     (badname_registers,attr_fields) = track.Pre_test.track_badname_regs(input_reg)
     Pre_test._dump_error_reg(badname_registers)
@@ -626,11 +671,11 @@ def invalidate(input_reg,auto=True,validate=False):#Completed(die,ip,fields)
             - attr_fields.log
 
     EX:
-        >>> invalidate('cpu')
-        >>> invalidate('cpu.gfx.display')
-        >>> invalidate('cpu.gfx.display.vga_control')
-        >>> invalidate('cpu.gfx.display.vga_control',auto=False)
-        >>> invalidate('cpu.gfx.display.vga_control',auto=False,validate=True)
+        >>> invalidate('cdie')
+        >>> invalidate('cdie.taps.core2_corepma')
+        >>> invalidate('cdie.taps.core2_corepma')
+        >>> invalidate('cdie.taps.core2_corepma',auto=False)
+        >>> invalidate('cdie.taps.core2_corepma',auto=False,validate=True)
     '''
     if validate == False:#for die and ip (user input)
         full_fields = badname_regs(input_reg,auto,True)
@@ -659,7 +704,7 @@ def invalidate(input_reg,auto=True,validate=False):#Completed(die,ip,fields)
     print(Fore.LIGHTBLUE_EX + 'C>>Users>>pgsvlab>>Documents>>PythonSv>>no_attr_fields.log.')
     print('C>>Users>>pgsvlab>>Documents>>PythonSv>>attr_fields.log.' + Fore.RESET)
     if validate == True:
-        return attr_fields
+        return attr_fields,attr_ips
         
 def attr_all(input_regs,validate=False):#for die, ip, register, and fields
     '''
@@ -779,12 +824,11 @@ def aggressive(input_regs, auto=True, auto_attr='', is_targsim = False):#WIP (re
             - hang_regs.log [override]
 
     EX:
-        >>> aggressive('cpu')
-        >>> aggressive('cpu.gfx.display')
-        >>> aggressive('cpu.gfx.display.vga_control')
-        >>> aggressive('cpu.gfx.display',auto=False)
-        >>> aggressive('cpu.gfx.display',auto_attr='rw')
-        >>> aggressive('cpu.gfx.display',is_targsim=True)
+        >>> aggressive('cdie')
+        >>> aggressive('cdie.taps.core2_corepma')
+        >>> aggressive('cdie.taps.core2_corepma',auto=False)
+        >>> aggressive('cdie.taps.core2_corepma',auto_attr='rw')
+        >>> aggressive('cdie.taps.core2_corepma',is_targsim=True)
     '''
     try:
         eval('__main__.'+input_regs)
@@ -840,27 +884,17 @@ def aggressive_cont(input_regs = "socket",to_exclude = True, auto_attr='', pass_
             - AggressiVE_cont_hang.log [append[to_exclude=True];override[to_exclude=False]]
 
     EX:
-        >>> aggressive_cont('cpu')
-        >>> aggressive_cont('cpu.gfx.display')
-        >>> aggressive_cont('cpu.gfx.display.vga_control')
-        >>> aggressive_cont('cpu.gfx.display',to_exclude=False)
-        >>> aggressive_cont('cpu.gfx.display',auto_attr='rw')
-        >>> aggressive_cont('cpu.gfx.display',pass_regs=False)
-        >>> aggressive_cont('cpu.gfx.display',fail_regs=False)
-        >>> aggressive_cont('cpu.gfx.display',error_regs=False)
-        >>> aggressive_cont('cpu.gfx.display',hang_regs=False)
+        >>> aggressive_cont('cdie')
+        >>> aggressive_cont('cdie.taps.core2_corepma')
+        >>> aggressive_cont('cdie.taps.core2_corepma',to_exclude=False)
+        >>> aggressive_cont('cdie.taps.core2_corepma',auto_attr='rw')
+        >>> aggressive_cont('cdie.taps.core2_corepma',pass_regs=False)
+        >>> aggressive_cont('cdie.taps.core2_corepma',fail_regs=False)
+        >>> aggressive_cont('cdie.taps.core2_corepma',error_regs=False)
+        >>> aggressive_cont('cdie.taps.core2_corepma',hang_regs=False)
         >>> aggressive_cont('cdie',is_targsim = False)#to continue the unfinished work from aggressive().
         >>> aggressive_cont('cdie',to_exclude=False,pass_regs = True, fail_regs = False, error_regs = False, hang_regs = False,is_targsim = False)#to validate 2nd/3rd time of 'speficied' regs.
     '''
-    #validate only the reg in logs
-		#multiple type of logs.(pass_regs_x, fail_regs, error_regs, hang_regs)
-		#run them seperately.
-		##where should I dump?
-    ##validate only the reg not in logs./aka to be continue... => how to differentiate it?
-		#multiple type of logs.
-		#run them normally.
-		##where should I dump?
-    #--------------------
     try:
         eval('__main__.'+input_regs)
     except:
@@ -929,19 +963,66 @@ def aggressive_badname(input_regs="socket",auto=True,auto_attr='',is_targsim=Fal
         Log File: AggressiVE_badname.log
 
     EX:
-        >>> aggressive_badname('cpu')
-        >>> aggressive_badname('cpu.gfx.display')
-        >>> aggressive_badname('cpu.gfx.display.vga_control')
+        >>> aggressive_badname('cdie')
+        >>> aggressive_badname('cdie.taps.core2_corepma')
     '''
     #open dump.
     #check for the input correction
+    try:
+        eval('__main__.'+input_regs)
+    except:
+        print('No such die exist in this project!')
+        print('Please enter the correct one!')
+        return 
     #detect the badname regs
-        #if yes, cont. if no, end with message.
+    (badname_registers,attr_fields) = track.Pre_test.track_badname_regs(input_regs)
+    #if yes, cont. if no, end with message.
+    if badname_registers == []:
+        return 'Bravo. There is no unacceptable name registers!'
     #get attrs #dump
+    (avail_attrs,attr_badname_regs,no_last_list,last_level_list) = Pre_test._get_badname_attrs(badname_registers)
+    print("Number of 'With Attribute Unacceptable Name' Registers: {len(attr_badname_regs)}")
+    print("Number of 'Without Attribute Unacceptable Name' Registers: {len(badname_registers) - len(attr_badname_regs)}")
+    _chk_num_attrs_regs(avail_attrs,attr_badname_regs,no_last_list,last_level_list)
+    ##disp.disp_avail_attr(filtered_avail_attrs)
     #choose attr #dump
+    ##chosen_attr = user.Pre_test.badname_attr_choice(avail_attrs)#'' or 'rw'
     #choose access method if available #dump
     #validation #dump
     #categorize regs with pass/fail/error/hang. #dump to each logs.
     #2nd pass/fail/error/hang regs validation if possible. #dump
     #close dump.
     return
+    
+def _chk_num_attrs_regs(avail_attrs,attr_badname_regs,no_last_list,last_level_list):
+    print('Detecting and Categorizing attributes information...')
+    avai_attrs = []
+    num_avai_attr = []
+    attr_temp = []
+    for avail_attr in tqdm(avail_attrs):
+        if avail_attr not in attr_temp:
+            attr_temp.append(avail_attr)
+            num_avai_attr.append(1)
+        else:
+            pointer = attr_temp.index(avail_attr)
+            num_avai_attr[pointer] += 1
+    (new_attrs,new_num) = Pre_test._comb_same_attr(attr_temp,num_avai_attr)
+    #display all the attrs and num of fields.
+    i = 0
+    table = []
+    headers = ['Num','Attributes','Num of fields','Algorithm']
+    for new_attr in new_attrs:
+        if new_attr == 'rw':
+            new_attr = 'r/w'
+        elif new_attr == 'rw/c':
+            new_attr = 'r/wc'
+        if new_attr in Algorithm.STATUS:
+            algo = Algorithm.STATUS[new_attr]
+        else:
+            algo = 'Undefined'
+        table += [{'Num':i+1,'Attributes':new_attr ,'Num of fields':new_num[i],'Algorithm':algo}]
+        i+=1
+    total_num_valid_fields = len(attr_badname_regs)
+    table += [{'Num':'-','Attributes':'Total num of fields' ,'Num of fields':total_num_valid_fields,'Algorithm':'-'}]
+    x = Table.fromDictList(table,headers)
+    print(x.getTableText())

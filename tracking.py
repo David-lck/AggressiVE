@@ -11,6 +11,8 @@ from builtins import str
 from builtins import range
 from builtins import object
 import namednodes as _namednodes
+import colorama
+from colorama import Fore
 from namednodes import sv as _sv
 cpu = _sv.socket.get_all()[0]
 try:
@@ -146,6 +148,24 @@ def track_num_pass_fail(pass_fail,Pass,Fail,Unknown,Error):
     elif pass_fail == 'error':
         Error+=1
     return Pass,Fail,Unknown,Error
+    
+def feedback_access_method(chosen_access,attr_ips,log_store):
+    for attr_ip in attr_ips:
+        try:
+            ip_access = eval(attr_ip+'.getaccess()')
+        except:
+            continue
+        if chosen_access != '':
+            if ip_access == chosen_access:
+                print(f'{Fore.LIGHTBLUE_EX + chosen_access} has successfully been set in {attr_ip + Fore.RESET}')
+                log_store.append(f'{chosen_access} has successfully been set in {attr_ip}')
+            else:
+                print(f'{Fore.RED+chosen_access} has unsuccessfully been set in {attr_ip}. It is {ip_access+Fore.RESET}.')
+                log_store.append(f'{chosen_access} has unsuccessfully been set in {attr_ip}. It is {ip_access}')
+        else:
+            print(f'{Fore.LIGHTBLUE_EX}Default access for {attr_ip} is {ip_access}.{Fore.RESET}')
+            log_store.append(f'Default access for {attr_ip} is {ip_access}.')
+    return log_store
     
 def detect_pass_regs_log():
     p_regs = []
