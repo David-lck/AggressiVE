@@ -19,6 +19,8 @@ cpu = _sv.socket.get_all()[0]
 import display_output as disp
 import tracking as track
 import user_input as user
+import read_write as rw
+import aggressive as ags
 import export_log_file as dump
 import sys
 try:
@@ -27,11 +29,7 @@ except:
     from tqdm import tqdm
 import pysvtools.fv_common.target as target
 from meteorlake import debug
-import read_write as rw
-import export_log_file as dump
-import aggressive as ags
 from pysvtools.asciitable import AsciiTable as Table
-import tracking as track
 import os
 
 
@@ -53,7 +51,13 @@ class Pre_test:
         (avail_attrs,attr_badname_regs,no_last_list,last_level_list) = Pre_test._get_badname_attrs(badname_registers)
         print("Number of 'With Attribute Unacceptable Name' Registers: {len(attr_badname_regs)}")
         print("Number of 'Without Attribute Unacceptable Name' Registers: {len(badname_registers) - len(attr_badname_regs)}")
-		Pre_test._chk_num_attrs_regs(avail_attrs,attr_badname_regs,no_last_list,last_level_list)
+		(avail_attrs_list, avail_attrs_num) = Pre_test._chk_num_attrs_regs(avail_attrs,attr_badname_regs,no_last_list,last_level_list)
+        #choose attr #dump
+        chosen_attr = user.Pre_test.attr_choice(avail_attrs_list,True,'')#choose the one for validation.('r/w' or '')
+        (chosen_reg, filt_no_last_list, filt_last_level_list) = Pre_test._filter_fields(chosen_attr, avail_attrs,attr_badname_regs,no_last_list,last_level_list)#wip
+        #choose access method if available #dump
+        Pre_test.access_method()#wip
+        return chosen_reg, filt_no_last_list, filt_last_level_list
 		
     def track_badname_regs(input_reg):
         print(f'Getting information from {input_reg} ...')
@@ -110,7 +114,7 @@ class Pre_test:
             else:
                 pointer = attr_temp.index(avail_attr)
                 num_avai_attr[pointer] += 1
-        (new_attrs,new_num) = ags.Pre_test._comb_same_attr(attr_temp,num_avai_attr)
+        (new_attrs,new_num_fields) = ags.Pre_test._comb_same_attr(attr_temp,num_avai_attr)
         #display all the attrs and num of fields.
         i = 0
         table = []
@@ -124,16 +128,24 @@ class Pre_test:
                 algo = ags.Algorithm.STATUS[new_attr]
             else:
                 algo = 'Undefined'
-            table += [{'Num':i+1,'Attributes':new_attr ,'Num of fields':new_num[i],'Algorithm':algo}]
+            table += [{'Num':i+1,'Attributes':new_attr ,'Num of fields':new_num_fields[i],'Algorithm':algo}]
             i+=1
         total_num_valid_fields = len(attr_badname_regs)
         table += [{'Num':'-','Attributes':'Total num of fields' ,'Num of fields':total_num_valid_fields,'Algorithm':'-'}]
         x = Table.fromDictList(table,headers)
         print(x.getTableText())
+        return new_attrs, new_num_fields
 
+    def access_method():#wip
+        pass
+
+    def _filter_fields(chosen_attr, avail_attrs,attr_badname_regs,no_last_list,last_level_list):#wip
+        return chosen_reg, filt_no_last_list, filt_last_level_list
 
 class Exec:
     def _main:
+        #validation #dump
+        #categorize regs with pass/fail/error/hang. #dump to each logs.
         return
 
 

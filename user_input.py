@@ -98,18 +98,6 @@ class Pre_test:
             print('-'*100)
         print(f"{Fore.LIGHTBLUE_EX}There's {len(badname_registers)} unacceptable name registers.")
         print('All the error registers names have been saved to C>>Users>>pgsvlab>>Documents>>PythonSv>>bad_name_regs.py.'+Fore.RESET)
-        
-    def badname_attr_choice(avail_attrs,auto):
-        if auto:
-            choice = ''
-        else:
-            choice = input('Attribute (Enter for All):')
-        if choice.isdigit() and choice != '':
-            choice = avai_attrs[int(choice)-1]
-        elif choice != '' and choice.isdigit() == False:
-            choice = choice.lower()
-        return chosen_attr
-
    
 class Exec:
     def print_limit(total_field2print,reserved_print_limit,auto):

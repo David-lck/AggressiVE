@@ -950,13 +950,8 @@ def aggressive_badname(input_regs="socket",auto=True,auto_attr='',is_targsim=Fal
         >>> aggressive_badname('cdie.taps.core2_corepma')
     '''
     #open dump.
-    badfunc.Pre_test._main(input_regs)
-    ##disp.disp_avail_attr(filtered_avail_attrs)
-    #choose attr #dump
-    ##chosen_attr = user.Pre_test.badname_attr_choice(avail_attrs)#'' or 'rw'
-    #choose access method if available #dump
-    #validation #dump
-    #categorize regs with pass/fail/error/hang. #dump to each logs.
+    (chosen_reg, filt_no_last_list, filt_last_level_list) = badfunc.Pre_test._main(input_regs)
+    badfunc.Exec._main(chosen_reg, filt_no_last_list, filt_last_level_list)
     #2nd pass/fail/error/hang regs validation if possible. #dump
     #close dump.
     return
