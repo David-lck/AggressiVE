@@ -64,31 +64,6 @@ class Pre_test:
         for attr in attrs:
             if input_attr in attr:
                 return attr
-
-    def track_badname_regs(input_reg):
-        print(f'Getting information from {input_reg} ...')
-        print('Detecting and storing all the bad naming registers...')
-        valid_fields = []
-        bad_regsname = []
-        registers_1stsearch = eval(input_reg+".search('')")
-        for register1 in tqdm(registers_1stsearch):
-            try:
-                registers_2ndsearch = eval(input_reg+"."+register1+".search('')")
-                if registers_2ndsearch == []:
-                    valid_fields.append(input_reg+"."+register1)
-                else:
-                    for register2 in registers_2ndsearch:
-                        try:
-                            registers_3rdsearch = eval(input_reg+"."+register1+"."+register2+".search('')")
-                            if registers_3rdsearch == []:
-                                valid_fields.append(input_reg+'.'+register1+'.'+register2)
-                            else:
-                                print(f'{input_reg+"."+register1+"."+register2} has more fields.')
-                        except:
-                            bad_regsname.append(input_reg+"."+register1+"."+register2)
-            except:
-                bad_regsname.append(input_reg+"."+register1)
-        return bad_regsname, valid_fields
         
 def track_dif_errors(error_info):
     msg_sorted = []

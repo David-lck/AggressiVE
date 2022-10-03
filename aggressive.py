@@ -43,6 +43,7 @@ import read_write as rdwr
 import display_output as disp
 import tracking as track
 import export_log_file as dump
+import badname_subfunc as badfunc
 '''
 Current disabled/pending features:
 1. itp unlock and credential. (initial_setting)
@@ -306,24 +307,6 @@ class Pre_test:
             (attr_fields,chosen_attr) = Pre_test._main(input_reg,auto_attr,auto)#run all pretest features.
             regs += attr_fields
         return regs
-        
-    def _get_badname_attrs(badname_registers):
-        no_last_list = []
-        last_level_list = []
-        avail_attrs = []
-        attr_badname_regs = []
-        for badname_reg in badname_registers:
-            #Extract the last level out since unacceptable
-            no_last_lvl_reg = ".".join(badname_reg.split('.')[:-1]) if badname_reg[-1] != '.' else ".".join(badname_reg.split('.')[:-2])
-            last_lvl_reg = badname_reg.split('.')[-1] if badname_reg[-1] != '.' else badname_reg.split('.')[-2]
-            try:
-                avail_attrs.append(eval(no_last_lvl_reg+".getfielddefinition('"+last_lvl_reg+"').attribute"))
-                attr_badname_regs.append(badname_reg)
-                no_last_list.append(no_last_lvl_reg)
-                last_level_list.append(last_lvl_reg)
-            except:
-                pass
-        return avail_attrs,attr_badname_regs,no_last_list,last_level_list
 
 class Post_test:
     def _fail_main(fail_infos,alg,flg,is_cont,is_targsim):
@@ -967,23 +950,7 @@ def aggressive_badname(input_regs="socket",auto=True,auto_attr='',is_targsim=Fal
         >>> aggressive_badname('cdie.taps.core2_corepma')
     '''
     #open dump.
-    #check for the input correction
-    try:
-        eval('__main__.'+input_regs)
-    except:
-        print('No such die exist in this project!')
-        print('Please enter the correct one!')
-        return 
-    #detect the badname regs
-    (badname_registers,attr_fields) = track.Pre_test.track_badname_regs(input_regs)
-    #if yes, cont. if no, end with message.
-    if badname_registers == []:
-        return 'Bravo. There is no unacceptable name registers!'
-    #get attrs #dump
-    (avail_attrs,attr_badname_regs,no_last_list,last_level_list) = Pre_test._get_badname_attrs(badname_registers)
-    print("Number of 'With Attribute Unacceptable Name' Registers: {len(attr_badname_regs)}")
-    print("Number of 'Without Attribute Unacceptable Name' Registers: {len(badname_registers) - len(attr_badname_regs)}")
-    _chk_num_attrs_regs(avail_attrs,attr_badname_regs,no_last_list,last_level_list)
+    badfunc.Pre_test._main(input_regs)
     ##disp.disp_avail_attr(filtered_avail_attrs)
     #choose attr #dump
     ##chosen_attr = user.Pre_test.badname_attr_choice(avail_attrs)#'' or 'rw'
@@ -993,36 +960,3 @@ def aggressive_badname(input_regs="socket",auto=True,auto_attr='',is_targsim=Fal
     #2nd pass/fail/error/hang regs validation if possible. #dump
     #close dump.
     return
-    
-def _chk_num_attrs_regs(avail_attrs,attr_badname_regs,no_last_list,last_level_list):
-    print('Detecting and Categorizing attributes information...')
-    avai_attrs = []
-    num_avai_attr = []
-    attr_temp = []
-    for avail_attr in tqdm(avail_attrs):
-        if avail_attr not in attr_temp:
-            attr_temp.append(avail_attr)
-            num_avai_attr.append(1)
-        else:
-            pointer = attr_temp.index(avail_attr)
-            num_avai_attr[pointer] += 1
-    (new_attrs,new_num) = Pre_test._comb_same_attr(attr_temp,num_avai_attr)
-    #display all the attrs and num of fields.
-    i = 0
-    table = []
-    headers = ['Num','Attributes','Num of fields','Algorithm']
-    for new_attr in new_attrs:
-        if new_attr == 'rw':
-            new_attr = 'r/w'
-        elif new_attr == 'rw/c':
-            new_attr = 'r/wc'
-        if new_attr in Algorithm.STATUS:
-            algo = Algorithm.STATUS[new_attr]
-        else:
-            algo = 'Undefined'
-        table += [{'Num':i+1,'Attributes':new_attr ,'Num of fields':new_num[i],'Algorithm':algo}]
-        i+=1
-    total_num_valid_fields = len(attr_badname_regs)
-    table += [{'Num':'-','Attributes':'Total num of fields' ,'Num of fields':total_num_valid_fields,'Algorithm':'-'}]
-    x = Table.fromDictList(table,headers)
-    print(x.getTableText())
