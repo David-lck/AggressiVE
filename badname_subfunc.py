@@ -34,7 +34,7 @@ import os
 
 
 class Pre_test:
-    def _main(input_regs):
+    def _main(input_regs, auto):
         #check for the input correction
         try:
             eval('__main__.'+input_regs)
@@ -54,10 +54,10 @@ class Pre_test:
 		(avail_attrs_list, avail_attrs_num) = Pre_test._chk_num_attrs_regs(avail_attrs,attr_badname_regs,no_last_list,last_level_list)
         #choose attr #dump
         chosen_attr = user.Pre_test.attr_choice(avail_attrs_list,True,'')#choose the one for validation.('r/w' or '')
-        (chosen_reg, filt_no_last_list, filt_last_level_list) = Pre_test._filter_fields(chosen_attr, avail_attrs,attr_badname_regs,no_last_list,last_level_list)#wip
+        (chosen_regs, filt_no_last_list, filt_last_level_list) = Pre_test._filter_fields(chosen_attr, avail_attrs,attr_badname_regs,no_last_list,last_level_list)
         #choose access method if available #dump
         Pre_test.access_method()#wip
-        return chosen_reg, filt_no_last_list, filt_last_level_list
+        return chosen_regs, filt_no_last_list, filt_last_level_list
 		
     def track_badname_regs(input_reg):
         print(f'Getting information from {input_reg} ...')
@@ -89,7 +89,8 @@ class Pre_test:
         last_level_list = []
         avail_attrs = []
         attr_badname_regs = []
-        for badname_reg in badname_registers:
+        print("Getting badname registers' attribute...")
+        for badname_reg in tqdm(badname_registers):
             #Extract the last level out since unacceptable
             no_last_lvl_reg = ".".join(badname_reg.split('.')[:-1]) if badname_reg[-1] != '.' else ".".join(badname_reg.split('.')[:-2])
             last_lvl_reg = badname_reg.split('.')[-1] if badname_reg[-1] != '.' else badname_reg.split('.')[-2]
@@ -139,16 +140,175 @@ class Pre_test:
     def access_method():#wip
         pass
 
-    def _filter_fields(chosen_attr, avail_attrs,attr_badname_regs,no_last_list,last_level_list):#wip
-        return chosen_reg, filt_no_last_list, filt_last_level_list
+    def _filter_fields(chosen_attr, avail_attrs,attr_badname_regs,no_last_list,last_level_list):
+        chosen_regs, filt_no_last_list, filt_last_level_list = [],[],[]
+        print('Filtering badname registes...')
+        for attr in tqdm(avail_attrs):
+            if chosen_attr != '' and attr != chosen_attr:
+                continue
+            chosen_regs.append(attr_badname_regs[avail_attrs.index(attr)])
+            filt_no_last_list.append(no_last_list[avail_attrs.index(attr)])
+            filt_last_level_list.append(last_level_list[avail_attrs.index(attr)])
+        return chosen_regs, filt_no_last_list, filt_last_level_list
 
 class Exec:
-    def _main:
+    def _main(chosen_regs, filt_no_last_list, filt_last_level_list, auto, is_targsim):
         #validation #dump
+        Exec._validation_badname(chosen_regs, filt_no_last_list, filt_last_level_list, auto, is_targsim)
         #categorize regs with pass/fail/error/hang. #dump to each logs.
         return
 
+    def _validation_badname(chosen_regs, filt_no_last_list, filt_last_level_list, auto, is_targsim):
+        num2print = 0
+        Pass, Fail, Unknown, Error, Hang = 0, 0, 0, 0, 0
+        table, x = [], []
+        num=1
+        num_chosen_attr_fields = len(chosen_regs)
+        reserved_print_num = len(reserved_print_num)
+        error_messages = {}
+        for reg in chosen_regs:
+            #to ask user for the num of table display
+            if num2print == 0:
+                (num2print,reserved_print_num) = user.Exec.print_limit(num_chosen_attr_fields,reserved_print_num,auto)
+                if num2print == 'end':
+                    break
+                num_chosen_attr_fields-=num2print
+                reserved_num = 0
+            reserved_num += 1
+            disp.progress(reserved_num, reserved_print_num, prefix=f'Progress [{reserved_num}:{reserved_print_num}]:', infix1 = f'StartTime= {time.ctime()}', suffix=f'Reg: [{reg}]')
+            attr = eval(no_last_lvl_reg[chosen_regs.index(reg)]+".getfielddefinition('"+last_lvl_reg[chosen_regs.index(reg)]+"').attribute")
+            #to validate
+            try:
+                (pre_rd,wr_in_list,rd_in_list,pass_fail,fail_reason) = Exec._validate1by1(reg,filt_no_last_list[chosen_regs.index(reg)], filt_last_level_list[chosen_regs.index(reg)],attr,is_targsim)#wip
+            except KeyboardInterrupt:
+                print('\n' + Fore.RED + 'Validation forced to stopped!' + Fore.RESET)
+                #display and storing validation info in table form.
+                break
+            except:
+                message = sys.exc_info()[1]
+                fail_reason = str(message)
+                if len(fail_reason) >= 30:
+                    fail_reason = fail_reason[:35-len(fail_reason)]+'...'
+                fail_reason = [fail_reason]
+                error_messages[reg]=str(message)
+                pass_fail = 'error'
+                pre_rd = wr_in_list = rd_in_list = []
+            #display and storing validation info in table form.
+            (table,x) = disp.store_content(table,x,num,full_field_name,attr,pass_fail,pre_rd,wr_in_list,rd_in_list,fail_reason)
+            (Pass,Fail,Unknown,Error) = track.track_num_pass_fail(pass_fail,Pass,Fail,Unknown,Error)
+            #print the table when reach number user want to print.
+            num2print -= 1
+            if int(repr(num2print)[-1]) == 0:
+                print('')
+                if not is_targsim:
+                    machine_chk_error = debug.mca.analyze()
+                    if machine_chk_error != []:
+                        pass_fail = 'hang'
+                        Hang+=1
+                print(x.getTableText())				
+                disp.disp_total_pass_fail(Pass,Fail,Unknown,Error,Hang)
+                table=[]
+                x=[]
+            num+=1
+            #detect hang and stop.
+            if 'hang' in pass_fail and not is_targsim:
+                target.powerCycle(waitOff=1,waitAfter=1)
+                while True:
+                    if target.readPostcode() == 0x10AD:
+                        itp.unlock()
+                        break
 
+    def _validate1by1(full_field_name, no_last_name, last_level_name, attr, is_targsim):#wip
+        wr_in_list = []
+        rd_in_list = []
+        fail_reason = []
+        (pre_rd,pass_fail_pre_rd) = Val_stage.pre_read(no_last_name, last_level_name, attr)
+        (wr_in_list,rd_in_list,pass_fail_1st_val) = Val_stage.first_stage_val(no_last_name, last_level_name, pre_rd,wr_in_list,rd_in_list,'1st_stage_rdwr','A5',is_targsim, attr)
+        (wr_in_list,rd_in_list,pass_fail_2nd_val) = Val_stage.second_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,'2nd_stage_rdwr','5A',is_targsim)
+        (wr_in_list,rd_in_list,pass_fail_3rd_val) = Val_stage.third_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,'3rd_stage_rdwr','A5',is_targsim)
+        if 'fail' in [pass_fail_pre_rd,pass_fail_1st_val,pass_fail_2nd_val,pass_fail_3rd_val]:
+            pass_fail = 'fail'
+            fail_reason = track.track_fail_reason(pass_fail_pre_rd,pass_fail_1st_val,pass_fail_2nd_val,pass_fail_3rd_val)
+        elif 'NA' in [pass_fail_pre_rd,pass_fail_1st_val,pass_fail_2nd_val,pass_fail_3rd_val]:#for the fields with the non-prepared attr and ro/c.
+            if 'pass' in [pass_fail_pre_rd,pass_fail_1st_val,pass_fail_2nd_val,pass_fail_3rd_val]:#for ro/c and ro/v
+                pass_fail = 'pass'
+            else:
+                pass_fail = 'NA'
+        else:
+            pass_fail = 'pass'
+        if itp.isrunning() == False:#If system has soft hang or cat error.
+            itp.go()
+            time.sleep(3)
+            fail_reason.append('halt')
+        if 'sys_rst' in [pass_fail_1st_val,pass_fail_2nd_val,pass_fail_3rd_val]:
+            fail_reason.append('sys_rst')
+            pass_fail = 'fail'
+        return pre_rd,wr_in_list,rd_in_list,pass_fail,fail_reason
+
+class Val_stage:
+    def pre_read(no_last_name, last_level_name, no_last_name, last_level_name, attr):#It is mainly for attr = ro/swc
+        pre_rd1 = str(eval(no_last_name + ".readfield('"+last_level_name+"')"))
+        pre_rd2 = str(eval(no_last_name + ".readfield('"+last_level_name+"')"))
+        pre_rd = [pre_rd1,pre_rd2]
+        numbit = eval(no_last_name+".getfielddefinition('"+last_level_name+"').numbits")
+        if attr == 'ro/swc':
+            pass_fail = rw.Algorithm.val_roswc(numbit,'pre_rd',pre_rd)
+            return pre_rd,pass_fail
+        elif attr == 'ro/c':
+            pass_fail = rw.Algorithm.val_ros(numbit,'pre_rd',pre_rd)
+            return pre_rd,pass_fail
+        if attr == 'na':
+            pass_fail = rw.Algorithm.val_na(numbit,'pre_rd',pre_rd)
+            return pre_rd,pass_fail
+        return pre_rd,'pass'
+
+    def first_stage_val(no_last_name, last_level_name, pre_rd,wr_in_list,rd_in_list,val_stage,wr_value,is_targsim, attr):
+        numbit = eval(no_last_name+".getfielddefinition('"+last_level_name+"').numbits")
+        #identify attr of this field in universal attr name.
+        attr = track.Pre_test.track_attr_cat(attr)
+        #write 'A5'/'5A' to field with and without algorithm.
+        if attr == 'ro/c' and val_stage in ['2nd_stage_rdwr','3rd_stage_rdwr']:
+            wr = rd = 'NA'
+        if attr in ['rw','rw/s','rw/l','rw/1c','rw/1l','rw/1s','rw/c','ro/swc','ro','wo','rsv','rw/o'] or attr in rw.all_undefined_attrs or attr in rw.new_defined_attrs:
+            wr = rw.create_value(numbit,wr_value)
+            wr = rw.Conv.convert_bin_to_dec(wr)
+            Val_stage.write(no_last_name, last_level_name,wr)
+            wr = Conv.convert_dec_to_hex(wr)#for table display purposes
+        #No write, show 'NA' to field without algorithm.
+        else:
+            wr='NA'
+        #read and compare to get result(pass/fail) for field with algorithm.
+        if wr != 'NA':
+            #//if attr in ['ro/v','rw/v']:
+            #//    time.sleep(1)#regs of this attr needs time to update value...
+            rd = Conv.read(no_last_name, last_level_name)
+            if attr in ['roswc','rw/cr'] or attr in all_undefined_attrs:#double read
+                rd2 =Conv.read(no_last_name, last_level_name)
+                two_read_value = [rd,rd2]
+                pass_fail = rw.compare(attr,wr,two_read_value,pre_rd,numbit,val_stage)
+            else:
+                pass_fail = rw.compare(attr,wr,rd,pre_rd,numbit,val_stage)
+        #no read, everything show 'NA' for field without algorithm.
+        else:
+            pass_fail = 'NA'
+            rd = 'NA'
+        #store write and read value in the 
+        wr_in_list.append(wr)
+        if attr in ['roswc','rw/cr'] or attr in all_undefined_attrs:
+            rd_in_list.append(two_read_value[0])
+            rd_in_list.append(two_read_value[1])
+        else:
+            rd_in_list.append(rd)
+        if not is_targsim:
+            if target.readPostcode() != 0x10AD:#only for UEFI.
+                pass_fail = 'sys_rst'
+        return wr_in_list,rd_in_list,pass_fail
+		
+    def write(no_last_name, last_level_name,write_value):
+        eval(no_last_name + ".writefield('"+last_level_name+"',"+write_value+")"))
+		
+    def read(no_last_name, last_level_name):
+        eval(no_last_name + ".readfield('"+last_level_name+"')")
 
 
 class Post_test:

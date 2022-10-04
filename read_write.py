@@ -364,7 +364,7 @@ def read(full_field_name):
 def write(full_field_name,write_value):
     eval(full_field_name+'.write('+write_value+')')
 
-def compare(attr,full_field_name,wr,rd,pre_rd,numbit,val_stage):
+def compare(attr,wr,rd,pre_rd,numbit,val_stage):
     undefined_attrs = ['ro/c/v','ro/p','ro/v','rw/0c/v','rw/l/k','rw/p','rw/s/l','rw/v','rw/v2']
     undefined_rw_behav_attrs = ['rw/v/p','rw/v/l','rw/v/p/l']
     undefined_ro_behav_attrs = ['ro/v/p','rw/1c/p','rw/1c/v','rw/1c/v/p','rw/1s/v','rw/1s/v/l','rw/ac','rw/o/p','rw/o/v/l','rw/p/l','rw/fuse','rw/strap','dc']
@@ -508,9 +508,9 @@ class Val_stage:
             if attr in ['roswc','rw/cr'] or attr in all_undefined_attrs:#double read
                 rd2 =read(full_field_name)
                 two_read_value = [rd,rd2]
-                pass_fail = compare(attr,full_field_name,wr,two_read_value,pre_rd,numbit,val_stage)
+                pass_fail = compare(attr,wr,two_read_value,pre_rd,numbit,val_stage)
             else:
-                pass_fail = compare(attr,full_field_name,wr,rd,pre_rd,numbit,val_stage)
+                pass_fail = compare(attr,wr,rd,pre_rd,numbit,val_stage)
         #no read, everything show 'NA' for field without algorithm.
         else:
             pass_fail = 'NA'
