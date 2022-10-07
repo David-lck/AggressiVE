@@ -82,14 +82,14 @@ def log():
 
 class Pre_test:
     def _dump_error_reg(badname_registers):
-        blg = dump.export_badname('open','','')
+        blg = dump.export_badname_regs('open','','')
         print('Storing unacceptable name registers to bad_name_regs.log...')
         for badname_register in badname_registers:
             try:
-                blg = dump.export_badname('store',badname_register,blg)
+                blg = dump.export_badname_regs('store',badname_register,blg)
             except:
                 print(f'Special Symbols in the name which cannot be recorded in log file: {badname_register}')
-        blg = dump.export_badname('close','',blg)
+        blg = dump.export_badname_regs('close','',blg)
     
     def convert_str2list(string):
         try:
@@ -938,13 +938,14 @@ def aggressive_badname(input_regs="socket",auto=True,auto_attr='',is_targsim=Fal
 
     Inputs:
         input_regs = Name of die/ Name of IP/ Name of reg.
-        Log Files:
-            - badname_regs.log
 
     Outputs:
         Table with the information of bad_name regs validation.
         Log File:
             - AggressiVE_badname.log
+            - no_attr_fields.log [override]
+            - attr_fields.log [override]
+            - attr_all.log [override]
             - pass_regs.log [generate new log]
             - fail_regs.log [override]
             - error_regs.log [override]
@@ -955,7 +956,6 @@ def aggressive_badname(input_regs="socket",auto=True,auto_attr='',is_targsim=Fal
         >>> aggressive_badname('cdie')
         >>> aggressive_badname('cdie.taps.core2_corepma')
     '''
-    #open dump.
     (chosen_regs, filt_no_last_list, filt_last_level_list) = badfunc.Pre_test._main(input_regs, auto)
     badfunc.Exec._main(chosen_regs, filt_no_last_list, filt_last_level_list, auto, is_targsim)
     #2nd pass/fail/error/hang regs validation if possible. #dump

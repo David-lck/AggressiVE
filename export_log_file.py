@@ -35,7 +35,17 @@ def export_cont(choice,content,alg,flg):#Write/store only
         flg = open("AggressiVE_cont_fail.log", dump_mode)
     return alg,flg
     
-def export_badname(choice,content,ilg):
+def export_badname(choice,content,blg):
+    if choice == 'open':
+        blg = open("AggressiVE_badname.log","w")
+    elif choice == 'close':
+        blg.close()
+    elif choice == 'store':
+        blg.write(content)
+        blg.write('\n')
+    return blg
+	
+def export_badname_regs(choice,content,ilg):
     if choice == 'open':
         ilg = open("bad_name_regs.log","w")
     elif choice == 'close':

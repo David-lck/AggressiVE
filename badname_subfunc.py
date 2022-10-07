@@ -47,12 +47,12 @@ class Pre_test:
         #if yes, cont. if no, end with message.
         if badname_registers == []:
             return 'Bravo. There is no unacceptable name registers!'
-        #get attrs #dump
+        #get attrs
         (avail_attrs,attr_badname_regs,no_last_list,last_level_list) = Pre_test._get_badname_attrs(badname_registers)
         print("Number of 'With Attribute Unacceptable Name' Registers: {len(attr_badname_regs)}")
         print("Number of 'Without Attribute Unacceptable Name' Registers: {len(badname_registers) - len(attr_badname_regs)}")
 		(avail_attrs_list, avail_attrs_num) = Pre_test._chk_num_attrs_regs(avail_attrs,attr_badname_regs,no_last_list,last_level_list)
-        #choose attr #dump
+        #choose attr
         chosen_attr = user.Pre_test.attr_choice(avail_attrs_list,True,'')#choose the one for validation.('r/w' or '')
         (chosen_regs, filt_no_last_list, filt_last_level_list) = Pre_test._filter_fields(chosen_attr, avail_attrs,attr_badname_regs,no_last_list,last_level_list)
         #choose access method if available #dump
@@ -89,6 +89,7 @@ class Pre_test:
         last_level_list = []
         avail_attrs = []
         attr_badname_regs = []
+        (invf, vf) = dump.export_invalidate('open', '', '', '')
         print("Getting badname registers' attribute...")
         for badname_reg in tqdm(badname_registers):
             #Extract the last level out since unacceptable
@@ -99,8 +100,11 @@ class Pre_test:
                 attr_badname_regs.append(badname_reg)
                 no_last_list.append(no_last_lvl_reg)
                 last_level_list.append(last_lvl_reg)
+                (invf, vf) = dump.export_invalidate('store_valid', badname_reg, invf, vf)
             except:
+                (invf, vf) = dump.export_invalidate('store_invalid', badname_reg, invf, vf)
                 pass
+        (invf, vf) = dump.export_invalidate('close', '', invf, vf)
         return avail_attrs,attr_badname_regs,no_last_list,last_level_list
 
     def _chk_num_attrs_regs(avail_attrs,attr_badname_regs,no_last_list,last_level_list):
@@ -135,6 +139,10 @@ class Pre_test:
         table += [{'Num':'-','Attributes':'Total num of fields' ,'Num of fields':total_num_valid_fields,'Algorithm':'-'}]
         x = Table.fromDictList(table,headers)
         print(x.getTableText())
+        print('Exporting table to attr_all.log...')
+        aa = dump.export_attr_all('open','','')
+        aa = dump.export_attr_all('store',x.getTableText(),aa)
+        aa = dump.export_attr_all('close','',aa)
         return new_attrs, new_num_fields
 
     def access_method():#wip
@@ -152,11 +160,10 @@ class Pre_test:
         return chosen_regs, filt_no_last_list, filt_last_level_list
 
 class Exec:
-    def _main(chosen_regs, filt_no_last_list, filt_last_level_list, auto, is_targsim):
+    def _main(chosen_regs, filt_no_last_list, filt_last_level_list, auto, is_targsim):#AggressiVE_badname.log #pass_regs.log #fail_regs.log #error_regs.log #sus_hang_regs.log #hang_regs.log
         #validation #dump
         Exec._validation_badname(chosen_regs, filt_no_last_list, filt_last_level_list, auto, is_targsim)
         #categorize regs with pass/fail/error/hang. #dump to each logs.
-        return
 
     def _validation_badname(chosen_regs, filt_no_last_list, filt_last_level_list, auto, is_targsim):
         num2print = 0
