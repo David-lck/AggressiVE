@@ -141,7 +141,7 @@ def disp_fail_content(x,alg,flg):
 def disp_total_pass_fail(Pass,Fail,Unknown,Error,Hang):
     print(Fore.LIGHTBLUE_EX+'Pass:'+str(Pass))
     print('Fail:'+str(Fail))
-    print('Unknown:'+str(Unknown))
+    print('UnknownAttrReg:'+str(Unknown))
     print('Error:'+str(Error))
     print('Hang:'+str(Hang)+Fore.RESET)
 

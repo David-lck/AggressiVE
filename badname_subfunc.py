@@ -179,7 +179,7 @@ class Exec:
             attr = eval(no_last_lvl_reg[chosen_regs.index(reg)]+".getfielddefinition('"+last_lvl_reg[chosen_regs.index(reg)]+"').attribute")
             #to validate
             try:
-                (pre_rd,wr_in_list,rd_in_list,pass_fail,fail_reason) = Exec._validate1by1(reg,filt_no_last_list[chosen_regs.index(reg)], filt_last_level_list[chosen_regs.index(reg)],attr,is_targsim)#wip
+                (pre_rd,wr_in_list,rd_in_list,pass_fail,fail_reason) = Exec._validate1by1(reg,filt_no_last_list[chosen_regs.index(reg)], filt_last_level_list[chosen_regs.index(reg)],attr,is_targsim)
             except KeyboardInterrupt:
                 print('\n' + Fore.RED + 'Validation forced to stopped!' + Fore.RESET)
                 #display and storing validation info in table form.
@@ -194,7 +194,7 @@ class Exec:
                 pass_fail = 'error'
                 pre_rd = wr_in_list = rd_in_list = []
             #display and storing validation info in table form.
-            (table,x) = disp.store_content(table,x,num,full_field_name,attr,pass_fail,pre_rd,wr_in_list,rd_in_list,fail_reason)
+            (table,x) = disp.store_content(table,x,num,reg,attr,pass_fail,pre_rd,wr_in_list,rd_in_list,fail_reason)
             (Pass,Fail,Unknown,Error) = track.track_num_pass_fail(pass_fail,Pass,Fail,Unknown,Error)
             #print the table when reach number user want to print.
             num2print -= 1
@@ -218,12 +218,12 @@ class Exec:
                         itp.unlock()
                         break
 
-    def _validate1by1(full_field_name, no_last_name, last_level_name, attr, is_targsim):#wip
+    def _validate1by1(full_field_name, no_last_name, last_level_name, attr, is_targsim):
         wr_in_list = []
         rd_in_list = []
         fail_reason = []
         (pre_rd,pass_fail_pre_rd) = Val_stage.pre_read(no_last_name, last_level_name, attr)
-        (wr_in_list,rd_in_list,pass_fail_1st_val) = Val_stage.first_stage_val(no_last_name, last_level_name, pre_rd,wr_in_list,rd_in_list,'1st_stage_rdwr','A5',is_targsim, attr)
+        (wr_in_list,rd_in_list,pass_fail_1st_val) = Val_stage.first_stage_val(no_last_name, last_level_name, pre_rd,wr_in_list,rd_in_list,'1st_stage_rdwr','A5',is_targsim, attr)#wip
         (wr_in_list,rd_in_list,pass_fail_2nd_val) = Val_stage.second_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,'2nd_stage_rdwr','5A',is_targsim)
         (wr_in_list,rd_in_list,pass_fail_3rd_val) = Val_stage.third_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,'3rd_stage_rdwr','A5',is_targsim)
         if 'fail' in [pass_fail_pre_rd,pass_fail_1st_val,pass_fail_2nd_val,pass_fail_3rd_val]:
@@ -279,11 +279,9 @@ class Val_stage:
             wr='NA'
         #read and compare to get result(pass/fail) for field with algorithm.
         if wr != 'NA':
-            #//if attr in ['ro/v','rw/v']:
-            #//    time.sleep(1)#regs of this attr needs time to update value...
-            rd = Conv.read(no_last_name, last_level_name)
-            if attr in ['roswc','rw/cr'] or attr in all_undefined_attrs:#double read
-                rd2 =Conv.read(no_last_name, last_level_name)
+            rd = Val_stage.read(no_last_name, last_level_name)
+            if attr in ['roswc','rw/cr'] or attr in rw.all_undefined_attrs:#double read
+                rd2 = Val_stage.read(no_last_name, last_level_name)
                 two_read_value = [rd,rd2]
                 pass_fail = rw.compare(attr,wr,two_read_value,pre_rd,numbit,val_stage)
             else:
@@ -308,9 +306,5 @@ class Val_stage:
         eval(no_last_name + ".writefield('"+last_level_name+"',"+write_value+")"))
 		
     def read(no_last_name, last_level_name):
-        eval(no_last_name + ".readfield('"+last_level_name+"')")
-
-
-class Post_test:
-    def _main:
-	    return
+        value = eval(no_last_name + ".readfield('"+last_level_name+"')")
+        return value

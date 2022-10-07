@@ -943,7 +943,13 @@ def aggressive_badname(input_regs="socket",auto=True,auto_attr='',is_targsim=Fal
 
     Outputs:
         Table with the information of bad_name regs validation.
-        Log File: AggressiVE_badname.log
+        Log File:
+            - AggressiVE_badname.log
+            - pass_regs.log [generate new log]
+            - fail_regs.log [override]
+            - error_regs.log [override]
+            - sus_hang_regs.log [override]
+            - hang_regs.log [override]
 
     EX:
         >>> aggressive_badname('cdie')
