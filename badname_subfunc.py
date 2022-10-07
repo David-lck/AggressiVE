@@ -160,10 +160,8 @@ class Pre_test:
         return chosen_regs, filt_no_last_list, filt_last_level_list
 
 class Exec:
-    def _main(chosen_regs, filt_no_last_list, filt_last_level_list, auto, is_targsim):#AggressiVE_badname.log #pass_regs.log #fail_regs.log #error_regs.log #sus_hang_regs.log #hang_regs.log
-        #validation #dump
+    def _main(chosen_regs, filt_no_last_list, filt_last_level_list, auto, is_targsim):
         Exec._validation_badname(chosen_regs, filt_no_last_list, filt_last_level_list, auto, is_targsim)
-        #categorize regs with pass/fail/error/hang. #dump to each logs.
 
     def _validation_badname(chosen_regs, filt_no_last_list, filt_last_level_list, auto, is_targsim):
         num2print = 0
@@ -173,6 +171,8 @@ class Exec:
         num_chosen_attr_fields = len(chosen_regs)
         reserved_print_num = len(reserved_print_num)
         error_messages = {}
+        blg = export_badname('open','','')
+        pass_regs, fail_regs, error_regs, sus_hang_regs = [], [], [], []
         for reg in chosen_regs:
             #to ask user for the num of table display
             if num2print == 0:
@@ -212,8 +212,14 @@ class Exec:
                     if machine_chk_error != []:
                         pass_fail = 'hang'
                         Hang+=1
-                print(x.getTableText())				
+                print(x.getTableText())
+                blg = export_badname('store',x.getTableText(),blg)
                 disp.disp_total_pass_fail(Pass,Fail,Unknown,Error,Hang)
+                blg = export_badname('store','Pass:'+str(Pass),blg)
+                blg = export_badname('store','Fail:'+str(Fail),blg)
+                blg = export_badname('store','UnknownAttrReg:'+str(Unknown),blg)
+                blg = export_badname('store','Error:'+str(Error),blg)
+                blg = export_badname('store','Hang:'+str(Hang),blg)
                 table=[]
                 x=[]
             num+=1
@@ -224,6 +230,11 @@ class Exec:
                     if target.readPostcode() == 0x10AD:
                         itp.unlock()
                         break
+            #categorize registers in different logs.
+            cath_regs = [pass_regs, fail_regs, error_regs, sus_hang_regs]
+            (pass_regs, fail_regs, error_regs, sus_hang_regs) = rw.Exec.categorize_regs(pass_fail, reg, chosen_regs, cath_regs)
+        dump.export_regs(pass_regs, fail_regs, error_regs, sus_hang_regs)
+        blg = export_badname('close','',blg)
 
     def _validate1by1(full_field_name, no_last_name, last_level_name, attr, is_targsim):
         wr_in_list = []
