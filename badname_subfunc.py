@@ -51,7 +51,7 @@ class Pre_test:
         (avail_attrs,attr_badname_regs,no_last_list,last_level_list) = Pre_test._get_badname_attrs(badname_registers)
         print("Number of 'With Attribute Unacceptable Name' Registers: {len(attr_badname_regs)}")
         print("Number of 'Without Attribute Unacceptable Name' Registers: {len(badname_registers) - len(attr_badname_regs)}")
-		(avail_attrs_list, avail_attrs_num) = Pre_test._chk_num_attrs_regs(avail_attrs,attr_badname_regs,no_last_list,last_level_list)
+        (avail_attrs_list, avail_attrs_num) = Pre_test._chk_num_attrs_regs(avail_attrs,attr_badname_regs,no_last_list,last_level_list)
         #choose attr
         chosen_attr = user.Pre_test.attr_choice(avail_attrs_list,True,'')#choose the one for validation.('r/w' or '')
         (chosen_regs, filt_no_last_list, filt_last_level_list) = Pre_test._filter_fields(chosen_attr, avail_attrs,attr_badname_regs,no_last_list,last_level_list)
@@ -264,7 +264,7 @@ class Exec:
         return pre_rd,wr_in_list,rd_in_list,pass_fail,fail_reason
 
 class Val_stage:
-    def pre_read(no_last_name, last_level_name, no_last_name, last_level_name, attr):#It is mainly for attr = ro/swc
+    def pre_read(no_last_name, last_level_name, attr):#It is mainly for attr = ro/swc
         pre_rd1 = str(eval(no_last_name + ".readfield('"+last_level_name+"')"))
         pre_rd2 = str(eval(no_last_name + ".readfield('"+last_level_name+"')"))
         pre_rd = [pre_rd1,pre_rd2]
@@ -321,7 +321,7 @@ class Val_stage:
         return wr_in_list,rd_in_list,pass_fail
 		
     def write(no_last_name, last_level_name,write_value):
-        eval(no_last_name + ".writefield('"+last_level_name+"',"+write_value+")"))
+        eval(no_last_name + ".writefield('"+last_level_name+"',"+write_value+")")
 		
     def read(no_last_name, last_level_name):
         value = eval(no_last_name + ".readfield('"+last_level_name+"')")

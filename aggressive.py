@@ -630,7 +630,7 @@ def badname_regs(input_reg,auto=True,validate=False):#Completed(die,IP, and regi
         >>> badname_regs('cdie',validate=True)
         >>> badname_regs('cdie.taps.core2_corepma')
     '''
-    (badname_registers,attr_fields) = track.Pre_test.track_badname_regs(input_reg)
+    (badname_registers,attr_fields) = badfunc.Pre_test.track_badname_regs(input_reg)
     Pre_test._dump_error_reg(badname_registers)
     user.Pre_test.disp_badname_reg_choice(badname_registers,auto)
     if validate == True:
