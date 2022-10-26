@@ -702,7 +702,7 @@ def attr_all(input_regs,validate=False):#for die, ip, register, and fields
 
     Outputs:
         Table with the all the available attributes and the numbers of fields in all the specific attributes.
-        Log File: atrt_all.log
+        Log File: attr_all.log
 
     EX:
         >>> attr_all('soc')
