@@ -48,14 +48,17 @@ class Pre_test:
                 print("Please enter the available access displayed in 'default' group!")
         return chosen_access
         
-    def access_choice(input_reg,auto):
+    def access_choice(input_reg,auto_access,auto):
         log_store = []
         if not auto:
             (avail_access,unit) = Pre_test._get_access_method(input_reg)
             disp.disp_avail_access(avail_access)
             chosen_access = Pre_test._access_choice_input(avail_access)
         else:#for die level
-            chosen_access = ''
+            if auto_access == 'None':
+                chosen_access = ''
+            else:
+                chosen_access = auto_access
         if chosen_access != '':#not default
             eval(unit[0]+".setaccess('"+chosen_access+"')")
         else:#default
@@ -63,41 +66,15 @@ class Pre_test:
             log_store.append(f'User has chosen default access for {input_reg}.')
         return log_store,chosen_access
 
-    def attr_choice(avai_attrs,auto,auto_attr):
-        if auto == True:
-            choice = auto_attr
-        elif auto == False:
-            choice = input('Attribute (Enter for All): ')
-        if choice.isdigit() and choice != '':
+    def attr_choice(avai_attrs,auto_attr):
+        choice = auto_attr
+        if choice.isdigit() and choice != 'None':
             choice = avai_attrs[int(choice)-1]
-        elif choice != '' and choice.isdigit() == False:
+        elif choice != 'None' and choice.isdigit() == False:
             choice = choice.lower()
             #choice = track.Pre_test.track_attr_typo(avai_attrs,choice)
         return choice
-        
-    def invalidate_choice(auto):
-        if auto == False:
-            result_form = ''
-        elif auto == True:
-            result_form = '3'
-        while result_form not in ['1','2','3']:
-            result_form = input('Display result in 1)IP form or 2)field form 3)Skip?')
-            if result_form == '':
-                result_form = '3'
-        return result_form
 
-    def disp_badname_reg_choice(badname_registers,auto):
-        if auto == True:
-            choice = 'n'
-        elif auto == False:
-            choice = input('Display error regs?(y/n)')
-        if choice == 'y' or choice == '':
-            print('-'*100)
-            for badname_register in badname_registers:
-                print(badname_register)
-            print('-'*100)
-        print(f"{Fore.LIGHTBLUE_EX}There's {len(badname_registers)} unacceptable name registers.")
-        print('All the error registers names have been saved to C>>Users>>pgsvlab>>Documents>>PythonSv>>bad_name_regs.py.'+Fore.RESET)
    
 class Exec:
     def print_limit(total_field2print,reserved_print_limit,auto):
@@ -149,7 +126,7 @@ class Post_test:
         else:
             print('All the printed error infos have been saved in C>>Users>>pgsvlab>>PythonSv>>AggressiVE_cont_error.log')
 
-    def choose_post_test(num_status,alg,flg,status_infos,is_cont,is_targsim,auto):
+    def choose_post_test(num_status,alg,flg,status_infos,is_cont,detections,auto):
         [Pass,Fail,Error,Hang] = num_status
         [fail_infos,sus_hang_infos,error_infos] = status_infos
         avail_choice = []
@@ -177,10 +154,10 @@ class Post_test:
             if val_choice == 'end':
                 break
             elif 'Pass' in avail_choice[int(val_choice)-1]:
-                (alg, flg) = rw.Post_test.validate_pass(alg, flg,is_cont,is_targsim,auto)
+                (alg, flg) = rw.Post_test.validate_pass(alg, flg,is_cont,detections,auto)
                 avail_choice.remove('Pass Registers.')
             elif 'Fail' in avail_choice[int(val_choice)-1]:
-                (alg, flg) = ags.Post_test._fail_main(fail_infos, alg, flg,is_cont,is_targsim)#run post feature (Validate or display fail fields only).
+                (alg, flg) = ags.Post_test._fail_main(fail_infos, alg, flg,is_cont,detections)#run post feature (Validate or display fail fields only).
                 avail_choice.remove('Fail Registers.')
             elif 'Hang' in avail_choice[int(val_choice)-1]:
                 [sus_hang_regs] = sus_hang_infos

@@ -53,7 +53,7 @@ class Pre_test:
         print("Number of 'Without Attribute Unacceptable Name' Registers: {len(badname_registers) - len(attr_badname_regs)}")
         (avail_attrs_list, avail_attrs_num) = Pre_test._chk_num_attrs_regs(avail_attrs,attr_badname_regs,no_last_list,last_level_list)
         #choose attr
-        chosen_attr = user.Pre_test.attr_choice(avail_attrs_list,True,'')#choose the one for validation.('r/w' or '')
+        chosen_attr = user.Pre_test.attr_choice(avail_attrs_list,'')#choose the one for validation.('r/w' or '')
         (chosen_regs, filt_no_last_list, filt_last_level_list) = Pre_test._filter_fields(chosen_attr, avail_attrs,attr_badname_regs,no_last_list,last_level_list)
         #choose access method if available #dump
         Pre_test.access_method()#wip

@@ -13,6 +13,7 @@ from pysvtools.asciitable import AsciiTable as Table
 import time
 import colorama
 from colorama import Fore
+import pandas as pd
 from builtins import *
 from builtins import str
 from builtins import range
@@ -81,7 +82,7 @@ def log():
     print(x.getTableText())
 
 class Pre_test:
-    def _dump_error_reg(badname_registers):
+    def _dump_badname_reg(badname_registers):
         blg = dump.export_badname_regs('open','','')
         print('Storing unacceptable name registers to bad_name_regs.log...')
         for badname_register in badname_registers:
@@ -112,7 +113,7 @@ class Pre_test:
         table_vf = disp.store('Name of IPs','Attr_Field',attr_fields)
         return table_invip,table_vip,table_invf,table_vf,attr_ips,no_attr_ips
     
-    def _dump_invalidate_ver3(total,table_invip,table_invf,table_vip,table_vf,invf,vf):
+    def _dump_invalidate(total,table_invip,table_invf,table_vip,table_vf,invf,vf):
         (invf,vf) = dump.export_invalidate('store_invalid',f'Number of invalid IPs: {total[0]}',invf,vf)
         (invf,vf) = dump.export_invalidate('store_valid',f'Number of valid IPs: {total[1]}',invf,vf)
         (invf,vf) = dump.export_invalidate('store_invalid',f'Number of invalid fields: {total[2]}',invf,vf)
@@ -121,28 +122,6 @@ class Pre_test:
         (invf,vf) = dump.export_invalidate('store_invalid',table_invf,invf,vf)
         (invf,vf) = dump.export_invalidate('store_valid',table_vip,invf,vf)
         (invf,vf) = dump.export_invalidate('store_valid',table_vf,invf,vf)
-        (invf,vf) = dump.export_invalidate('close','',invf,vf)
-    
-    def _dump_invalidate_ver2(total,table_invf,table_vf,invf,vf):
-        (invf,vf) = dump.export_invalidate('store_invalid',f'Number of invalid fields: {total[2]}',invf,vf)
-        (invf,vf) = dump.export_invalidate('store_valid',f'Number of valid fields: {total[3]}',invf,vf)
-        if int(total[2]) >= 1000:
-            print('Due to too many invalid fields, pls refer to the log below.')
-            print(table_invf)
-        if int(total[3]) >= 1000:
-            print('Due to too many valid fields, pls refer to the log below.')
-            print(table_vf)
-        (invf,vf) = dump.export_invalidate('store_invalid',table_invf,invf,vf)
-        (invf,vf) = dump.export_invalidate('store_valid',table_vf,invf,vf)
-        (invf,vf) = dump.export_invalidate('close','',invf,vf)
-    
-    def _dump_invalidate_ver1(total,table_invip,table_vip,invf,vf):
-        (invf,vf) = dump.export_invalidate('store_invalid',f'Number of invalid IPs: {total[0]}',invf,vf)
-        (invf,vf) = dump.export_invalidate('store_valid',f'Number of valid IPs: {total[1]}',invf,vf)
-        (invf,vf) = dump.export_invalidate('store_invalid',table_invip,invf,vf)
-        (invf,vf) = dump.export_invalidate('store_valid',table_vip,invf,vf)
-        print(table_invip)
-        print(table_vip)
         (invf,vf) = dump.export_invalidate('close','',invf,vf)
         
     def _get_fields(input_reg):
@@ -285,17 +264,12 @@ class Pre_test:
             h_regs = []
         return p_regs,f_regs,e_regs,h_regs
 		
-    def _main(input_reg,auto_attr,auto):
-        full_fields = badname_regs(input_reg,auto,True)#detect for error regs and fields. Exclude them out from good regs and fields.
-        (attr_fields,attr_ips) = invalidate(full_fields,auto,True)#detect for invalid regs and fields without attribute info. Exclude them out.
-        #try:
-        (log_store,chosen_access) = user.Pre_test.access_choice(input_reg,auto)#display available access method and choose access method.(only for ip)
+    def _main(input_reg,auto_attr,auto_access):
+        full_fields = badname_regs(input_reg,True)#detect for error regs and fields. Exclude them out from good regs and fields.
+        (attr_fields,attr_ips) = invalidate(full_fields,True)#detect for invalid regs and fields without attribute info. Exclude them out.
+        (log_store,chosen_access) = user.Pre_test.access_choice(input_reg,auto_access,True)#display available access method and choose access method.(only for ip)
         log_store = track.feedback_access_method(chosen_access,attr_ips,log_store)
-        #except Exception as e:
-        #    log_store = ['']
-        #    print(e)
-        avai_attrs = attr_all(input_reg,True)#display available attributes
-        chosen_attr = user.Pre_test.attr_choice(avai_attrs,auto,auto_attr)#choose the one for validation.('r/w' or '')
+        chosen_attr = user.Pre_test.attr_choice([],auto_attr)#choose the one for validation.('r/w' or '')
         Pre_test.export_pre_test_msg(log_store)#store access method info in 'AggressiVE.log'.
         return attr_fields,chosen_attr
     
@@ -309,7 +283,7 @@ class Pre_test:
         return regs
 
 class Post_test:
-    def _fail_main(fail_infos,alg,flg,is_cont,is_targsim):
+    def _fail_main(fail_infos,alg,flg,is_cont,detections):
         [Fail,fail_regs,fail_x,auto] = fail_infos
         if Fail > 0 :
             chosen_fail_val = 1
@@ -318,7 +292,7 @@ class Post_test:
                 if chosen_fail_val == 2:
                     (alg,flg) = dump.export('store','Fail Registers Re-write is chosen!',alg,flg)
                     (alg,flg) = dump.export('store_fail','Fail Registers Re-write is chosen!',alg,flg)
-                    (alg,flg) = rdwr.Post_test.validate2_fail_regs(fail_regs,alg,flg,Fail,auto,is_cont,is_targsim)#2nd validation for fail fields(re-write)
+                    (alg,flg) = rdwr.Post_test.validate2_fail_regs(fail_regs,alg,flg,Fail,auto,is_cont,detections)#2nd validation for fail fields(re-write)
                 elif chosen_fail_val == 1:
                     disp.disp_fail_content(fail_x,alg,flg)#re-print fail fields
                     print('Fail:'+str(Fail))
@@ -601,12 +575,12 @@ def set_access_method(input_reg):
         >>> set_access_method('cdie.taps')
         >>> set_access_method('cdie.taps.core2_corepma')
     '''
-    (log_store,chosen_access) = user.Pre_test.access_choice(input_reg,auto=False)#display available access method and choose access method.(only for ip)
-    full_fields = badname_regs(input_reg,True,True)#detect for error regs and fields. Exclude them out from good regs and fields.
+    (log_store,chosen_access) = user.Pre_test.access_choice(input_reg,auto_access='None',False)#display available access method and choose access method.(only for ip)
+    full_fields = badname_regs(input_reg,True)#detect for error regs and fields. Exclude them out from good regs and fields.
     (attr_fields,attr_ips) = invalidate(full_fields,True,True)#detect for invalid regs and fields without attribute info. Exclude them out.
     log_store = track.feedback_access_method(chosen_access,attr_ips,log_store)
     
-def badname_regs(input_reg,auto=True,validate=False):#Completed(die,IP, and register)
+def badname_regs(input_reg,validate=False):#Completed(die,IP, and register)
     '''
     Command:
         badname_regs()
@@ -631,12 +605,13 @@ def badname_regs(input_reg,auto=True,validate=False):#Completed(die,IP, and regi
         >>> badname_regs('cdie.taps.core2_corepma')
     '''
     (badname_registers,attr_fields) = badfunc.Pre_test.track_badname_regs(input_reg)
-    Pre_test._dump_error_reg(badname_registers)
-    user.Pre_test.disp_badname_reg_choice(badname_registers,auto)
+    Pre_test._dump_badname_reg(badname_registers)
+    print(f"{Fore.LIGHTBLUE_EX}There's {len(badname_registers)} unacceptable name registers.")
+    print('All the error registers names have been saved to C>>Users>>pgsvlab>>Documents>>PythonSv>>bad_name_regs.py.'+Fore.RESET)
     if validate == True:
         return attr_fields
 
-def invalidate(input_reg,auto=True,validate=False):#Completed(die,ip,fields)
+def invalidate(input_reg,validate=False):#Completed(die,ip,fields)
     '''
     Command:
         invalidate()
@@ -661,7 +636,7 @@ def invalidate(input_reg,auto=True,validate=False):#Completed(die,ip,fields)
         >>> invalidate('cdie.taps.core2_corepma',auto=False,validate=True)
     '''
     if validate == False:#for die and ip (user input)
-        full_fields = badname_regs(input_reg,auto,True)
+        full_fields = badname_regs(input_reg,True)
     elif validate == True:
         full_fields = input_reg
     full_ips = track.fields_2_ips(full_fields)#search for all the IPs
@@ -670,19 +645,13 @@ def invalidate(input_reg,auto=True,validate=False):#Completed(die,ip,fields)
     (table_invip,table_vip,table_invf,table_vf,attr_ips,no_attr_ips) = Pre_test._generate_invalidate(attr_fields,no_attr_fields)#generate valid and invalid ips.
     #Display result.
     total = disp.Pre_test.disp_invalidate(no_attr_ips,attr_ips,no_attr_fields,attr_fields)
-    result_form = user.Pre_test.invalidate_choice(auto)
     #detect total num of fields and IPs.
     print('Calculating total number of fields and IPs...')
     total_num_fields = len(full_fields)
     (invf,vf) = dump.export_invalidate('open','','','')
     (invf,vf) = dump.export_invalidate('store_invalid',f'Total num of fields: {total_num_fields}',invf,vf)
     (invf,vf) = dump.export_invalidate('store_valid',f'Total num of fields: {total_num_fields}',invf,vf)
-    if int(result_form) == 3:
-        Pre_test._dump_invalidate_ver3(total,table_invip,table_invf,table_vip,table_vf,invf,vf)
-    elif int(result_form) == 2:
-        Pre_test._dump_invalidate_ver2(total,table_invf,table_vf,invf,vf)
-    elif int(result_form) == 1:
-        Pre_test._dump_invalidate_ver1(total,table_invip,table_vip,invf,vf)
+    Pre_test._dump_invalidate(total,table_invip,table_invf,table_vip,table_vf,invf,vf)
     print('All the with attr fields & non attr fields names have been saved to:')
     print(Fore.LIGHTBLUE_EX + 'C>>Users>>pgsvlab>>Documents>>PythonSv>>no_attr_fields.log.')
     print('C>>Users>>pgsvlab>>Documents>>PythonSv>>attr_fields.log.' + Fore.RESET)
@@ -773,7 +742,7 @@ def attr_all(input_regs,validate=False):#for die, ip, register, and fields
     if validate == True:
         return new_attrs
 
-def aggressive(input_regs, auto=True, auto_attr='', is_targsim = False):#WIP (register level)
+def aggressive(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xlsx', auto=True):#WIP (register level)
     '''
     Command:
         aggressive()
@@ -811,25 +780,42 @@ def aggressive(input_regs, auto=True, auto_attr='', is_targsim = False):#WIP (re
         >>> aggressive('cdie.taps.core2_corepma')
         >>> aggressive('cdie.taps.core2_corepma',auto=False)
         >>> aggressive('cdie.taps.core2_corepma',auto_attr='rw')
-        >>> aggressive('cdie.taps.core2_corepma',is_targsim=True)
     '''
-    try:
-        eval('__main__.'+input_regs)
-    except:
-        print('No such die exist in this project!')
+    df = pd.read_excel(file,'aggressive')
+    input_regs = df['input_regs'].values.tolist()
+    auto_attr = df['auto_attr'].values.tolist()[0]
+    auto_access = df['access_method'].values.tolist()[0]
+    is_targsim = df['is_targsim'].values.tolist()[0]
+    halt_detection = df['halt_detection'].values.tolist()[0]
+    reset_detection = df['reset_detection'].values.tolist()[0]
+    hang_detection = df['hang_detection'].values.tolist()[0]
+    #detect die availability
+    avail_die = 0
+    for input_reg in input_regs:
+        try:
+            eval('__main__.'+input_regs)
+            avail_die += 1
+        except:
+            print('No such die exist in this project!')
+            print('Will continue without it.')
+    if avail_die == 0:
+        print('There is not correct die to be validated.')
         print('Please enter the correct one!')
         return 
+    #detection mode changed
+    if is_targsim:
+        detections = [False for det in [halt_detection,reset_detection,hang_detection] if det]
+	#delete the log files.
     dump.det_del_ags_logs()#dump is in append mode, remove ags.log & ags_fail.log & ags_pass.log & ags_error.log & ags_hang.log
     dump.det_del_ags_cont_logs()#dump is in append mode, remove ags_cont.log & ags_cont_fail.log & ags_cont_pass.log & ags_cont_error.log & ags_cont_hang.log bcz user run new validation.
     dump.det_del_regs_logs()#dump is in append mode, remove fail_regs.log & error_regs.log & hang_regs.log
     #AggressiVE_error.log & AggressiVE_hang.log & AggressiVE_pass.log?
     Pre_test.initial_setting()
-    input_regs = Pre_test.convert_str2list(input_regs)
     for input_reg in input_regs:
-        (attr_fields,chosen_attr) = Pre_test._main(input_reg,auto_attr,auto)#run all pretest features.
-        rdwr.Exec.validate(attr_fields,chosen_attr,auto,is_targsim,is_cont=False)#validation.
+        (attr_fields,chosen_attr) = Pre_test._main(input_reg,auto_attr,auto_access)#run all pretest features.
+        rdwr.Exec.validate(attr_fields,chosen_attr,auto,is_cont=False,detections)#validation.
 
-def aggressive_cont(input_regs = "socket",to_exclude = True, auto_attr='', pass_regs = True, fail_regs = True, error_regs = True, hang_regs = True,is_targsim = False):
+def aggressive_cont(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xlsx'):
     '''
     Command:
         aggressive_cont()
@@ -846,7 +832,6 @@ def aggressive_cont(input_regs = "socket",to_exclude = True, auto_attr='', pass_
         fail_regs = If True, it will refer to the registers from fail_regs.log
         error_regs = If True, it will refer to the registers from error_regs.log
         hang_regs = If True, it will refer to the registers from hang_regs.log
-        is_targsim = If True, it will assume it is in targsim mode and will not expect the hang register.
         Log Files:
             - pass_regs.log
             - fail_regs.log
@@ -875,9 +860,21 @@ def aggressive_cont(input_regs = "socket",to_exclude = True, auto_attr='', pass_
         >>> aggressive_cont('cdie.taps.core2_corepma',fail_regs=False)
         >>> aggressive_cont('cdie.taps.core2_corepma',error_regs=False)
         >>> aggressive_cont('cdie.taps.core2_corepma',hang_regs=False)
-        >>> aggressive_cont('cdie',is_targsim = False)#to continue the unfinished work from aggressive().
-        >>> aggressive_cont('cdie',to_exclude=False,pass_regs = True, fail_regs = False, error_regs = False, hang_regs = False,is_targsim = False)#to validate 2nd/3rd time of 'speficied' regs.
     '''
+    df = pd.read_excel(file,'aggressive_cont')
+    input_regs = df['input_regs'].values.tolist()[0]
+    to_exclude = df['to_exclude'].values.tolist()[0]
+    auto_attr = df['auto_attr'].values.tolist()[0]
+    pass_regs = df['pass_regs'].values.tolist()[0]
+    fail_regs = df['fail_regs'].values.tolist()[0]
+    error_regs = df['error_regs'].values.tolist()[0]
+    hang_regs = df['hang_regs'].values.tolist()[0]
+    is_targsim = df['is_targsim'].values.tolist()[0]
+    halt_detection = df['halt_detection'].values.tolist()[0]
+    reset_detection = df['reset_detection'].values.tolist()[0]
+    hang_detection = df['hang_detection'].values.tolist()[0]
+    if is_targsim:
+        detections = [False for det in [halt_detection,reset_detection,hang_detection] if det]
     try:
         eval('__main__.'+input_regs)
     except:
@@ -889,8 +886,8 @@ def aggressive_cont(input_regs = "socket",to_exclude = True, auto_attr='', pass_
         to_be_exc_regs = p_regs + f_regs + e_regs + h_regs
         regs = Pre_test._exclude_regs(input_regs,auto_attr,to_be_exc_regs,True)
         avai_attrs = attr_all(regs,True)#display available attributes
-        chosen_attr = user.Pre_test.attr_choice(avai_attrs,True,auto_attr)#choose the one for validation.('r/w' or '')
-        rdwr.Exec.validate(regs,chosen_attr,True,is_targsim,is_cont=True)#validation.
+        chosen_attr = user.Pre_test.attr_choice(avai_attrs,auto_attr)#choose the one for validation.('r/w' or '')
+        rdwr.Exec.validate(regs,chosen_attr,True,is_cont=True,detections)#validation.
     else:
         #validate pass regs
         dump.det_del_ags_cont_logs()#dump is in append mode, need to delete just not to combine with previous data.
@@ -900,34 +897,34 @@ def aggressive_cont(input_regs = "socket",to_exclude = True, auto_attr='', pass_
         dump.export_cont('store','Validate pass_regs!',alg,flg)
         dump.export_cont('close','',alg,flg)
         avai_attrs = attr_all(p_regs,True)#display available attributes
-        chosen_attr = user.Pre_test.attr_choice(avai_attrs,True,auto_attr)#choose the one for validation.('r/w' or '')
-        rdwr.Exec.validate(p_regs,chosen_attr,True,is_targsim,is_cont=True)
+        chosen_attr = user.Pre_test.attr_choice(avai_attrs,auto_attr)#choose the one for validation.('r/w' or '')
+        rdwr.Exec.validate(p_regs,chosen_attr,True,is_cont=True,detections)
         #validate fail regs
         print('Validate fail_regs!')
         dump.export_cont('open','',alg,flg)
         dump.export_cont('store','Validate fail_regs!',alg,flg)
         dump.export_cont('close','',alg,flg)
         avai_attrs = attr_all(f_regs,True)#display available attributes
-        chosen_attr = user.Pre_test.attr_choice(avai_attrs,True,auto_attr)#choose the one for validation.('r/w' or '')
-        rdwr.Exec.validate(f_regs,chosen_attr,True,is_targsim,is_cont=True)
+        chosen_attr = user.Pre_test.attr_choice(avai_attrs,auto_attr)#choose the one for validation.('r/w' or '')
+        rdwr.Exec.validate(f_regs,chosen_attr,True,is_cont=True,detections)
         #validate error regs
         print('Validate error_regs!')
         dump.export_cont('open','',alg,flg)
         dump.export_cont('store','Validate error_regs!',alg,flg)
         dump.export_cont('close','',alg,flg)
         avai_attrs = attr_all(e_regs,True)#display available attributes
-        chosen_attr = user.Pre_test.attr_choice(avai_attrs,True,auto_attr)#choose the one for validation.('r/w' or '')
-        rdwr.Exec.validate(e_regs,chosen_attr,True,is_targsim,is_cont=True)
+        chosen_attr = user.Pre_test.attr_choice(avai_attrs,auto_attr)#choose the one for validation.('r/w' or '')
+        rdwr.Exec.validate(e_regs,chosen_attr,True,is_cont=True,detections)
         #validate hang regs
         print('Validate hang_regs!')
         dump.export_cont('open','',alg,flg)
         dump.export_cont('store','Validate hang_regs!',alg,flg)
         dump.export_cont('close','',alg,flg)
         avai_attrs = attr_all(h_regs,True)#display available attributes
-        chosen_attr = user.Pre_test.attr_choice(h_regs,True,auto_attr)#choose the one for validation.('r/w' or '')
-        rdwr.Exec.validate(h_regs,chosen_attr,True,is_targsim,is_cont=True)
+        chosen_attr = user.Pre_test.attr_choice(h_regs,auto_attr)#choose the one for validation.('r/w' or '')
+        rdwr.Exec.validate(h_regs,chosen_attr,True,is_cont=True,detections)
 		
-def aggressive_badname(input_regs="socket",auto=True,auto_attr='',is_targsim=False):
+def aggressive_badname(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xlsx',auto=True):
     '''
     Command:
         aggressive_badname()
@@ -956,8 +953,13 @@ def aggressive_badname(input_regs="socket",auto=True,auto_attr='',is_targsim=Fal
         >>> aggressive_badname('cdie')
         >>> aggressive_badname('cdie.taps.core2_corepma')
     '''
+    df = pd.read_excel(file,'aggressive_badname')
+    input_regs = df['input_regs'].values.tolist()[0]
+    auto_attr = df['auto_attr'].values.tolist()[0]
+    is_targsim = df['is_targsim'].values.tolist()[0]
     (chosen_regs, filt_no_last_list, filt_last_level_list) = badfunc.Pre_test._main(input_regs, auto)
     badfunc.Exec._main(chosen_regs, filt_no_last_list, filt_last_level_list, auto, is_targsim)
     #2nd pass/fail/error/hang regs validation if possible. #dump
     #close dump.
     return
+	 

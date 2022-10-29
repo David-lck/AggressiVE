@@ -480,7 +480,7 @@ class Val_stage:
             return pre_rd,pass_fail
         return pre_rd,'pass'
 
-    def first_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,val_stage,wr_value,is_targsim):
+    def first_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,val_stage,wr_value,reset_detection):
         numbit = track.track_field_bits(full_field_name)
         #identify attr of this field in universal attr name.
         attr = eval(full_field_name+'.info["attribute"]')
@@ -522,17 +522,17 @@ class Val_stage:
             rd_in_list.append(two_read_value[1])
         else:
             rd_in_list.append(rd)
-        if not is_targsim:
+        if reset_detection:
             if target.readPostcode() != 0x10AD:#only for UEFI.
                 pass_fail = 'sys_rst'
         return wr_in_list,rd_in_list,pass_fail
 
-    def second_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,val_stage,wr_value,is_targsim):
-        (wr_in_list,rd_in_list,pass_fail_1st_val) = Val_stage.first_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,val_stage,wr_value,is_targsim)
+    def second_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,val_stage,wr_value,reset_detection):
+        (wr_in_list,rd_in_list,pass_fail_1st_val) = Val_stage.first_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,val_stage,wr_value,reset_detection)
         return wr_in_list,rd_in_list,pass_fail_1st_val
 
-    def third_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,val_stage,wr_value,is_targsim):
-        (wr_in_list,rd_in_list,pass_fail_1st_val) = Val_stage.first_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,val_stage,wr_value,is_targsim)
+    def third_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,val_stage,wr_value,reset_detection):
+        (wr_in_list,rd_in_list,pass_fail_1st_val) = Val_stage.first_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,val_stage,wr_value,reset_detection)
         return wr_in_list,rd_in_list,pass_fail_1st_val
 
 class Exec:
@@ -548,14 +548,14 @@ class Exec:
             sus_hang_regs.append(chosen_attr_fields[chosen_attr_fields.index(full_field_name)-9:chosen_attr_fields.index(full_field_name)+1])
         return pass_regs, fail_regs, error_regs, sus_hang_regs
 
-    def validate_1by1(full_field_name,is_targsim):#only on one chosen attr or all attrs.
+    def validate_1by1(full_field_name,reset_detection,halt_detection):#only on one chosen attr or all attrs.
         wr_in_list = []
         rd_in_list = []
         fail_reason = []
         (pre_rd,pass_fail_pre_rd) = Val_stage.pre_read(full_field_name)
-        (wr_in_list,rd_in_list,pass_fail_1st_val) = Val_stage.first_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,'1st_stage_rdwr','A5',is_targsim)
-        (wr_in_list,rd_in_list,pass_fail_2nd_val) = Val_stage.second_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,'2nd_stage_rdwr','5A',is_targsim)
-        (wr_in_list,rd_in_list,pass_fail_3rd_val) = Val_stage.third_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,'3rd_stage_rdwr','A5',is_targsim)
+        (wr_in_list,rd_in_list,pass_fail_1st_val) = Val_stage.first_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,'1st_stage_rdwr','A5',reset_detection)
+        (wr_in_list,rd_in_list,pass_fail_2nd_val) = Val_stage.second_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,'2nd_stage_rdwr','5A',reset_detection)
+        (wr_in_list,rd_in_list,pass_fail_3rd_val) = Val_stage.third_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,'3rd_stage_rdwr','A5',reset_detection)
         if 'fail' in [pass_fail_pre_rd,pass_fail_1st_val,pass_fail_2nd_val,pass_fail_3rd_val]:
             pass_fail = 'fail'
             fail_reason = track.track_fail_reason(pass_fail_pre_rd,pass_fail_1st_val,pass_fail_2nd_val,pass_fail_3rd_val)
@@ -566,7 +566,7 @@ class Exec:
                 pass_fail = 'NA'
         else:
             pass_fail = 'pass'
-        if itp.isrunning() == False:#If system has soft hang or cat error.
+        if halt_detection and itp.isrunning() == False:#If system has soft hang or cat error.
             itp.go()
             time.sleep(3)
             fail_reason.append('halt')
@@ -575,7 +575,8 @@ class Exec:
             pass_fail = 'fail'
         return pre_rd,wr_in_list,rd_in_list,pass_fail,fail_reason
         
-    def validate(valid_fields,chosen_attr,auto,is_targsim,is_cont):
+    def validate(valid_fields,chosen_attr,auto,is_cont,detections):
+        [halt_detection,reset_detection,hang_detection] = detections
         num=1
         Pass, Fail, Unknown, Error, Hang = 0, 0, 0, 0, 0
         num2print=0
@@ -608,7 +609,7 @@ class Exec:
             disp.progress(reserved_num, reserved_print_num, prefix=f'Progress [{reserved_num}:{reserved_print_num}]:', infix1 = f'StartTime= {time.ctime()}', suffix=f'Reg: [{full_field_name}]')
             #validate
             try:
-                (pre_rd,wr_in_list,rd_in_list,pass_fail,fail_reason) = Exec.validate_1by1(full_field_name,is_targsim)
+                (pre_rd,wr_in_list,rd_in_list,pass_fail,fail_reason) = Exec.validate_1by1(full_field_name,reset_detection,halt_detection)
             except KeyboardInterrupt:
                 print('\n' + Fore.RED + 'Validation forced to stopped!' + Fore.RESET)
                 disp.disp_content(rowdictlist,x,alg,flg)
@@ -634,7 +635,7 @@ class Exec:
             num2print -= 1
             if int(repr(num2print)[-1]) == 0:
                 print('')
-                if not is_targsim:
+                if hang_detection:
                     machine_chk_error = debug.mca.analyze()
                     if machine_chk_error != []:
                         pass_fail = 'hang'
@@ -648,7 +649,7 @@ class Exec:
             cath_regs = [pass_regs, fail_regs, error_regs, sus_hang_regs]
             (pass_regs, fail_regs, error_regs, sus_hang_regs) = Exec.categorize_regs(pass_fail, full_field_name, chosen_attr_fields, cath_regs)
             #detect hang and stop.
-            if 'hang' in pass_fail and not is_targsim:
+            if 'hang' in pass_fail and hang_detection:
                 target.powerCycle(waitOff=1,waitAfter=1)
                 while True:
                     if target.readPostcode() == 0x10AD:
@@ -662,7 +663,7 @@ class Exec:
         error_infos = [error_messages]
         num_status = [Pass, Fail, Error, Hang]
         status_infos = [fail_infos,sus_hang_infos,error_infos]
-        (alg, flg) = user.Post_test.choose_post_test(num_status,alg,flg,status_infos,is_cont,is_targsim,auto)
+        (alg, flg) = user.Post_test.choose_post_test(num_status,alg,flg,status_infos,is_cont,detections,auto)
         if is_cont:
             (alg,flg) = dump.export_cont('close_all','NA',alg,flg)
             (alg,flg) = dump.export_cont('close_fail','NA',alg,flg)
@@ -740,7 +741,7 @@ class Post_test:
                 itp.unlock()
                 return alg, flg
 
-    def validate2_fail_regs(fail_regs,alg,flg,Fail,auto,is_cont,is_targsim):
+    def validate2_fail_regs(fail_regs,alg,flg,Fail,auto,is_cont,detections):
         num2print=0
         num_chosen_attr_fields = len(fail_regs)
         reserved_print_num = num_chosen_attr_fields
@@ -764,7 +765,7 @@ class Post_test:
             disp.progress(reserved_num, reserved_print_num, prefix=f'Progress [{reserved_num}:{reserved_print_num}]:', infix1 = f'StartTime= {time.ctime()}', suffix=f'Reg: [{fail_field_name}]')
             #validate
             try:
-                (pre_rd,wr_in_list,rd_in_list,pass_fail,fail_reason) = Exec.validate_1by1(fail_field_name,is_targsim)
+                (pre_rd,wr_in_list,rd_in_list,pass_fail,fail_reason) = Exec.validate_1by1(fail_field_name,detections[1],detections[0])
             except KeyboardInterrupt:
                 print('\n' + Fore.RED + 'Fail 2nd Validation forced to stopped!' + Fore.RESET)
                 disp.disp_fail_content(fail_x,alg,flg)
@@ -810,7 +811,7 @@ class Post_test:
             print(f"In second validation, there's {Pass2} pass registers.")
         return alg,flg
 
-    def validate_pass(alg, flg,is_cont,is_targsim,auto):#wip...
+    def validate_pass(alg, flg,is_cont,detections,auto):#wip...
         num = 1
         plg = []
         pass_regs_sets = []
@@ -865,7 +866,7 @@ class Post_test:
             disp.progress(reserved_num, reserved_print_num, prefix=f'Progress [{reserved_num}:{reserved_print_num}]:', infix1 = f'StartTime= {time.ctime()}', suffix=f'Reg: [{reg}]')
             #validate
             try:
-                (pre_rd,wr_in_list,rd_in_list,pass_fail,fail_reason) = Exec.validate_1by1(reg,is_targsim)
+                (pre_rd,wr_in_list,rd_in_list,pass_fail,fail_reason) = Exec.validate_1by1(reg,detections[1],detections[0])
             except KeyboardInterrupt:
                 print('\n' + Fore.RED + 'Pass 2nd Validation forced to stopped!' + Fore.RESET)
                 disp.disp_content(rowdictlist,x,alg,flg)
@@ -888,7 +889,7 @@ class Post_test:
             num2print -= 1
             if int(repr(num2print)[-1]) == 0:
                 print('')
-                if not is_targsim:
+                if detections[2]:
                     machine_chk_error = debug.mca.analyze()
                     if machine_chk_error != []:
                         pass_fail = 'hang'

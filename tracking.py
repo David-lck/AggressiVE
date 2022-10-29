@@ -230,7 +230,7 @@ def track_chosen_attr_fields(valid_fields,chosen_attr):
             attr = attr[0]
         elif attr == []:
             attr = eval(valid_field+'.info["attribute"]')
-        if attr == chosen_attr or chosen_attr == '':
+        if attr == chosen_attr or chosen_attr == 'None':
             chosen_attr_fields.append(valid_field)
     return chosen_attr_fields
     
