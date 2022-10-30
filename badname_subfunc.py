@@ -34,7 +34,7 @@ import os
 
 
 class Pre_test:
-    def _main(input_regs, auto):
+    def _main(input_regs):
         #check for the input correction
         try:
             eval('__main__.'+input_regs)
@@ -160,10 +160,11 @@ class Pre_test:
         return chosen_regs, filt_no_last_list, filt_last_level_list
 
 class Exec:
-    def _main(chosen_regs, filt_no_last_list, filt_last_level_list, auto, is_targsim):
-        Exec._validation_badname(chosen_regs, filt_no_last_list, filt_last_level_list, auto, is_targsim)
+    def _main(chosen_regs, filt_no_last_list, filt_last_level_list, auto, detections):
+        Exec._validation_badname(chosen_regs, filt_no_last_list, filt_last_level_list, auto, detections)
 
-    def _validation_badname(chosen_regs, filt_no_last_list, filt_last_level_list, auto, is_targsim):
+    def _validation_badname(chosen_regs, filt_no_last_list, filt_last_level_list, auto, detections):
+        [halt_detection,reset_detection,hang_detection] = detections
         num2print = 0
         Pass, Fail, Unknown, Error, Hang = 0, 0, 0, 0, 0
         table, x = [], []
@@ -186,7 +187,7 @@ class Exec:
             attr = eval(no_last_lvl_reg[chosen_regs.index(reg)]+".getfielddefinition('"+last_lvl_reg[chosen_regs.index(reg)]+"').attribute")
             #to validate
             try:
-                (pre_rd,wr_in_list,rd_in_list,pass_fail,fail_reason) = Exec._validate1by1(reg,filt_no_last_list[chosen_regs.index(reg)], filt_last_level_list[chosen_regs.index(reg)],attr,is_targsim)
+                (pre_rd,wr_in_list,rd_in_list,pass_fail,fail_reason) = Exec._validate1by1(reg,filt_no_last_list[chosen_regs.index(reg)], filt_last_level_list[chosen_regs.index(reg)],attr,detections)
             except KeyboardInterrupt:
                 print('\n' + Fore.RED + 'Validation forced to stopped!' + Fore.RESET)
                 #display and storing validation info in table form.
@@ -207,7 +208,7 @@ class Exec:
             num2print -= 1
             if int(repr(num2print)[-1]) == 0:
                 print('')
-                if not is_targsim:
+                if hang_detection:
                     machine_chk_error = debug.mca.analyze()
                     if machine_chk_error != []:
                         pass_fail = 'hang'
@@ -224,7 +225,7 @@ class Exec:
                 x=[]
             num+=1
             #detect hang and stop.
-            if 'hang' in pass_fail and not is_targsim:
+            if hang_detection and 'hang' in pass_fail:
                 target.powerCycle(waitOff=1,waitAfter=1)
                 while True:
                     if target.readPostcode() == 0x10AD:
@@ -236,14 +237,15 @@ class Exec:
         dump.export_regs(pass_regs, fail_regs, error_regs, sus_hang_regs)
         blg = export_badname('close','',blg)
 
-    def _validate1by1(full_field_name, no_last_name, last_level_name, attr, is_targsim):
+    def _validate1by1(full_field_name, no_last_name, last_level_name, attr, detections):
+        [halt_detection,reset_detection,hang_detection] = detections
         wr_in_list = []
         rd_in_list = []
         fail_reason = []
         (pre_rd,pass_fail_pre_rd) = Val_stage.pre_read(no_last_name, last_level_name, attr)
-        (wr_in_list,rd_in_list,pass_fail_1st_val) = Val_stage.first_stage_val(no_last_name, last_level_name, pre_rd,wr_in_list,rd_in_list,'1st_stage_rdwr','A5',is_targsim, attr)#wip
-        (wr_in_list,rd_in_list,pass_fail_2nd_val) = Val_stage.second_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,'2nd_stage_rdwr','5A',is_targsim)
-        (wr_in_list,rd_in_list,pass_fail_3rd_val) = Val_stage.third_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,'3rd_stage_rdwr','A5',is_targsim)
+        (wr_in_list,rd_in_list,pass_fail_1st_val) = Val_stage.stage_val(no_last_name, last_level_name, pre_rd,wr_in_list,rd_in_list,'1st_stage_rdwr','A5',reset_detection, attr)#wip
+        (wr_in_list,rd_in_list,pass_fail_2nd_val) = Val_stage.stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,'2nd_stage_rdwr','5A',reset_detection)
+        (wr_in_list,rd_in_list,pass_fail_3rd_val) = Val_stage.stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,'3rd_stage_rdwr','A5',reset_detection)
         if 'fail' in [pass_fail_pre_rd,pass_fail_1st_val,pass_fail_2nd_val,pass_fail_3rd_val]:
             pass_fail = 'fail'
             fail_reason = track.track_fail_reason(pass_fail_pre_rd,pass_fail_1st_val,pass_fail_2nd_val,pass_fail_3rd_val)
@@ -280,7 +282,7 @@ class Val_stage:
             return pre_rd,pass_fail
         return pre_rd,'pass'
 
-    def first_stage_val(no_last_name, last_level_name, pre_rd,wr_in_list,rd_in_list,val_stage,wr_value,is_targsim, attr):
+    def stage_val(no_last_name, last_level_name, pre_rd,wr_in_list,rd_in_list,val_stage,wr_value,reset_detection, attr):
         numbit = eval(no_last_name+".getfielddefinition('"+last_level_name+"').numbits")
         #identify attr of this field in universal attr name.
         attr = track.Pre_test.track_attr_cat(attr)
@@ -315,7 +317,7 @@ class Val_stage:
             rd_in_list.append(two_read_value[1])
         else:
             rd_in_list.append(rd)
-        if not is_targsim:
+        if reset_detection:
             if target.readPostcode() != 0x10AD:#only for UEFI.
                 pass_fail = 'sys_rst'
         return wr_in_list,rd_in_list,pass_fail

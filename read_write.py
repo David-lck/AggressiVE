@@ -755,7 +755,7 @@ class Post_test:
         reserved_print_num = len(fail_regs)
         for fail_field_name in fail_regs:
             #to ask user for the num of table display.
-            if num2print == 0:                                                                                                              #to ask user for the num of table display.
+            if num2print == 0:#to ask user for the num of table display.
                 (num2print,reserved_print_num) = user.Exec.print_limit(num_chosen_attr_fields,reserved_print_num,auto)
                 if num2print == 'end':
                     return alg,flg

@@ -273,12 +273,12 @@ class Pre_test:
         Pre_test.export_pre_test_msg(log_store)#store access method info in 'AggressiVE.log'.
         return attr_fields,chosen_attr
     
-    def _exclude_regs(input_regs,auto_attr,to_be_exc_regs,auto):
+    def _exclude_regs(input_regs,auto_attr,to_be_exc_regs,auto_access):
         Pre_test.initial_setting()
         input_regs = Pre_test.convert_str2list(input_regs)
         regs = []
         for input_reg in input_regs:
-            (attr_fields,chosen_attr) = Pre_test._main(input_reg,auto_attr,auto)#run all pretest features.
+            (attr_fields,chosen_attr) = Pre_test._main(input_reg,auto_attr,auto_access)#run all pretest features.
             regs += attr_fields
         return regs
 
@@ -600,7 +600,6 @@ def badname_regs(input_reg,validate=False):#Completed(die,IP, and register)
 
     EX:
         >>> badname_regs('cdie')
-        >>> badname_regs('cdie',auto=True)
         >>> badname_regs('cdie',validate=True)
         >>> badname_regs('cdie.taps.core2_corepma')
     '''
@@ -631,9 +630,6 @@ def invalidate(input_reg,validate=False):#Completed(die,ip,fields)
     EX:
         >>> invalidate('cdie')
         >>> invalidate('cdie.taps.core2_corepma')
-        >>> invalidate('cdie.taps.core2_corepma')
-        >>> invalidate('cdie.taps.core2_corepma',auto=False)
-        >>> invalidate('cdie.taps.core2_corepma',auto=False,validate=True)
     '''
     if validate == False:#for die and ip (user input)
         full_fields = badname_regs(input_reg,True)
@@ -742,7 +738,7 @@ def attr_all(input_regs,validate=False):#for die, ip, register, and fields
     if validate == True:
         return new_attrs
 
-def aggressive(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xlsx', auto=True):#WIP (register level)
+def aggressive(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xlsx'):#WIP (register level)
     '''
     Command:
         aggressive()
@@ -750,12 +746,9 @@ def aggressive(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xlsx', 
     Details:
         Validate the fields of all the chosen regs.
         Dependencies = access method and attr
-        If auto=True, it's a function without user input.
 
     Inputs:
-        input_regs = Name of die/ Name of IP/ Name of reg
-        auto = (False in default) Automate this features
-        auto_attr = Attribute(s) of the registers that would like to validate
+        file = path of input parameter excel file
 
     Outputs:
         Table with the information of validation.
@@ -778,8 +771,6 @@ def aggressive(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xlsx', 
     EX:
         >>> aggressive('cdie')
         >>> aggressive('cdie.taps.core2_corepma')
-        >>> aggressive('cdie.taps.core2_corepma',auto=False)
-        >>> aggressive('cdie.taps.core2_corepma',auto_attr='rw')
     '''
     df = pd.read_excel(file,'aggressive')
     input_regs = df['input_regs'].values.tolist()
@@ -789,6 +780,7 @@ def aggressive(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xlsx', 
     halt_detection = df['halt_detection'].values.tolist()[0]
     reset_detection = df['reset_detection'].values.tolist()[0]
     hang_detection = df['hang_detection'].values.tolist()[0]
+    auto = df['auto'].values.tolist()[0]
     #detect die availability
     avail_die = 0
     for input_reg in input_regs:
@@ -854,17 +846,12 @@ def aggressive_cont(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xl
     EX:
         >>> aggressive_cont('cdie')
         >>> aggressive_cont('cdie.taps.core2_corepma')
-        >>> aggressive_cont('cdie.taps.core2_corepma',to_exclude=False)
-        >>> aggressive_cont('cdie.taps.core2_corepma',auto_attr='rw')
-        >>> aggressive_cont('cdie.taps.core2_corepma',pass_regs=False)
-        >>> aggressive_cont('cdie.taps.core2_corepma',fail_regs=False)
-        >>> aggressive_cont('cdie.taps.core2_corepma',error_regs=False)
-        >>> aggressive_cont('cdie.taps.core2_corepma',hang_regs=False)
     '''
     df = pd.read_excel(file,'aggressive_cont')
     input_regs = df['input_regs'].values.tolist()[0]
     to_exclude = df['to_exclude'].values.tolist()[0]
     auto_attr = df['auto_attr'].values.tolist()[0]
+    auto_access = df['access_method'].values.tolist()[0]
     pass_regs = df['pass_regs'].values.tolist()[0]
     fail_regs = df['fail_regs'].values.tolist()[0]
     error_regs = df['error_regs'].values.tolist()[0]
@@ -873,6 +860,7 @@ def aggressive_cont(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xl
     halt_detection = df['halt_detection'].values.tolist()[0]
     reset_detection = df['reset_detection'].values.tolist()[0]
     hang_detection = df['hang_detection'].values.tolist()[0]
+    auto = df['auto'].values.tolist()[0]
     if is_targsim:
         detections = [False for det in [halt_detection,reset_detection,hang_detection] if det]
     try:
@@ -884,10 +872,10 @@ def aggressive_cont(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xl
     (p_regs, f_regs, e_regs, h_regs) = Pre_test._get_logs_regs(pass_regs, fail_regs, error_regs, hang_regs)
     if to_exclude:#continue unfinish work/ eclude the regs
         to_be_exc_regs = p_regs + f_regs + e_regs + h_regs
-        regs = Pre_test._exclude_regs(input_regs,auto_attr,to_be_exc_regs,True)
+        regs = Pre_test._exclude_regs(input_regs,auto_attr,to_be_exc_regs,auto_access)
         avai_attrs = attr_all(regs,True)#display available attributes
         chosen_attr = user.Pre_test.attr_choice(avai_attrs,auto_attr)#choose the one for validation.('r/w' or '')
-        rdwr.Exec.validate(regs,chosen_attr,True,is_cont=True,detections)#validation.
+        rdwr.Exec.validate(regs,chosen_attr,auto,is_cont=True,detections)#validation.
     else:
         #validate pass regs
         dump.det_del_ags_cont_logs()#dump is in append mode, need to delete just not to combine with previous data.
@@ -898,7 +886,7 @@ def aggressive_cont(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xl
         dump.export_cont('close','',alg,flg)
         avai_attrs = attr_all(p_regs,True)#display available attributes
         chosen_attr = user.Pre_test.attr_choice(avai_attrs,auto_attr)#choose the one for validation.('r/w' or '')
-        rdwr.Exec.validate(p_regs,chosen_attr,True,is_cont=True,detections)
+        rdwr.Exec.validate(p_regs,chosen_attr,auto,is_cont=True,detections)
         #validate fail regs
         print('Validate fail_regs!')
         dump.export_cont('open','',alg,flg)
@@ -906,7 +894,7 @@ def aggressive_cont(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xl
         dump.export_cont('close','',alg,flg)
         avai_attrs = attr_all(f_regs,True)#display available attributes
         chosen_attr = user.Pre_test.attr_choice(avai_attrs,auto_attr)#choose the one for validation.('r/w' or '')
-        rdwr.Exec.validate(f_regs,chosen_attr,True,is_cont=True,detections)
+        rdwr.Exec.validate(f_regs,chosen_attr,auto,is_cont=True,detections)
         #validate error regs
         print('Validate error_regs!')
         dump.export_cont('open','',alg,flg)
@@ -914,7 +902,7 @@ def aggressive_cont(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xl
         dump.export_cont('close','',alg,flg)
         avai_attrs = attr_all(e_regs,True)#display available attributes
         chosen_attr = user.Pre_test.attr_choice(avai_attrs,auto_attr)#choose the one for validation.('r/w' or '')
-        rdwr.Exec.validate(e_regs,chosen_attr,True,is_cont=True,detections)
+        rdwr.Exec.validate(e_regs,chosen_attr,auto,is_cont=True,detections)
         #validate hang regs
         print('Validate hang_regs!')
         dump.export_cont('open','',alg,flg)
@@ -922,9 +910,9 @@ def aggressive_cont(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xl
         dump.export_cont('close','',alg,flg)
         avai_attrs = attr_all(h_regs,True)#display available attributes
         chosen_attr = user.Pre_test.attr_choice(h_regs,auto_attr)#choose the one for validation.('r/w' or '')
-        rdwr.Exec.validate(h_regs,chosen_attr,True,is_cont=True,detections)
+        rdwr.Exec.validate(h_regs,chosen_attr,auto,is_cont=True,detections)
 		
-def aggressive_badname(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xlsx',auto=True):
+def aggressive_badname(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xlsx'):
     '''
     Command:
         aggressive_badname()
@@ -957,8 +945,14 @@ def aggressive_badname(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters
     input_regs = df['input_regs'].values.tolist()[0]
     auto_attr = df['auto_attr'].values.tolist()[0]
     is_targsim = df['is_targsim'].values.tolist()[0]
-    (chosen_regs, filt_no_last_list, filt_last_level_list) = badfunc.Pre_test._main(input_regs, auto)
-    badfunc.Exec._main(chosen_regs, filt_no_last_list, filt_last_level_list, auto, is_targsim)
+    halt_detection = df['halt_detection'].values.tolist()[0]
+    reset_detection = df['reset_detection'].values.tolist()[0]
+    hang_detection = df['hang_detection'].values.tolist()[0]
+    auto = df['auto'].values.tolist()[0]
+    if is_targsim:
+        detections = [False for det in [halt_detection,reset_detection,hang_detection] if det]
+    (chosen_regs, filt_no_last_list, filt_last_level_list) = badfunc.Pre_test._main(input_regs)
+    badfunc.Exec._main(chosen_regs, filt_no_last_list, filt_last_level_list, auto, detections)
     #2nd pass/fail/error/hang regs validation if possible. #dump
     #close dump.
     return
