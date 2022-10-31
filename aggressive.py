@@ -332,22 +332,22 @@ class Algorithm:
     'rw/1c/v/p':'read, write 1 to clear, HW loadable, sticky',
     'rw/1s/v':'Read-Write 1 to Set wirh HW loadable',
     'rw/1s/v/l':'Read-Write 1 to Set with HW loadable, Lock',
-    'rw/ac':'Read/Write Auto Clear.Field is RW,but HW may clear the field without intervention',
     'rw/o/p':'Read-Write Once Sticky',
     'rw/o/v/l':'Read-Write Once Variant with Lock',
+    'rw/v':'Read-Write , Variant , hardware loadable',
+    'rw/v2':'Read-Write Variable Lock by software',
+    'ro/c/v':'-',
+    'ro/p':'Read only and Sticky , same as RO but will only reset on PowerGood reset.',
+    'rw/p':'Read-Write Sticky. Functions as RW. Cleared with Power-good reset only.',
+    'ro/v':'Read Only Variant. Variant refer to hardware updated registers and RAL will not predict and ignore checking for variant fields',
+    'rw/0c/v':'Read-Write 0 to Clear, Variant',
     'rw/p/l':'Read-Write Sticky Lock',
     'rw/fuse':'Read-Write Fuse',
     'rw/strap':'Read-Write Strap',
+    'rw/ac':'Read/Write Auto Clear.Field is RW,but HW may clear the field without intervention',
     'dc':'-',
-    'ro/c/v':'-',
-    'ro/p':'-',
-    'ro/v':'-',
-    'rw/0c/v':'-',
     'rw/l/k':'-',
-    'rw/p':'-',
-    'rw/s/l':'-',
-    'rw/v':'-',
-    'rw/v2':'-'
+    'rw/s/l':'-'
     }
 
     STATUS = {
@@ -363,42 +363,42 @@ class Algorithm:
     'r/wc':'Ready',
     'ro/swc':'Ready',
     'rsv':'Ready',
-    'ro/c':'New',
-    'rw/cr':'New',
-    'wo/1':'New',
-    'wo/c':'New',
-    'na':'New',
-    'rw0c_fw':'New',
-    'rw1c_fw':'New',
-    'double buffered':'New',
-    'r/w hardware clear':'New',
-    'read/32 bit write only':'New',
-    'r/w firmware only':'New',
-    'rw/v/p':'Undefined',
-    'rw/v/l':'Undefined',
-    'rw/v/p/l':'Undefined',
-    'ro/v/p':'Undefined',
-    'rw/1c/p':'Undefined',
-    'rw/1c/v':'Undefined',
-    'rw/1c/v/p':'Undefined',
-    'rw/1s/v':'Undefined',
-    'rw/1s/v/l':'Undefined',
+    'ro/c':'Partial',
+    'rw/cr':'Partial',
+    'wo/1':'Partial',
+    'wo/c':'Partial',
+    'na':'Partial',
+    'rw0c_fw':'Partial',
+    'rw1c_fw':'Partial',
+    'double buffered':'Partial',
+    'r/w hardware clear':'Partial',
+    'read/32 bit write only':'Partial',
+    'r/w firmware only':'Partial',
+    'rw/v/p':'Partial',
+    'rw/v/l':'Partial',
+    'rw/v/p/l':'Partial',
+    'ro/v/p':'Partial',
+    'rw/1c/p':'Partial',
+    'rw/1c/v':'Partial',
+    'rw/1c/v/p':'Partial',
+    'rw/1s/v':'Partial',
+    'rw/1s/v/l':'Partial',
     'rw/ac':'Undefined',
-    'rw/o/p':'Undefined',
-    'rw/o/v/l':'Undefined',
-    'rw/p/l':'Undefined',
+    'rw/o/p':'Partial',
+    'rw/o/v/l':'Partial',
+    'rw/p/l':'Partial',
     'rw/fuse':'Undefined',
     'rw/strap':'Undefined',
     'dc':'Undefined',
-    'ro/c/v':'Undefined',
-    'ro/p':'Undefined',
-    'ro/v':'Undefined',
-    'rw/0c/v':'Undefined',
+    'ro/c/v':'Partial',
+    'ro/p':'Partial',
+    'ro/v':'Partial',
+    'rw/0c/v':'Partial',
     'rw/l/k':'Undefined',
-    'rw/p':'Undefined',
+    'rw/p':'Partial',
     'rw/s/l':'Undefined',
-    'rw/v':'Undefined',
-    'rw/v2':'Undefined'
+    'rw/v':'Partial',
+    'rw/v2':'Partial'
     }
 
     ALGORITHM = {
@@ -575,7 +575,7 @@ def set_access_method(input_reg):
         >>> set_access_method('cdie.taps')
         >>> set_access_method('cdie.taps.core2_corepma')
     '''
-    (log_store,chosen_access) = user.Pre_test.access_choice(input_reg,auto_access='None',False)#display available access method and choose access method.(only for ip)
+    (log_store,chosen_access) = user.Pre_test.access_choice(input_reg,'None',False)#display available access method and choose access method.(only for ip)
     full_fields = badname_regs(input_reg,True)#detect for error regs and fields. Exclude them out from good regs and fields.
     (attr_fields,attr_ips) = invalidate(full_fields,True,True)#detect for invalid regs and fields without attribute info. Exclude them out.
     log_store = track.feedback_access_method(chosen_access,attr_ips,log_store)
@@ -805,7 +805,7 @@ def aggressive(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xlsx'):
     Pre_test.initial_setting()
     for input_reg in input_regs:
         (attr_fields,chosen_attr) = Pre_test._main(input_reg,auto_attr,auto_access)#run all pretest features.
-        rdwr.Exec.validate(attr_fields,chosen_attr,auto,is_cont=False,detections)#validation.
+        rdwr.Exec.validate(attr_fields,chosen_attr,auto,False,detections)#validation.
 
 def aggressive_cont(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xlsx'):
     '''
@@ -875,8 +875,10 @@ def aggressive_cont(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xl
         regs = Pre_test._exclude_regs(input_regs,auto_attr,to_be_exc_regs,auto_access)
         avai_attrs = attr_all(regs,True)#display available attributes
         chosen_attr = user.Pre_test.attr_choice(avai_attrs,auto_attr)#choose the one for validation.('r/w' or '')
-        rdwr.Exec.validate(regs,chosen_attr,auto,is_cont=True,detections)#validation.
+        rdwr.Exec.validate(regs,chosen_attr,auto,True,detections)#validation.
     else:
+        (log_store,chosen_access) = user.Pre_test.access_choice(input_regs,auto_access,True)#display available access method and choose access method.(only for ip)
+        log_store = track.feedback_access_method(chosen_access,attr_ips,log_store)
         #validate pass regs
         dump.det_del_ags_cont_logs()#dump is in append mode, need to delete just not to combine with previous data.
         dump.det_del_regs_logs()#dump is in append mode, need to delete just not to combine with previous data.
@@ -886,7 +888,7 @@ def aggressive_cont(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xl
         dump.export_cont('close','',alg,flg)
         avai_attrs = attr_all(p_regs,True)#display available attributes
         chosen_attr = user.Pre_test.attr_choice(avai_attrs,auto_attr)#choose the one for validation.('r/w' or '')
-        rdwr.Exec.validate(p_regs,chosen_attr,auto,is_cont=True,detections)
+        rdwr.Exec.validate(p_regs,chosen_attr,auto,True,detections)
         #validate fail regs
         print('Validate fail_regs!')
         dump.export_cont('open','',alg,flg)
@@ -894,7 +896,7 @@ def aggressive_cont(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xl
         dump.export_cont('close','',alg,flg)
         avai_attrs = attr_all(f_regs,True)#display available attributes
         chosen_attr = user.Pre_test.attr_choice(avai_attrs,auto_attr)#choose the one for validation.('r/w' or '')
-        rdwr.Exec.validate(f_regs,chosen_attr,auto,is_cont=True,detections)
+        rdwr.Exec.validate(f_regs,chosen_attr,auto,True,detections)
         #validate error regs
         print('Validate error_regs!')
         dump.export_cont('open','',alg,flg)
@@ -902,7 +904,7 @@ def aggressive_cont(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xl
         dump.export_cont('close','',alg,flg)
         avai_attrs = attr_all(e_regs,True)#display available attributes
         chosen_attr = user.Pre_test.attr_choice(avai_attrs,auto_attr)#choose the one for validation.('r/w' or '')
-        rdwr.Exec.validate(e_regs,chosen_attr,auto,is_cont=True,detections)
+        rdwr.Exec.validate(e_regs,chosen_attr,auto,True,detections)
         #validate hang regs
         print('Validate hang_regs!')
         dump.export_cont('open','',alg,flg)
@@ -910,7 +912,7 @@ def aggressive_cont(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xl
         dump.export_cont('close','',alg,flg)
         avai_attrs = attr_all(h_regs,True)#display available attributes
         chosen_attr = user.Pre_test.attr_choice(h_regs,auto_attr)#choose the one for validation.('r/w' or '')
-        rdwr.Exec.validate(h_regs,chosen_attr,auto,is_cont=True,detections)
+        rdwr.Exec.validate(h_regs,chosen_attr,auto,True,detections)
 		
 def aggressive_badname(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xlsx'):
     '''

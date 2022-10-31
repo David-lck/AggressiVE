@@ -29,9 +29,9 @@ import pysvtools.fv_common.target as target
 from meteorlake import debug
 
 
-all_undefined_attrs = ['dc','ro/c/v','ro/p','ro/v','ro/v/p','rw/1c/p','rw/1c/v','rw/1c/v/p','rw/0c/v','rw/1s/v/p','rw/1s/v','rw/1s/v/l','rw/ac','rw/l/k','rw/o/p','rw/o/v/l','rw/p','rw/p/l','rw/s/l','rw/fuse','rw/strap','rw/v','rw/v/p','rw/v/l','rw/v/p/l','rw/v2']
-new_defined_attrs = ['ro/c','rw/cr','wo/1','wo/c','na','rw0c_fw','rw1c_fw','double buffered','r/w hardware clear','read/32 bit write only','r/w firmware only']
-
+all_undefined_attrs = ['dc','rw/ac','rw/l/k','rw/s/l','rw/fuse','rw/strap']
+partial_defined_attrs = ['ro/c/v','ro/p','ro/v','ro/v/p','rw/1c/p','rw/1c/v','rw/1c/v/p','rw/0c/v','rw/1s/v/p','rw/1s/v','rw/1s/v/l','rw/o/p','rw/o/v/l','rw/p','rw/p/l','rw/v','rw/v/p','rw/v/l','rw/v/p/l','rw/v2','ro/c','rw/cr','wo/1','wo/c','na','rw0c_fw','rw1c_fw','double buffered','r/w hardware clear','read/32 bit write only','r/w firmware only']
+#partial_defined_attrs =  ['ro/c/v','ro/p','ro/v','ro/v/p','rw/1c/p','rw/1c/v','rw/1c/v/p','rw/0c/v','rw/1s/v/p','rw/1s/v','rw/1s/v/l','rw/o/p','rw/o/v/l','rw/p','rw/p/l','rw/v','rw/v/p','rw/v/l','rw/v/p/l','rw/v2']
 
 class Conv:
     def convert_bin_to_hex(bin_value):
@@ -365,32 +365,31 @@ def write(full_field_name,write_value):
     eval(full_field_name+'.write('+write_value+')')
 
 def compare(attr,wr,rd,pre_rd,numbit,val_stage):
-    undefined_attrs = ['ro/c/v','ro/p','ro/v','rw/0c/v','rw/l/k','rw/p','rw/s/l','rw/v','rw/v2']
-    undefined_rw_behav_attrs = ['rw/v/p','rw/v/l','rw/v/p/l']
-    undefined_ro_behav_attrs = ['ro/v/p','rw/1c/p','rw/1c/v','rw/1c/v/p','rw/1s/v','rw/1s/v/l','rw/ac','rw/o/p','rw/o/v/l','rw/p/l','rw/fuse','rw/strap','dc']
-    if attr in ['roswc','rw/cr'] or attr in undefined_attrs or attr in undefined_rw_behav_attrs or attr in undefined_ro_behav_attrs:
+    undefined_attrs = ['rw/l/k','rw/s/l';]
+    undefined_ro_behav_attrs = ['rw/ac','rw/fuse','rw/strap','dc']
+    if attr in ['roswc','rw/cr'] or attr in undefined_attrs or attr in undefined_ro_behav_attrs:
         compare_value = [wr,rd[0],rd[1],pre_rd[0],pre_rd[1]]
     elif attr in ['ro/c','wo/1','wo/c','na','rw0c_fw','rw1c_fw','double buffered','r/w hardware clear','read/32 bit write only','r/w firmware only']:
         compare_value = [wr,rd[0],pre_rd[0],pre_rd[1]]
     else:
         compare_value = [wr,rd,pre_rd[1]]
-    if attr == 'ro':
+    if attr in ['ro','ro/p','ro/v','ro/v/p']:
         pass_fail = Algorithm.val_ro(numbit,compare_value)
     elif attr == 'wo':
         pass_fail = Algorithm.val_wo(numbit,compare_value)
-    elif attr == 'rw':
+    elif attr in ['rw','rw/v','rw/v/p','rw/p','rw/v2']:
         pass_fail = Algorithm.val_rw(numbit,compare_value)
     elif attr == 'rw/s':
         pass_fail = Algorithm.val_rws(numbit,val_stage,compare_value)
-    elif attr == 'rw/l':
+    elif attr in ['rw/l','rw/p/l','rw/v/l','rw/v/p/l']:
         pass_fail = Algorithm.val_rwl(numbit,val_stage,compare_value)
-    elif attr == 'rw/o':
+    elif attr in ['rw/o','rw/o/p','rw/o/v/l']:
         pass_fail = Algorithm.val_rwo(numbit,val_stage,compare_value)
-    elif attr == 'rw/1c':
+    elif attr in ['rw/1c','rw/1c/p','rw/1c/v','rw/1c/v/p']:
         pass_fail = Algorithm.val_rw1c(numbit,val_stage,compare_value)
     elif attr == 'rw/1l':
         pass_fail = Algorithm.val_rw1l(numbit,val_stage,compare_value)
-    elif attr == 'rw/1s':
+    elif attr in ['rw/1s','rw/1s/v/p','rw/1s/v','rw/1s/v/l']:
         pass_fail = Algorithm.val_rw1s(numbit,val_stage,compare_value)
     elif attr == 'rw/c':
         pass_fail = Algorithm.val_rwc(numbit,val_stage,compare_value)
@@ -408,7 +407,7 @@ def compare(attr,wr,rd,pre_rd,numbit,val_stage):
         pass_fail = Algorithm.val_woc(numbit,val_stage,compare_value)
     elif attr == 'na':
         pass_fail = Algorithm.val_na(numbit,val_stage,compare_value)
-    elif attr == 'rw0c_fw':
+    elif attr in ['rw0c_fw','rw/0c/v']:
         pass_fail = Algorithm.val_rw0cfw(numbit,val_stage,compare_value)
     elif attr == 'rw1c_fw':
         pass_fail = Algorithm.val_rw1cfw(numbit,val_stage,compare_value)
@@ -420,10 +419,10 @@ def compare(attr,wr,rd,pre_rd,numbit,val_stage):
         pass_fail = Algorithm.val_r32wonly(numbit,val_stage,compare_value)
     elif attr == 'r/w firmware only':
         pass_fail = Algorithm.val_rwfwo(numbit,val_stage,compare_value)
+    elif attr == 'ro/c/v':
+        pass_fail = Algorithm.val_rwfwo(numbit,val_stage,compare_value)
     elif attr in undefined_ro_behav_attrs:
         pass_fail = Algorithm.val_ro(numbit,compare_value)
-    elif attr in undefined_rw_behav_attrs:
-        pass_fail = Algorithm.val_rw(numbit,compare_value)
     elif attr in undefined_attrs:
         pass_fail = 'NA'
     return pass_fail
@@ -492,7 +491,7 @@ class Val_stage:
         #write 'A5'/'5A' to field with and without algorithm.
         if attr == 'ro/c' and val_stage in ['2nd_stage_rdwr','3rd_stage_rdwr']:
             wr = rd = 'NA'
-        if attr in ['rw','rw/s','rw/l','rw/1c','rw/1l','rw/1s','rw/c','ro/swc','ro','wo','rsv','rw/o'] or attr in all_undefined_attrs or attr in new_defined_attrs:
+        if attr in ['rw','rw/s','rw/l','rw/1c','rw/1l','rw/1s','rw/c','ro/swc','ro','wo','rsv','rw/o'] or attr in all_undefined_attrs or attr in partial_defined_attrs:
             wr = create_value(numbit,wr_value)
             wr = Conv.convert_bin_to_dec(wr)
             write(full_field_name,wr)
@@ -517,7 +516,7 @@ class Val_stage:
             rd = 'NA'
         #store write and read value in the 
         wr_in_list.append(wr)
-        if attr in ['roswc','rw/cr'] or attr in all_undefined_attrs:
+        if attr in ['roswc','rw/cr'] or attr in all_undefined_attrs:#store double read
             rd_in_list.append(two_read_value[0])
             rd_in_list.append(two_read_value[1])
         else:
