@@ -146,15 +146,17 @@ def detect_pass_regs_log():
     p_regs = []
     p_regs_temp = []
     num = 1
-    while num > 0:
+    while True:
         try:
-            prlg = open("pass_regs_"+str(num)+".log",'r')
-            print('Detected pass_regs_'+str(num)+'.log')
+            #os.(r'C:\Users\limchink\PythonSv\Aggressive_logs'+str(num))
+            os.chdir(r'C:\Users\pgsvlab\PythonSv\Aggressive_logs'+str(num))
+            prlg = open("pass_regs"+".log",'r')
+            print('Detected pass_regs in Aggressive_logs'+str(num))
             print('Extracting pass_regs from log...')
             p_regs_temp.append(prlg.readlines())
             prlg.close()
         except:
-            print('Failed to detect pass_regs_'+str(num)+'.log')
+            print('Failed to detect Aggressive_logs'+str(num))
             print('Will continue without it.')
             break
         if num == 1:
@@ -164,6 +166,7 @@ def detect_pass_regs_log():
                 if p_reg_temp not in p_regs:
                     p_regs.append(p_reg_temp)
         num+=1
+    dump.goto_latest_log_folder()
     return p_regs    
 
 def detect_fail_regs_log():
@@ -204,21 +207,6 @@ def detect_hang_regs_log():
         print('Failed to detect hang_regs.log')
         print('Will continue without it.')
     return h_regs
-	
-	
-def create_pass_regs_log(prlg):
-    num = 1
-    while num > 0:
-        try:
-            prlg = open("pass_regs_"+str(num)+".log",'r')
-            print('Detected pass_regs_'+str(num)+'.log')
-            prlg.close()
-        except:
-            print('pass_regs_'+str(num)+'.log is not available, creating it...')
-            prlg = open("pass_regs_"+str(num)+".log",'w')
-            break
-        num+=1
-    return prlg
 	
 def track_chosen_attr_fields(valid_fields,chosen_attr):
     num_chosen_attr_fields = 0

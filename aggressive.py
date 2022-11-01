@@ -454,24 +454,24 @@ class Algorithm:
 
 class Logs:
     PATH = {
-    'wout_attr_fields' : 'C>>Users>>pgsvlab>>PythonSv>>no_attr_fields.log',
-    'with_attr_fields' : 'C>>Users>>pgsvlab>>PythonSv>>attr_fields.log',
-    'bad_name_regs' : 'C>>Users>>pgsvlab>>PythonSv>>bad_name_regs.log',
-    'AggressiVE' : 'C>>Users>>pgsvlab>>PythonSv>>AggressiVE.log',
-    'AggressiVE_fail' : 'C>>Users>>pgsvlab>>PythonSv>>AggressiVE_fail.log',
-    'AggressiVE_error' : 'C>>Users>>pgsvlab>>PythonSv>>AggressiVE_error.log',
-    'AggressiVE_hang' : 'C>>Users>>pgsvlab>>PythonSv>>AggressiVE_hang.log',
-    'attr_all' : 'C>>Users>>pgsvlab>>PythonSv>>attr_all.log',
-    'pass_regs' : 'C>>Users>>pgsvlab>>PythonSv>>pass_regs.log',
-    'fail_regs' : 'C>>Users>>pgsvlab>>PythonSv>>fail_regs.log',
-    'error_regs' : 'C>>Users>>pgsvlab>>PythonSv>>error_regs.log',
-    'sus_hang_regs' : 'C>>Users>>pgsvlab>>PythonSv>>sus_hang_regs.log',
-    'hang_regs' : 'C>>Users>>pgsvlab>>PythonSv>>hang_regs.log',
-    'AggressiVE_cont' : 'C>>Users>>pgsvlab>>PythonSv>>AggressiVE_cont.log',
-    'AggressiVE_cont_fail' : 'C>>Users>>pgsvlab>>PythonSv>>AggressiVE_cont_fail.log',
-    'AggressiVE_cont_error' : 'C>>Users>>pgsvlab>>PythonSv>>AggressiVE_cont_error.log',
-    'AggressiVE_cont_hang' : 'C>>Users>>pgsvlab>>PythonSv>>AggressiVE_cont_hang.log',
-    'AggressiVE_badname' : 'C>>Users>>pgsvlab>>PythonSv>>AggressiVE_badname.log'
+    'wout_attr_fields' : 'C>>Users>>pgsvlab>>PythonSv>>Aggressive_logs>>no_attr_fields.log',
+    'with_attr_fields' : 'C>>Users>>pgsvlab>>PythonSv>>Aggressive_logs>>attr_fields.log',
+    'bad_name_regs' : 'C>>Users>>pgsvlab>>PythonSv>>Aggressive_logs>>bad_name_regs.log',
+    'AggressiVE' : 'C>>Users>>pgsvlab>>PythonSv>>Aggressive_logs>>AggressiVE.log',
+    'AggressiVE_fail' : 'C>>Users>>pgsvlab>>PythonSv>>Aggressive_logs>>AggressiVE_fail.log',
+    'AggressiVE_error' : 'C>>Users>>pgsvlab>>PythonSv>>Aggressive_logs>>AggressiVE_error.log',
+    'AggressiVE_hang' : 'C>>Users>>pgsvlab>>PythonSv>>Aggressive_logs>>AggressiVE_hang.log',
+    'attr_all' : 'C>>Users>>pgsvlab>>PythonSv>>Aggressive_logs>>attr_all.log',
+    'pass_regs' : 'C>>Users>>pgsvlab>>PythonSv>>Aggressive_logs>>pass_regs.log',
+    'fail_regs' : 'C>>Users>>pgsvlab>>PythonSv>>Aggressive_logs>>fail_regs.log',
+    'error_regs' : 'C>>Users>>pgsvlab>>PythonSv>>Aggressive_logs>>error_regs.log',
+    'sus_hang_regs' : 'C>>Users>>pgsvlab>>PythonSv>>Aggressive_logs>>sus_hang_regs.log',
+    'hang_regs' : 'C>>Users>>pgsvlab>>PythonSv>>Aggressive_logs>>hang_regs.log',
+    'AggressiVE_cont' : 'C>>Users>>pgsvlab>>PythonSv>>Aggressive_logs>>AggressiVE_cont.log',
+    'AggressiVE_cont_fail' : 'C>>Users>>pgsvlab>>PythonSv>>Aggressive_logs>>AggressiVE_cont_fail.log',
+    'AggressiVE_cont_error' : 'C>>Users>>pgsvlab>>PythonSv>>Aggressive_logs>>AggressiVE_cont_error.log',
+    'AggressiVE_cont_hang' : 'C>>Users>>pgsvlab>>PythonSv>>Aggressive_logs>>AggressiVE_cont_hang.log',
+    'AggressiVE_badname' : 'C>>Users>>pgsvlab>>PythonSv>>Aggressive_logs>>AggressiVE_badname.log'
 	}
     DESC = {
     'wout_attr_fields' : "Fields that don't have attribute information.",
@@ -797,15 +797,13 @@ def aggressive(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xlsx'):
     #detection mode changed
     if is_targsim:
         detections = [False for det in [halt_detection,reset_detection,hang_detection] if det]
-	#delete the log files.
-    dump.det_del_ags_logs()#dump is in append mode, remove ags.log & ags_fail.log & ags_pass.log & ags_error.log & ags_hang.log
-    dump.det_del_ags_cont_logs()#dump is in append mode, remove ags_cont.log & ags_cont_fail.log & ags_cont_pass.log & ags_cont_error.log & ags_cont_hang.log bcz user run new validation.
-    dump.det_del_regs_logs()#dump is in append mode, remove fail_regs.log & error_regs.log & hang_regs.log
     #AggressiVE_error.log & AggressiVE_hang.log & AggressiVE_pass.log?
+    dump.create_log_folder()
     Pre_test.initial_setting()
     for input_reg in input_regs:
         (attr_fields,chosen_attr) = Pre_test._main(input_reg,auto_attr,auto_access)#run all pretest features.
         rdwr.Exec.validate(attr_fields,chosen_attr,auto,False,detections)#validation.
+    dump.goto_default_path()
 
 def aggressive_cont(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xlsx'):
     '''
@@ -869,6 +867,7 @@ def aggressive_cont(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xl
         print('No such die exist in this project!')
         print('Please enter the correct one!')
         return 
+    dump.goto_latest_log_folder()
     (p_regs, f_regs, e_regs, h_regs) = Pre_test._get_logs_regs(pass_regs, fail_regs, error_regs, hang_regs)
     if to_exclude:#continue unfinish work/ eclude the regs
         to_be_exc_regs = p_regs + f_regs + e_regs + h_regs
@@ -880,8 +879,6 @@ def aggressive_cont(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xl
         (log_store,chosen_access) = user.Pre_test.access_choice(input_regs,auto_access,True)#display available access method and choose access method.(only for ip)
         log_store = track.feedback_access_method(chosen_access,attr_ips,log_store)
         #validate pass regs
-        dump.det_del_ags_cont_logs()#dump is in append mode, need to delete just not to combine with previous data.
-        dump.det_del_regs_logs()#dump is in append mode, need to delete just not to combine with previous data.
         print('Validate pass_regs!')
         dump.export_cont('open','',alg,flg)
         dump.export_cont('store','Validate pass_regs!',alg,flg)
@@ -913,6 +910,7 @@ def aggressive_cont(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xl
         avai_attrs = attr_all(h_regs,True)#display available attributes
         chosen_attr = user.Pre_test.attr_choice(h_regs,auto_attr)#choose the one for validation.('r/w' or '')
         rdwr.Exec.validate(h_regs,chosen_attr,auto,True,detections)
+    dump.goto_default_path()
 		
 def aggressive_badname(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xlsx'):
     '''

@@ -122,9 +122,9 @@ class Post_test:
                     break
         elg.close()
         if is_cont:
-            print('All the printed error infos have been saved in C>>Users>>pgsvlab>>PythonSv>>AggressiVE_error.log')
+            print('All the printed error infos have been saved in C>>Users>>pgsvlab>>PythonSv>>Aggressive_logs>>AggressiVE_error.log')
         else:
-            print('All the printed error infos have been saved in C>>Users>>pgsvlab>>PythonSv>>AggressiVE_cont_error.log')
+            print('All the printed error infos have been saved in C>>Users>>pgsvlab>>PythonSv>>Aggressive_logs>>AggressiVE_cont_error.log')
 
     def choose_post_test(num_status,alg,flg,status_infos,is_cont,detections,auto):
         [Pass,Fail,Error,Hang] = num_status

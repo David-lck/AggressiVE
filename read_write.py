@@ -365,7 +365,7 @@ def write(full_field_name,write_value):
     eval(full_field_name+'.write('+write_value+')')
 
 def compare(attr,wr,rd,pre_rd,numbit,val_stage):
-    undefined_attrs = ['rw/l/k','rw/s/l';]
+    undefined_attrs = ['rw/l/k','rw/s/l']
     undefined_ro_behav_attrs = ['rw/ac','rw/fuse','rw/strap','dc']
     if attr in ['roswc','rw/cr'] or attr in undefined_attrs or attr in undefined_ro_behav_attrs:
         compare_value = [wr,rd[0],rd[1],pre_rd[0],pre_rd[1]]
@@ -731,9 +731,9 @@ class Post_test:
         hlg.close()
         dump.export_hang_regs(confirm_hang_regs)
         if is_cont:
-            print('All the hang infos are stored in C>>Users>>pgsvlab>>PythonSv>>AggressiVE_cont_hang.log')
+            print('All the hang infos are stored in C>>Users>>pgsvlab>>PythonSv>>Aggressive_logs>>AggressiVE_cont_hang.log')
         else:
-            print('All the hang infos are stored in C>>Users>>pgsvlab>>PythonSv>>AggressiVE_hang.log')
+            print('All the hang infos are stored in C>>Users>>pgsvlab>>PythonSv>>Aggressive_logs>>AggressiVE_hang.log')
         target.powerCycle(waitOff=1,waitAfter=1)
         while True:
             if target.readPostcode() == 0x10AD:

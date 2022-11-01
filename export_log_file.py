@@ -2,7 +2,7 @@ import tracking as track
 import os
 
 def export(choice,content,alg,flg):#Write/store only
-    dump_mode = "a" if choice == "open" else "a"
+    dump_mode = "w"
     if choice == 'close_all':
         alg.close()
     elif choice == 'close_fail':
@@ -19,7 +19,7 @@ def export(choice,content,alg,flg):#Write/store only
     return alg,flg
 	
 def export_cont(choice,content,alg,flg):#Write/store only
-    dump_mode = "a" if choice == "open" else "a"
+    dump_mode = "w"
     if choice == 'close_all':
         alg.close()
     elif choice == 'close_fail':
@@ -36,8 +36,9 @@ def export_cont(choice,content,alg,flg):#Write/store only
     return alg,flg
     
 def export_badname(choice,content,blg):
+    current_time = str(time.ctime().replace(" ","_").replace(":",""))
     if choice == 'open':
-        blg = open("AggressiVE_badname.log","w")
+        blg = open("AggressiVE_badname"+str(current_time)+'.log',"w")
     elif choice == 'close':
         blg.close()
     elif choice == 'store':
@@ -46,8 +47,9 @@ def export_badname(choice,content,blg):
     return blg
 	
 def export_badname_regs(choice,content,ilg):
+    current_time = str(time.ctime().replace(" ","_").replace(":",""))
     if choice == 'open':
-        ilg = open("bad_name_regs.log","w")
+        ilg = open("bad_name_regs"+str(current_time)+'.log',"w")
     elif choice == 'close':
         ilg.close()
     elif choice == 'store':
@@ -57,9 +59,9 @@ def export_badname_regs(choice,content,ilg):
 	
 def export_regs(pass_regs, fail_regs, error_regs, sus_hang_regs):
     prlg, frlg, erlg, shrlg = '', '', '', ''
-    prlg = track.create_pass_regs_log(prlg)
-    frlg = open("fail_regs.log","a")
-    erlg = open("error_regs.log","a")
+    prlg = open("pass_regs.log","w")
+    frlg = open("fail_regs.log","w")
+    erlg = open("error_regs.log","w")
     shrlg = open("sus_hang_regs.log","w")
     for pass_reg in pass_regs:
         prlg.write(pass_reg)
@@ -73,10 +75,10 @@ def export_regs(pass_regs, fail_regs, error_regs, sus_hang_regs):
     for sus_hang_reg in sus_hang_regs:
         shrlg.write(sus_hang_reg)
         shrlg.write('\n')
-    print('All current list of pass registers have been saved to C>>Users>>pgsvlab>>PythonSv>>pass_regs.log')
-    print('All current list of pass registers have been saved to C>>Users>>pgsvlab>>PythonSv>>fail_regs.log')
-    print('All current list of error registers have been saved to C>>Users>>pgsvlab>>PythonSv>> error_regs.log')
-    print('All current list of suspect hang registers have been saved to C>>Users>>pgsvlab>>PythonSv>>sus_hang_regs.log')
+    print('All current list of pass registers have been saved to C>>Users>>pgsvlab>>PythonSv>>Aggressive_logs>>pass_regs.log')
+    print('All current list of pass registers have been saved to C>>Users>>pgsvlab>>PythonSv>>Aggressive_logs>>fail_regs.log')
+    print('All current list of error registers have been saved to C>>Users>>pgsvlab>>PythonSv>>Aggressive_logs>>error_regs.log')
+    print('All current list of suspect hang registers have been saved to C>>Users>>pgsvlab>>PythonSv>>Aggressive_logs>>sus_hang_regs.log')
     prlg.close()
     frlg.close()
     erlg.close()
@@ -84,16 +86,17 @@ def export_regs(pass_regs, fail_regs, error_regs, sus_hang_regs):
     
 def export_hang_regs(confirm_hang_regs):
     hrlg = ''
-    hrlg = open("hang_regs.log","a")
+    hrlg = open("hang_regs.log","w")
     for reg in confirm_hang_regs:
         hrlg.write(reg)
         hrlg.write('\n')
     hrlg.close()
-    print('All current list of confirmed hang registers have been saved to C>>Users>>pgsvlab>>PythonSv>>hang_regs.log')
+    print('All current list of confirmed hang registers have been saved to C>>Users>>pgsvlab>>PythonSv>>Aggressive_logs>>hang_regs.log')
 
 def export_attr_all(choice,content,aa):
+    current_time = str(time.ctime().replace(" ","_").replace(":",""))
     if choice == 'open':
-        aa = open("attr_all.log","w")
+        aa = open('attr_all_'+str(current_time)+'.log',"w")
     elif choice == 'close':
         aa.close()
     elif choice == 'store':
@@ -102,9 +105,10 @@ def export_attr_all(choice,content,aa):
     return aa
 	
 def export_invalidate(choice,content,invf,vf):
+    current_time = str(time.ctime().replace(" ","_").replace(":",""))
     if choice == 'open':
-        invf = open("no_attr_fields.log","w")
-        vf = open("attr_fields.log","w")
+        invf = open("no_attr_fields_"+str(current_time)+'.log',"w")
+        vf = open("attr_fields_"+str(current_time)+'.log',"w")
     elif choice == 'close':
         invf.close()
         vf.close()
@@ -121,100 +125,27 @@ def export_write_pass(plg,content):
     plg.write(content)
     plg.write('\n')
     return plg
+
+def create_log_folder():
+    log_num=1
+    while n > 0:
+        try:
+            os.makedirs('Aggressive_logs'+str(n))
+        except:
+            n += 1
+            continue
+        break
+    return log_num
 	
-def det_del_ags_logs():
-    try:
-        a = open('AggressiVE.log','r')
-        a.close()
-        os.remove('AggressiVE.log')
-        print(Fore.LIGHTBLUE_EX+'AggressiVE.log has been deleted.'+Fore.RESET)
-    except:
-        pass
-    try:
-        a = open('AggressiVE_fail.log','r')
-        a.close()
-        os.remove('AggressiVE_fail.log')
-        print(Fore.LIGHTBLUE_EX+'AggressiVE_fail.log has been deleted.'+Fore.RESET)
-    except:
-        pass
-    try:
-        a = open('AggressiVE_pass.log','r')
-        a.close()
-        os.remove('AggressiVE_pass.log')
-        print(Fore.LIGHTBLUE_EX+'AggressiVE_pass.log has been deleted.'+Fore.RESET)
-    except:
-        pass
-    try:
-        a = open('AggressiVE_error.log','r')
-        a.close()
-        os.remove('AggressiVE_error.log')
-        print(Fore.LIGHTBLUE_EX+'AggressiVE_error.log has been deleted.'+Fore.RESET)
-    except:
-        pass
-    try:
-        a = open('AggressiVE_hang.log','r')
-        a.close()
-        os.remove('AggressiVE_hang.log')
-        print(Fore.LIGHTBLUE_EX+'AggressiVE_hang.log has been deleted.'+Fore.RESET)
-    except:
-        pass    
-		
-def det_del_ags_cont_logs():
-    try:
-        a = open('AggressiVE_cont.log','r')
-        a.close()
-        os.remove('AggressiVE_cont.log')
-        print(Fore.LIGHTBLUE_EX+'AggressiVE_cont.log has been deleted.'+Fore.RESET)
-    except:
-        pass
-    try:
-        a = open('AggressiVE_cont_fail.log','r')
-        a.close()
-        os.remove('AggressiVE_cont_fail.log')
-        print(Fore.LIGHTBLUE_EX+'AggressiVE_cont_fail.log has been deleted.'+Fore.RESET)
-    except:
-        pass
-    try:
-        a = open('AggressiVE_cont_pass.log','r')
-        a.close()
-        os.remove('AggressiVE_cont_pass.log')
-        print(Fore.LIGHTBLUE_EX+'AggressiVE_cont_pass.log has been deleted.'+Fore.RESET)
-    except:
-        pass
-    try:
-        a = open('AggressiVE_cont_error.log','r')
-        a.close()
-        os.remove('AggressiVE_cont_error.log')
-        print(Fore.LIGHTBLUE_EX+'AggressiVE_cont_error.log has been deleted.'+Fore.RESET)
-    except:
-        pass
-    try:
-        a = open('AggressiVE_cont_hang.log','r')
-        a.close()
-        os.remove('AggressiVE_cont_hang.log')
-        print(Fore.LIGHTBLUE_EX+'AggressiVE_cont_hang.log has been deleted.'+Fore.RESET)
-    except:
-        pass
-	
-def det_del_regs_logs():
-    try:
-        a = open('fail_regs.log','r')
-        a.close()
-        os.remove('fail_regs.log')
-        print(Fore.LIGHTBLUE_EX+'fail_regs.log has been deleted.'+Fore.RESET)
-    except:
-        pass
-    try:
-        a = open('error_regs.log','r')
-        a.close()
-        os.remove('error_regs.log')
-        print(Fore.LIGHTBLUE_EX+'error_regs.log has been deleted.'+Fore.RESET)
-    except:
-        pass
-    try:
-        a = open('hang_regs.log','r')
-        a.close()
-        os.remove('hang_regs.log')
-        print(Fore.LIGHTBLUE_EX+'hang_regs.log has been deleted.'+Fore.RESET)
-    except:
-        pass
+def goto_latest_log_folder():
+    log_num=1
+    while True:
+        try:
+            os.chdir(r'C:\Users\limchink\PythonSv\Aggressive_logs'+str(log_num))
+        except:
+            break
+        log_num+=1
+
+def goto_default_path():
+    #os.chdir(r'C:\Users\limchink\PythonSv')
+    os.chdir(r'C:\Users\pgsvlab\PythonSv')
