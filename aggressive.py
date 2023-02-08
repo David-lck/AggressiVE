@@ -738,7 +738,7 @@ def attr_all(input_regs,validate=False):#for die, ip, register, and fields
     if validate == True:
         return new_attrs
 
-def aggressive(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xlsx'):#WIP (register level)
+def aggressive(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xlsx'):
     '''
     Command:
         aggressive()
