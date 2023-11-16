@@ -1,14 +1,15 @@
-# How to use?
-#Current Patch: 0.3
+# How to use patch 0.3?
 
-Main Functions:
-#aggressive()
-#aggressive_cont()
+aggressive(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xlsx')
 
-Sub-Functions:
-#theory()
-#log()
-#badname_regs()
-#invalidate()
-#attr_all()
-#set_access_method()
+aggressive_cont(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xlsx')
+
+badname_regs(input_reg,validate=False)
+
+invalidate(input_reg,validate=False)
+
+attr_all(input_regs,validate=False)
+
+set_access_method(input_reg)
+
+list_all_cmd()
