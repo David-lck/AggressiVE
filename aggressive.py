@@ -577,7 +577,7 @@ def set_access_method(input_reg):
     '''
     (log_store,chosen_access) = user.Pre_test.access_choice(input_reg,'None',False)#display available access method and choose access method.(only for ip)
     full_fields = badname_regs(input_reg,True)#detect for error regs and fields. Exclude them out from good regs and fields.
-    (attr_fields,attr_ips) = invalidate(full_fields,True,True)#detect for invalid regs and fields without attribute info. Exclude them out.
+    (attr_fields,attr_ips) = invalidate(full_fields,True)#detect for invalid regs and fields without attribute info. Exclude them out.
     log_store = track.feedback_access_method(chosen_access,attr_ips,log_store)
     
 def badname_regs(input_reg,validate=False):#Completed(die,IP, and register)
@@ -785,7 +785,7 @@ def aggressive(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xlsx'):
     avail_die = 0
     for input_reg in input_regs:
         try:
-            eval('__main__.'+input_regs)
+            eval('__main__.'+input_reg)
             avail_die += 1
         except:
             print('No such die exist in this project!')
@@ -797,6 +797,8 @@ def aggressive(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xlsx'):
     #detection mode changed
     if is_targsim:
         detections = [False for det in [halt_detection,reset_detection,hang_detection] if det]
+    else:
+        detections = [True, True, True]
     #AggressiVE_error.log & AggressiVE_hang.log & AggressiVE_pass.log?
     dump.create_log_folder()
     Pre_test.initial_setting()
@@ -950,7 +952,9 @@ def aggressive_badname(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters
     hang_detection = df['hang_detection'].values.tolist()[0]
     auto = df['auto'].values.tolist()[0]
     if is_targsim:
-        detections = [False for det in [halt_detection,reset_detection,hang_detection] if det]
+        detections = [False, False, False]
+    else:
+        detections = [halt_detection,reset_detection,hang_detection]
     (chosen_regs, filt_no_last_list, filt_last_level_list) = badfunc.Pre_test._main(input_regs)
     badfunc.Exec._main(chosen_regs, filt_no_last_list, filt_last_level_list, auto, detections)
     #2nd pass/fail/error/hang regs validation if possible. #dump

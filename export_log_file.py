@@ -1,5 +1,6 @@
 import tracking as track
 import os
+import time
 
 def export(choice,content,alg,flg):#Write/store only
     dump_mode = "w"
@@ -128,14 +129,13 @@ def export_write_pass(plg,content):
 
 def create_log_folder():
     log_num=1
-    while n > 0:
+    while True:
         try:
-            os.makedirs('Aggressive_logs'+str(n))
+            os.makedirs('Aggressive_logs'+str(log_num))
         except:
-            n += 1
+            log_num += 1
             continue
         break
-    return log_num
 	
 def goto_latest_log_folder():
     log_num=1
