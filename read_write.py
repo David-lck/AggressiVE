@@ -6,6 +6,7 @@ pch = __main__.pch if hasattr(__main__, 'pch') else None
 itp = __main__.itp if hasattr(__main__, 'itp') else None
 ioe = __main__.ioe if hasattr(__main__, 'ioe') else None
 gcd = __main__.gcd if hasattr(__main__, 'gcd') else None
+refresh = __main__.refresh if hasattr(__main__, 'refresh') else None
 import time
 import colorama
 from colorama import Fore
@@ -572,6 +573,8 @@ class Exec:
         if 'sys_rst' in [pass_fail_1st_val,pass_fail_2nd_val,pass_fail_3rd_val]:
             fail_reason.append('sys_rst')
             pass_fail = 'fail'
+            itp.resettarget()
+            print("AggressiVE Forced reset!!!")
         return pre_rd,wr_in_list,rd_in_list,pass_fail,fail_reason
         
     def validate(valid_fields,chosen_attr,auto,is_cont,detections):
@@ -623,6 +626,14 @@ class Exec:
                 error_messages[full_field_name]=str(message)
                 pass_fail = 'error'
                 pre_rd = wr_in_list = rd_in_list = []
+                if "'Python SV time-out reached (0.1 se..." in fail_reason:
+                    print("AggressiVE Forced Reboot!")
+                    target.powerCycle(waitOff=1,waitAfter=1)
+                    while True:
+                        if target.readPostcode() == 0x10AD:
+                            itp.unlock()
+                            refresh()
+                            break
             #display and storing validation info in table form.
             attr = eval(full_field_name+'.info["attribute"]')
             (rowdictlist,x) = disp.store_content(rowdictlist,x,num,full_field_name,attr,pass_fail,pre_rd,wr_in_list,rd_in_list,fail_reason)
@@ -653,6 +664,7 @@ class Exec:
                 while True:
                     if target.readPostcode() == 0x10AD:
                         itp.unlock()
+                        refresh()
                         break
         #store categorized registers in different logs.
         dump.export_regs(pass_regs, fail_regs, error_regs, sus_hang_regs)
