@@ -776,11 +776,15 @@ def aggressive(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xlsx'):
     input_regs = df['input_regs'].values.tolist()
     auto_attr = df['auto_attr'].values.tolist()[0]
     auto_access = df['access_method'].values.tolist()[0]
-    is_targsim = df['is_targsim'].values.tolist()[0]
     halt_detection = df['halt_detection'].values.tolist()[0]
     reset_detection = df['reset_detection'].values.tolist()[0]
     hang_detection = df['hang_detection'].values.tolist()[0]
     auto = df['auto'].values.tolist()[0]
+    mca_check = df['mca_check'].values.tolist()[0]
+    #input parameters naming correction
+    if mca_check not in ['every_failreg','every_10val']:
+        print('Input Parameter mca_check can only be either "every_failreg" or "every_10val". Please changed!')
+        return
     #detect die availability
     avail_die = 0
     for input_reg in input_regs:
@@ -795,10 +799,7 @@ def aggressive(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xlsx'):
         print('Please enter the correct one!')
         return 
     #detection mode changed
-    if is_targsim:
-        detections = [False for det in [halt_detection,reset_detection,hang_detection] if det]
-    else:
-        detections = [True, True, True]
+    detections = [halt_detection,reset_detection,hang_detection,mca_check]
     #AggressiVE_error.log & AggressiVE_hang.log & AggressiVE_pass.log?
     dump.create_log_folder()
     Pre_test.initial_setting()
@@ -856,13 +857,11 @@ def aggressive_cont(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xl
     fail_regs = df['fail_regs'].values.tolist()[0]
     error_regs = df['error_regs'].values.tolist()[0]
     hang_regs = df['hang_regs'].values.tolist()[0]
-    is_targsim = df['is_targsim'].values.tolist()[0]
     halt_detection = df['halt_detection'].values.tolist()[0]
     reset_detection = df['reset_detection'].values.tolist()[0]
     hang_detection = df['hang_detection'].values.tolist()[0]
     auto = df['auto'].values.tolist()[0]
-    if is_targsim:
-        detections = [False for det in [halt_detection,reset_detection,hang_detection] if det]
+    detections = [halt_detection,reset_detection,hang_detection]
     try:
         eval('__main__.'+input_regs)
     except:
@@ -946,15 +945,11 @@ def aggressive_badname(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters
     df = pd.read_excel(file,'aggressive_badname')
     input_regs = df['input_regs'].values.tolist()[0]
     auto_attr = df['auto_attr'].values.tolist()[0]
-    is_targsim = df['is_targsim'].values.tolist()[0]
     halt_detection = df['halt_detection'].values.tolist()[0]
     reset_detection = df['reset_detection'].values.tolist()[0]
     hang_detection = df['hang_detection'].values.tolist()[0]
     auto = df['auto'].values.tolist()[0]
-    if is_targsim:
-        detections = [False, False, False]
-    else:
-        detections = [halt_detection,reset_detection,hang_detection]
+    detections = [halt_detection,reset_detection,hang_detection]
     (chosen_regs, filt_no_last_list, filt_last_level_list) = badfunc.Pre_test._main(input_regs)
     badfunc.Exec._main(chosen_regs, filt_no_last_list, filt_last_level_list, auto, detections)
     #2nd pass/fail/error/hang regs validation if possible. #dump

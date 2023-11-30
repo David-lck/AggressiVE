@@ -578,7 +578,7 @@ class Exec:
         return pre_rd,wr_in_list,rd_in_list,pass_fail,fail_reason
         
     def validate(valid_fields,chosen_attr,auto,is_cont,detections):
-        [halt_detection,reset_detection,hang_detection] = detections
+        [halt_detection,reset_detection,hang_detection,mca_check] = detections
         num=1
         Pass, Fail, Unknown, Error, Hang = 0, 0, 0, 0, 0
         num2print=0
@@ -641,11 +641,16 @@ class Exec:
             #store fail fields validation info.
             if pass_fail == 'fail':
                 (fail_rowdl,fail_x) = disp.store_fail_content(fail_rowdl,fail_x,num,full_field_name,attr,pass_fail,pre_rd,wr_in_list,rd_in_list,fail_reason)
+                if hang_detection and mca_check == 'every_failreg':#will do the machine check every fial reg detected.
+                    machine_chk_error = debug.mca.analyze()
+                    if machine_chk_error != []:
+                        pass_fail = 'hang'
+                        Hang+=1
             #print the table when reach number user want to print.
             num2print -= 1
             if int(repr(num2print)[-1]) == 0:
                 print('')
-                if hang_detection:
+                if hang_detection and mca_check == 'every_10val':#will do the machine check every 10 validation.
                     machine_chk_error = debug.mca.analyze()
                     if machine_chk_error != []:
                         pass_fail = 'hang'
@@ -815,7 +820,6 @@ class Post_test:
                 (alg,flg) = dump.export_cont('store_fail',hang_reason,alg,flg)
                 (alg,flg) = dump.export_cont('store_fail',str(machine_chk_error),alg,flg)
             else:
-                print(fail_reason)
                 (alg,flg) = dump.export('store',hang_reason,alg,flg)
                 (alg,flg) = dump.export('store',str(machine_chk_error),alg,flg)
                 (alg,flg) = dump.export('store_fail',hang_reason,alg,flg)
@@ -863,10 +867,6 @@ class Post_test:
         Pass,Fail,Unknown,Error,Hang = 0,0,0,0,0
 		
         print('2nd validation for pass regs only!')
-        ##if is_cont:
-        ##    (alg,flg) = dump.export_cont('store','2nd validation for pass regs only!',alg,flg)
-        ##else:
-        ##    (alg,flg) = dump.export('store','2nd validation for pass regs only!',alg,flg)
         plg = dump.export_write_pass(plg,'2nd validation for pass regs only!')
         for reg in final_list_regs:
             #to ask user for the num of table display.
@@ -878,8 +878,6 @@ class Post_test:
                 ##initial_time = time.time()
                 reserved_num = 0
             reserved_num += 1
-            ##time_taken = time.time() - initial_time
-            ##(s,m,h) = disp.time(round(time_taken))
             disp.progress(reserved_num, reserved_print_num, prefix=f'Progress [{reserved_num}:{reserved_print_num}]:', infix1 = f'StartTime= {time.ctime()}', suffix=f'Reg: [{reg}]')
             #validate
             try:
@@ -903,10 +901,16 @@ class Post_test:
             (rowdictlist,x) = disp.store_content(rowdictlist,x,num,reg,attr,pass_fail,pre_rd,wr_in_list,rd_in_list,fail_reason)
             (Pass,Fail,Unknown,Error) = track.track_num_pass_fail(pass_fail,Pass,Fail,Unknown,Error)
             #print the table when reach number user want to print.
+            if pass_fail == 'fail':
+                if detections[2] and detections[3] == 'every_failreg':
+                    machine_chk_error = debug.mca.analyze()
+                    if machine_chk_error != []:
+                        pass_fail = 'hang'
+                        Hang += 1
             num2print -= 1
             if int(repr(num2print)[-1]) == 0:
                 print('')
-                if detections[2]:
+                if detections[2] and detections[3] == 'every_10val':
                     machine_chk_error = debug.mca.analyze()
                     if machine_chk_error != []:
                         pass_fail = 'hang'
