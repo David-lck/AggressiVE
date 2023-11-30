@@ -111,7 +111,7 @@ def store_fail_content(fail_rowdl,fail_x,num,full_field_name,attr,pass_fail,pre_
     elif pass_fail == 'fail':
         pass_fail = Fore.RED + 'fail' + Fore.RESET
     headers=['Num','Field Name','Attr',Fore.LIGHTWHITE_EX+'Status'+Fore.RESET,'1st_Pre_RD','2nd_Pre_RD','1st_Val_WR','1st_Val_RD','2nd_Val_WR','2nd_Val_RD','3rd_Val_WR','3rd_Val_RD']
-    undefined_attrs = ['dc','ro/c/v','ro/p','ro/v','ro/v/p','rw/1c/p','rw/1c/v','rw/1c/v/p','rw/0c/v','rw/1s/v/p','rw/1s/v','rw/1s/v/l','rw/ac','rw/l/k','rw/o/p','rw/o/v/l','rw/p','rw/p/l','rw/s/l','rw/fuse','rw/strap','rw/v','rw/v/p','rw/v/l','rw/v/p/l','rw/v2']
+    undefined_attrs = ['dc','rw/ac','rw/l/k','rw/s/l','rw/fuse','rw/strap']
     new_defined_attrs = ['ro/c','rw/cr','wo/1','wo/c','na','rw0c_fw','rw1c_fw','double buffered','r/w hardware clear','read/32 bit write only','r/w firmware only']
     if attr in ['ro/swc','rw/cr'] or attr in undefined_attrs:
         fail_rowdl += [{'Num':str(num),'Field Name':full_field_name,'Attr':attr,Fore.LIGHTWHITE_EX+'Status'+Fore.RESET: pass_fail+str(fail_reason),'1st_Pre_RD':pre_rd[0],'2nd_Pre_RD':pre_rd[1],'1st_Val_WR':wr_in_list[0],'1st_Val_RD':'1strd:'+rd_in_list[0]+';2ndrd:'+rd_in_list[1],'2nd_Val_WR':wr_in_list[1],'2nd_Val_RD':'1strd:'+rd_in_list[2]+';2ndrd:'+rd_in_list[3],'3rd_Val_WR':wr_in_list[2],'3rd_Val_RD':'1strd:'+rd_in_list[4]+';2ndrd:'+rd_in_list[5]}]
@@ -204,8 +204,9 @@ def disp_all_errors(disp_choice,msg_sorted,error_info):
                 if msg == error_info[reg]:
                     rowdictlist += [{'Num':str(i),'Registers':reg}]
                     i += 1
+    elif str(disp_choice).upper() == 'ALL':
     else:
-        msg = msg_sorted[disp_choice-1]
+        msg = msg_sorted[int(disp_choice)-1]
         for reg in error_info.keys():
             if msg == error_info[reg]:
                 rowdictlist += [{'Num':str(i),'Registers':reg}]

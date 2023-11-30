@@ -74,8 +74,9 @@ def export_regs(pass_regs, fail_regs, error_regs, sus_hang_regs):
         erlg.write(error_reg)
         erlg.write('\n')
     for sus_hang_reg in sus_hang_regs:
-        shrlg.write(sus_hang_reg)
-        shrlg.write('\n')
+        for one_sus_reg in sus_hang_reg:
+            shrlg.write(one_sus_reg)
+            shrlg.write('\n')
     print('All current list of pass registers have been saved to C>>Users>>pgsvlab>>PythonSv>>Aggressive_logs>>pass_regs.log')
     print('All current list of pass registers have been saved to C>>Users>>pgsvlab>>PythonSv>>Aggressive_logs>>fail_regs.log')
     print('All current list of error registers have been saved to C>>Users>>pgsvlab>>PythonSv>>Aggressive_logs>>error_regs.log')

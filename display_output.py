@@ -196,7 +196,7 @@ def disp_all_errors(disp_choice,msg_sorted,error_info):
     rowdictlist = []
     x = []
     i = 1
-    if disp_choice == '':
+    if disp_choice == '' or str(disp_choice).upper() == 'ALL':
         for msg in msg_sorted:
             i = 1
             print(f'Error = {msg}')        
@@ -205,7 +205,7 @@ def disp_all_errors(disp_choice,msg_sorted,error_info):
                     rowdictlist += [{'Num':str(i),'Registers':reg}]
                     i += 1
     else:
-        msg = msg_sorted[disp_choice-1]
+        msg = msg_sorted[int(disp_choice)-1]
         for reg in error_info.keys():
             if msg == error_info[reg]:
                 rowdictlist += [{'Num':str(i),'Registers':reg}]

@@ -128,7 +128,7 @@ class Post_test:
 
     def choose_post_test(num_status,alg,flg,status_infos,is_cont,detections,auto):
         [Pass,Fail,Error,Hang] = num_status
-        [fail_infos,sus_hang_infos,error_infos] = status_infos
+        [pass_infos,fail_infos,sus_hang_infos,error_infos] = status_infos
         avail_choice = []
         print('Second Validation!')
         if Pass != 0:
@@ -154,7 +154,7 @@ class Post_test:
             if val_choice == 'end':
                 break
             elif 'Pass' in avail_choice[int(val_choice)-1]:
-                (alg, flg) = rw.Post_test.validate_pass(alg, flg,is_cont,detections,auto)
+                (alg, flg) = rw.Post_test.validate_pass(pass_infos, Pass, alg, flg,is_cont,detections,auto)
                 avail_choice.remove('Pass Registers.')
             elif 'Fail' in avail_choice[int(val_choice)-1]:
                 (alg, flg) = ags.Post_test._fail_main(fail_infos, alg, flg,is_cont,detections)#run post feature (Validate or display fail fields only).

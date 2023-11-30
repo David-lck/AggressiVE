@@ -627,7 +627,7 @@ class Exec:
                 pass_fail = 'error'
                 pre_rd = wr_in_list = rd_in_list = []
                 if "'Python SV time-out reached (0.1 se..." in fail_reason:
-                    print("AggressiVE Forced Reboot!")
+                    print('\n' + Fore.RED + "AggressiVE Forced Reboot due to error message!" + Fore.RESET)
                     target.powerCycle(waitOff=1,waitAfter=1)
                     while True:
                         if target.readPostcode() == 0x10AD:
@@ -660,6 +660,8 @@ class Exec:
             (pass_regs, fail_regs, error_regs, sus_hang_regs) = Exec.categorize_regs(pass_fail, full_field_name, chosen_attr_fields, cath_regs)
             #detect hang and stop.
             if 'hang' in pass_fail and hang_detection:
+                print('\n' + Fore.RED + "AggressiVE Forced Reboot due to hang!" + Fore.RESET)
+                print(full_field_name)
                 target.powerCycle(waitOff=1,waitAfter=1)
                 while True:
                     if target.readPostcode() == 0x10AD:
@@ -669,11 +671,12 @@ class Exec:
         #store categorized registers in different logs.
         dump.export_regs(pass_regs, fail_regs, error_regs, sus_hang_regs)
         #Post Validation
+        pass_infos = [pass_regs]
         fail_infos = [Fail,fail_regs,fail_x,auto]
         sus_hang_infos = [sus_hang_regs]
         error_infos = [error_messages]
         num_status = [Pass, Fail, Error, Hang]
-        status_infos = [fail_infos,sus_hang_infos,error_infos]
+        status_infos = [pass_infos,fail_infos,sus_hang_infos,error_infos]
         (alg, flg) = user.Post_test.choose_post_test(num_status,alg,flg,status_infos,is_cont,detections,auto)
         if is_cont:
             (alg,flg) = dump.export_cont('close_all','NA',alg,flg)
@@ -764,6 +767,7 @@ class Post_test:
         Error2 = 0
         num=1
         reserved_print_num = len(fail_regs)
+        print(f'Total All stored fail regs: {str(fail_regs)}')
         for fail_field_name in fail_regs:
             #to ask user for the num of table display.
             if num2print == 0:#to ask user for the num of table display.
@@ -804,17 +808,17 @@ class Post_test:
                 else:
                     hang_reason = 'Validation will be stopped due to the present of machine check error'
                     print(hang_reason)
-                if is_cont:
-                    (alg,flg) = dump.export_cont('store',hang_reason,alg,flg)
-                    (alg,flg) = dump.export_cont('store',str(machine_chk_error),alg,flg)
-                    (alg,flg) = dump.export_cont('store_fail',hang_reason,alg,flg)
-                    (alg,flg) = dump.export_cont('store_fail',str(machine_chk_error),alg,flg)
-                else:
-                    (alg,flg) = dump.export('store',hang_reason,alg,flg)
-                    (alg,flg) = dump.export('store',str(machine_chk_error),alg,flg)
-                    (alg,flg) = dump.export('store_fail',hang_reason,alg,flg)
-                    (alg,flg) = dump.export('store_fail',str(machine_chk_error),alg,flg)
                 break
+            if is_cont:
+                (alg,flg) = dump.export_cont('store',hang_reason,alg,flg)
+                (alg,flg) = dump.export_cont('store',str(machine_chk_error),alg,flg)
+                (alg,flg) = dump.export_cont('store_fail',hang_reason,alg,flg)
+                (alg,flg) = dump.export_cont('store_fail',str(machine_chk_error),alg,flg)
+            else:
+                (alg,flg) = dump.export('store',hang_reason,alg,flg)
+                (alg,flg) = dump.export('store',str(machine_chk_error),alg,flg)
+                (alg,flg) = dump.export('store_fail',hang_reason,alg,flg)
+                (alg,flg) = dump.export('store_fail',str(machine_chk_error),alg,flg)
         #shows num of passed fields.
         if Fail2 == Fail:
             print('In second validation, no pass sub-register.')
@@ -822,10 +826,11 @@ class Post_test:
             print(f"In second validation, there's {Pass2} pass registers.")
         return alg,flg
 
-    def validate_pass(alg, flg,is_cont,detections,auto):#wip...
+    def validate_pass(pass_infos,Pass,alg,flg,is_cont,detections,auto):#wip...#dont plan auto yet...
         num = 1
         plg = []
-        pass_regs_sets = []
+        #pass_regs_sets = []
+        pass_regs_sets = pass_infos
         while num > 0:
             try:
                 plg = open("pass_regs_"+str(num)+".log",'r')
@@ -857,10 +862,10 @@ class Post_test:
         Pass,Fail,Unknown,Error,Hang = 0,0,0,0,0
 		
         print('2nd validation for pass regs only!')
-        if is_cont:
-            (alg,flg) = dump.export_cont('store','2nd validation for pass regs only!',alg,flg)
-        else:
-            (alg,flg) = dump.export('store','2nd validation for pass regs only!',alg,flg)
+        ##if is_cont:
+        ##    (alg,flg) = dump.export_cont('store','2nd validation for pass regs only!',alg,flg)
+        ##else:
+        ##    (alg,flg) = dump.export('store','2nd validation for pass regs only!',alg,flg)
         plg = dump.export_write_pass(plg,'2nd validation for pass regs only!')
         for reg in final_list_regs:
             #to ask user for the num of table display.
