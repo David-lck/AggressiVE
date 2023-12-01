@@ -861,7 +861,8 @@ def aggressive_cont(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xl
     reset_detection = df['reset_detection'].values.tolist()[0]
     hang_detection = df['hang_detection'].values.tolist()[0]
     auto = df['auto'].values.tolist()[0]
-    detections = [halt_detection,reset_detection,hang_detection]
+    mca_check = df['mca_check'].values.tolist()[0]
+    detections = [halt_detection,reset_detection,hang_detection,mca_check]
     try:
         eval('__main__.'+input_regs)
     except:
@@ -949,7 +950,8 @@ def aggressive_badname(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters
     reset_detection = df['reset_detection'].values.tolist()[0]
     hang_detection = df['hang_detection'].values.tolist()[0]
     auto = df['auto'].values.tolist()[0]
-    detections = [halt_detection,reset_detection,hang_detection]
+    mca_check = df['mca_check'].values.tolist()[0]
+    detections = [halt_detection,reset_detection,hang_detection,mca_check]
     (chosen_regs, filt_no_last_list, filt_last_level_list) = badfunc.Pre_test._main(input_regs)
     badfunc.Exec._main(chosen_regs, filt_no_last_list, filt_last_level_list, auto, detections)
     #2nd pass/fail/error/hang regs validation if possible. #dump

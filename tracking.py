@@ -211,6 +211,7 @@ def detect_hang_regs_log():
 def track_chosen_attr_fields(valid_fields,chosen_attr):
     num_chosen_attr_fields = 0
     chosen_attr_fields = []
+    print('Tracking Chosen Attribute Fields...')
     for valid_field in valid_fields:
         attr = eval(valid_field+'.info["attribute"]')
         attr = Pre_test.track_attr_cat(attr)
