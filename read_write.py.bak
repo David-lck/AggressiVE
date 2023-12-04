@@ -663,24 +663,27 @@ class Exec:
                 pre_rd = wr_in_list = rd_in_list = []
                 if "'Python SV time-out reached (0.1 se..." in fail_reason:
                     print('\n' + Fore.RED + "AggressiVE Forced Reboot due to error message!" + Fore.RESET)
+                    print(f"Reg: {full_field_name}")
                     target.powerCycle(waitOff=1,waitAfter=1)
                     while True:
                         if target.readPostcode() == 0x10AD:
                             itp.unlock()
                             refresh()
                             break
-            #display and storing validation info in table form.
             attr = eval(full_field_name+'.info["attribute"]')
-            (rowdictlist,x) = disp.store_content(rowdictlist,x,num,full_field_name,attr,pass_fail,pre_rd,wr_in_list,rd_in_list,fail_reason)
-            (Pass,Fail,Unknown,Error) = track.track_num_pass_fail(pass_fail,Pass,Fail,Unknown,Error)
             #store fail fields validation info.
             if pass_fail == 'fail':
-                (fail_rowdl,fail_x) = disp.store_fail_content(fail_rowdl,fail_x,num,full_field_name,attr,pass_fail,pre_rd,wr_in_list,rd_in_list,fail_reason)
                 if hang_detection and mca_check == 'every_failreg':#will do the machine check every fial reg detected.
                     machine_chk_error = debug.mca.analyze()
+                    print('Test')
+                    print(machine_chk_error)
                     if machine_chk_error != []:
                         pass_fail = 'hang'
                         Hang+=1
+                (fail_rowdl,fail_x) = disp.store_fail_content(fail_rowdl,fail_x,num,full_field_name,attr,pass_fail,pre_rd,wr_in_list,rd_in_list,fail_reason)
+            #display and storing validation info in table form.
+            (rowdictlist,x) = disp.store_content(rowdictlist,x,num,full_field_name,attr,pass_fail,pre_rd,wr_in_list,rd_in_list,fail_reason)
+            (Pass,Fail,Unknown,Error) = track.track_num_pass_fail(pass_fail,Pass,Fail,Unknown,Error)
             #print the table when reach number user want to print.
             num2print -= 1
             if int(repr(num2print)[-1]) == 0:
@@ -701,7 +704,7 @@ class Exec:
             #detect hang and stop.
             if 'hang' in pass_fail and hang_detection:
                 print('\n' + Fore.RED + "AggressiVE Forced Reboot due to hang!" + Fore.RESET)
-                print(full_field_name)
+                print(f'Reg: {full_field_name}')
                 target.powerCycle(waitOff=1,waitAfter=1)
                 while True:
                     if target.readPostcode() == 0x10AD:
@@ -838,11 +841,11 @@ class Post_test:
                 print(f'{Fail} fail(s) in 1st validation.')
                 disp.disp_total_pass_fail(Pass2,Fail2,Unknown2,Error2,0)
                 (alg,flg) = dump.export('store_fail',fail_x.getTableText(),alg,flg)
-                (alg,flg) = dump.export('store_fail',f'Pass:{Pass}')
-                (alg,flg) = dump.export('store_fail',f'Fail:{Fail}')
-                (alg,flg) = dump.export('store_fail',f'Unknown:{Unknown}')
-                (alg,flg) = dump.export('store_fail',f'Error:{Error}')
-                (alg,flg) = dump.export('store_fail',f'Hang:{Hang}')
+                (alg,flg) = dump.export('store_fail',f'Pass:{Pass2}',alg,flg)
+                (alg,flg) = dump.export('store_fail',f'Fail:{Fail2}',alg,flg)
+                (alg,flg) = dump.export('store_fail',f'Unknown:{Unknown2}',alg,flg)
+                (alg,flg) = dump.export('store_fail',f'Error:{Error2}',alg,flg)
+                #(alg,flg) = dump.export('store_fail',f'Hang:{Hang2}',alg,flg)
                 fail_rowdl=[]
                 fail_x=[]
             num+=1

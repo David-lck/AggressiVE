@@ -138,15 +138,14 @@ def create_log_folder():
             continue
         break
 	
-def goto_latest_log_folder():
+def goto_latest_log_folder():#Assume C:\Users\pgsvlab\PythonSv is the default log file for all systems.
     log_num=1
     while True:
         try:
-            os.chdir(r'C:\Users\limchink\PythonSv\Aggressive_logs'+str(log_num))
+            os.chdir(r'C:\Users\pgsvlab\PythonSv\Aggressive_logs'+str(log_num))
         except:
             break
         log_num+=1
 
-def goto_default_path():
-    #os.chdir(r'C:\Users\limchink\PythonSv')
+def goto_default_path():#Assume C:\Users\pgsvlab\PythonSv is the default log file for all systems.
     os.chdir(r'C:\Users\pgsvlab\PythonSv')

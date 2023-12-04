@@ -164,7 +164,7 @@ class Exec:
         Exec._validation_badname(chosen_regs, filt_no_last_list, filt_last_level_list, auto, detections)
 
     def _validation_badname(chosen_regs, filt_no_last_list, filt_last_level_list, auto, detections):
-        [halt_detection,reset_detection,hang_detection,mca_check] = detections
+        [halt_detection,reset_detection,hang_detection] = detections
         num2print = 0
         Pass, Fail, Unknown, Error, Hang = 0, 0, 0, 0, 0
         table, x = [], []
@@ -238,7 +238,7 @@ class Exec:
         blg = export_badname('close','',blg)
 
     def _validate1by1(full_field_name, no_last_name, last_level_name, attr, detections):
-        [halt_detection,reset_detection,hang_detection,mca_check] = detections
+        [halt_detection,reset_detection,hang_detection] = detections
         wr_in_list = []
         rd_in_list = []
         fail_reason = []

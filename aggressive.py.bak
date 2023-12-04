@@ -269,11 +269,8 @@ class Pre_test:
         (attr_fields,attr_ips) = invalidate(full_fields,True)#detect for invalid regs and fields without attribute info. Exclude them out.
         (log_store,chosen_access) = user.Pre_test.access_choice(input_reg,auto_access,True)#display available access method and choose access method.(only for ip)
         log_store = track.feedback_access_method(chosen_access,attr_ips,log_store)
-        print('AM finished')
         chosen_attr = user.Pre_test.attr_choice([],auto_attr)#choose the one for validation.('r/w' or '')
-        print('attr choice finished')
         Pre_test.export_pre_test_msg(log_store)#store access method info in 'AggressiVE.log'.
-        print('export fin')
         return attr_fields,chosen_attr
     
     def _exclude_regs(input_regs,auto_attr,to_be_exc_regs,auto_access):
