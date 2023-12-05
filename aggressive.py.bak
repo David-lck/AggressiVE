@@ -781,6 +781,8 @@ def aggressive(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xlsx'):
     hang_detection = df['hang_detection'].values.tolist()[0]
     auto = df['auto'].values.tolist()[0]
     mca_check = df['mca_check'].values.tolist()[0]
+    dump.create_log_folder()
+    dump.goto_latest_log_folder()
     #input parameters naming correction
     if mca_check not in ['every_failreg','every_10val']:
         print('Input Parameter mca_check can only be either "every_failreg" or "every_10val". Please changed!')
@@ -801,7 +803,7 @@ def aggressive(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xlsx'):
     #detection mode changed
     detections = [halt_detection,reset_detection,hang_detection,mca_check]
     #AggressiVE_error.log & AggressiVE_hang.log & AggressiVE_pass.log?
-    dump.create_log_folder()
+    ##dump.create_log_folder()
     Pre_test.initial_setting()
     for input_reg in input_regs:
         (attr_fields,chosen_attr) = Pre_test._main(input_reg,auto_attr,auto_access)#run all pretest features.

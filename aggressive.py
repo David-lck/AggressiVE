@@ -803,7 +803,6 @@ def aggressive(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xlsx'):
     #detection mode changed
     detections = [halt_detection,reset_detection,hang_detection,mca_check]
     #AggressiVE_error.log & AggressiVE_hang.log & AggressiVE_pass.log?
-    ##dump.create_log_folder()
     Pre_test.initial_setting()
     for input_reg in input_regs:
         (attr_fields,chosen_attr) = Pre_test._main(input_reg,auto_attr,auto_access)#run all pretest features.
