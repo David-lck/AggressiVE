@@ -212,15 +212,22 @@ def track_chosen_attr_fields(valid_fields,chosen_attr):
     num_chosen_attr_fields = 0
     chosen_attr_fields = []
     print('Tracking Chosen Attribute Fields...')
+    n=0
     for valid_field in valid_fields:
+        n+=1
+        print(f"Current Progress: {str(n)}/{len(valid_fields)} [{str(n/len(valid_fields)*100)}%]", end="\r", flush=True)
         attr = eval(valid_field+'.info["attribute"]')
         attr = Pre_test.track_attr_cat(attr)
         if attr != []:
             attr = attr[0]
         elif attr == []:
             attr = eval(valid_field+'.info["attribute"]')
-        if attr == chosen_attr or chosen_attr == 'None':
-            chosen_attr_fields.append(valid_field)
+        if isinstance(chosen_attr,list):
+            if attr in chosen_attr:
+                chosen_attr_fields.append(valid_field)
+        else:
+            if attr == chosen_attr or chosen_attr == 'None':
+                chosen_attr_fields.append(valid_field)
     return chosen_attr_fields
     
 def track_fail_reason(pass_fail_pre_rd,pass_fail_1st_val,pass_fail_2nd_val,pass_fail_3rd_val):

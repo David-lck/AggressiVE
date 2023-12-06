@@ -774,7 +774,7 @@ def aggressive(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xlsx'):
     '''
     df = pd.read_excel(file,'aggressive')
     input_regs = df['input_regs'].values.tolist()
-    auto_attr = df['auto_attr'].values.tolist()[0]
+    auto_attr = df['auto_attr'].values.tolist()[0:30]
     auto_access = df['access_method'].values.tolist()[0]
     halt_detection = df['halt_detection'].values.tolist()[0]
     reset_detection = df['reset_detection'].values.tolist()[0]
@@ -783,6 +783,8 @@ def aggressive(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xlsx'):
     mca_check = df['mca_check'].values.tolist()[0]
     dump.create_log_folder()
     dump.goto_latest_log_folder()
+    if len(auto_attr) == 1:
+        auto_attr = auto_attr[0]
     #input parameters naming correction
     if mca_check not in ['every_failreg','every_10val']:
         print('Input Parameter mca_check can only be either "every_failreg" or "every_10val". Please changed!')
@@ -794,7 +796,7 @@ def aggressive(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xlsx'):
             eval('__main__.'+input_reg)
             avail_die += 1
         except:
-            print('No such die exist in this project!')
+            print(f'No {str(input_reg)} die exist in this project!')
             print('Will continue without it.')
     if avail_die == 0:
         print('There is not correct die to be validated.')

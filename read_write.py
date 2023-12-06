@@ -625,6 +625,7 @@ class Exec:
         alg, flg = '', ''
         error_messages = {}
         pass_regs, fail_regs, error_regs, sus_hang_regs = [], [], [], []
+        cont_fail_cnt = 0
         if is_cont:
             (alg,flg) = dump.export_cont('open','NA',alg,flg)
         else:
@@ -679,7 +680,11 @@ class Exec:
                     if machine_chk_error != []:
                         pass_fail = 'hang'
                         Hang+=1
+                    else:
+                        cont_fail_cnt += 1
                 (fail_rowdl,fail_x) = disp.store_fail_content(fail_rowdl,fail_x,num,full_field_name,attr,pass_fail,pre_rd,wr_in_list,rd_in_list,fail_reason)
+            elif pass_fail =='pass':#this statement is for continuous fail due to undetected hang
+                cont_fail_cnt = 0 #reset it back due to not continuous fail.
             #display and storing validation info in table form.
             (rowdictlist,x) = disp.store_content(rowdictlist,x,num,full_field_name,attr,pass_fail,pre_rd,wr_in_list,rd_in_list,fail_reason)
             (Pass,Fail,Unknown,Error) = track.track_num_pass_fail(pass_fail,Pass,Fail,Unknown,Error)
@@ -710,7 +715,14 @@ class Exec:
                         itp.unlock()
                         refresh()
                         break
-        #store categorized registers in different logs.
+            elif cont_fail_cnt == 10:
+                print('\n' + Fore.RED + "AggressiVE Forced Reboot due to continuous reg fail(suspect hang)!" + Fore.RESET)
+                target.powerCycle(waitOff=1,waitAfter=1)
+                while True:
+                    if target.readPostcode() == 0x10AD:
+                        itp.unlock()
+                        refresh()
+                        break
         dump.export_regs(pass_regs, fail_regs, error_regs, sus_hang_regs)
         #Post Validation
         pass_infos = [pass_regs]
@@ -766,7 +778,6 @@ class Post_test:
         try:
             for sus_regs in sus_hang_regs:
                 for reg in sus_regs:
-                    print(reg)
                     (confirm_hang_regs, hang_stages) = Post_test.hang_validate_1by1(reg, confirm_hang_regs, hang_stages)
         except KeyboardInterrupt:
             print('\n' + Fore.RED + 'Hang 2nd Validation forced to stopped!' + Fore.RESET)
@@ -774,9 +785,7 @@ class Post_test:
             hlg.close()
             dump.export_hang_regs(confirm_hang_regs)
             return alg, flg
-        print("second part")
         final_hang_stages = []
-        print(hang_stages)
         ##for reg_hang_stages in hang_stages:
         for hang_stage in hang_stages:
             temp = []

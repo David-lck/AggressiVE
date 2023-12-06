@@ -774,7 +774,7 @@ def aggressive(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xlsx'):
     '''
     df = pd.read_excel(file,'aggressive')
     input_regs = df['input_regs'].values.tolist()
-    auto_attr = df['auto_attr'].values.tolist()[0]
+    auto_attr = df['auto_attr'].values.tolist()[0:30]
     auto_access = df['access_method'].values.tolist()[0]
     halt_detection = df['halt_detection'].values.tolist()[0]
     reset_detection = df['reset_detection'].values.tolist()[0]
@@ -794,7 +794,7 @@ def aggressive(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xlsx'):
             eval('__main__.'+input_reg)
             avail_die += 1
         except:
-            print('No such die exist in this project!')
+            print(f'No {str(input_reg)} die exist in this project!')
             print('Will continue without it.')
     if avail_die == 0:
         print('There is not correct die to be validated.')
@@ -803,7 +803,6 @@ def aggressive(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xlsx'):
     #detection mode changed
     detections = [halt_detection,reset_detection,hang_detection,mca_check]
     #AggressiVE_error.log & AggressiVE_hang.log & AggressiVE_pass.log?
-    ##dump.create_log_folder()
     Pre_test.initial_setting()
     for input_reg in input_regs:
         (attr_fields,chosen_attr) = Pre_test._main(input_reg,auto_attr,auto_access)#run all pretest features.

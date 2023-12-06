@@ -128,7 +128,7 @@ class Post_test:
 
     def choose_post_test(num_status,alg,flg,status_infos,is_cont,detections,auto):
         [Pass,Fail,Error,Hang] = num_status
-        [fail_infos,sus_hang_infos,error_infos] = status_infos
+        [pass_infos,fail_infos,sus_hang_infos,error_infos] = status_infos
         avail_choice = []
         print('Second Validation!')
         if Pass != 0:
