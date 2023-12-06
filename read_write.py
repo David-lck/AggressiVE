@@ -758,6 +758,7 @@ class Post_test:
         return confirm_hang_regs, hang_stages
 
     def validate2_hang_regs(sus_hang_regs, alg, flg, is_cont):
+        print(sus_hang_regs)
         confirm_hang_regs = []
         hang_stages = []
         hang_stage_reason = ['Pre-read','1st read-write','2nd read-write','3rd read-write']
@@ -765,6 +766,7 @@ class Post_test:
         try:
             for sus_regs in sus_hang_regs:
                 for reg in sus_regs:
+                    print(reg)
                     (confirm_hang_regs, hang_stages) = Post_test.hang_validate_1by1(reg, confirm_hang_regs, hang_stages)
         except KeyboardInterrupt:
             print('\n' + Fore.RED + 'Hang 2nd Validation forced to stopped!' + Fore.RESET)
@@ -772,14 +774,16 @@ class Post_test:
             hlg.close()
             dump.export_hang_regs(confirm_hang_regs)
             return alg, flg
+        print("second part")
         final_hang_stages = []
-        for reg_hang_stages in hang_stages:
-            for hang_stage in reg_hang_stages:
-                temp = []
-                for n in range(4):
-                    if hang_stage[n] == 1:
-                        temp.append(hang_stage_reason[n])
-                final_hang_stages.append(temp)
+        print(hang_stages)
+        ##for reg_hang_stages in hang_stages:
+        for hang_stage in hang_stages:
+            temp = []
+            for n in range(4):
+                if hang_stage[n] == 1:
+                    temp.append(hang_stage_reason[n])
+            final_hang_stages.append(temp)
         if is_cont:
             hlg = open("AggressiVE_cont_hang.log","a")
         else:
