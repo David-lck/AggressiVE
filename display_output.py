@@ -71,7 +71,7 @@ def disp_hang_regs(confirm_hang_regs, final_hang_stages, alg, flg, hlg):
         temp = x.getTableText()
     except:
         temp = 'Confirm Hang Registers = '+str(len(confirm_hang_regs))
-        print(temp)
+    print(temp)
     (alg,flg) = dump.export('store',temp,alg,flg)
     hlg.write(temp)
     return alg, flg, hlg
