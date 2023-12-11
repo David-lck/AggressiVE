@@ -222,7 +222,6 @@ def track_chosen_attr_fields(valid_fields,chosen_attr):
             attr = attr[0]
         elif attr == []:
             attr = eval(valid_field+'.info["attribute"]')
-        print(chosen_attr)
         if isinstance(chosen_attr,list):
             if attr in chosen_attr:
                 chosen_attr_fields.append(valid_field)

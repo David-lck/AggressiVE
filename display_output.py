@@ -59,12 +59,12 @@ def disp_avail_attr(avail_attrs):
     x = asciitable.AsciiTable.fromDictList(rowdictlist,headers)
     print(x.getTableText())
     
-def disp_hang_regs(confirm_hang_regs, final_hang_stages, alg, flg, hlg):
-    headers=['Hang Registers','Stage that caused Hang']
+def disp_hang_regs(confirm_hang_regs, final_hang_stages, regs_mca_errs, alg, flg, hlg):
+    headers=['Hang Registers','Stage that caused Hang','Error Code']
     rowdictlist=[]
     x=[]
     for confirm_hang_reg in confirm_hang_regs:
-        rowdictlist += [{'Hang Registers':confirm_hang_reg,'Stage that caused Hang':str(final_hang_stages[confirm_hang_regs.index(confirm_hang_reg)])}] 
+        rowdictlist += [{'Hang Registers':confirm_hang_reg,'Stage that caused Hang':str(final_hang_stages[confirm_hang_regs.index(confirm_hang_reg)]),'Error Code':str(regs_mca_errs[confirm_hang_regs.index(confirm_hang_reg)])}] 
         x = asciitable.AsciiTable.fromDictList(rowdictlist,headers)
     x = asciitable.AsciiTable.fromDictList(rowdictlist,headers)
     try:

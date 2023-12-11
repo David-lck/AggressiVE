@@ -215,7 +215,7 @@ def track_chosen_attr_fields(valid_fields,chosen_attr):
     n=0
     for valid_field in valid_fields:
         n+=1
-        print(f"Current Progress: {str(n)}/{len(valid_fields)} [{str(n/len(valid_fields)*100)}%]", end="\r", flush=True)
+        print(f"Current Progress: {str(n)}/{len(valid_fields)} [{str(round((n/len(valid_fields)*100),2))}%]", end="\r", flush=True)
         attr = eval(valid_field+'.info["attribute"]')
         attr = Pre_test.track_attr_cat(attr)
         if attr != []:

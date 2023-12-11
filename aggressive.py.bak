@@ -783,6 +783,8 @@ def aggressive(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xlsx'):
     mca_check = df['mca_check'].values.tolist()[0]
     dump.create_log_folder()
     dump.goto_latest_log_folder()
+    if len(auto_attr) == 1:
+        auto_attr = auto_attr[0]
     #input parameters naming correction
     if mca_check not in ['every_failreg','every_10val']:
         print('Input Parameter mca_check can only be either "every_failreg" or "every_10val". Please changed!')

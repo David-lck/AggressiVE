@@ -740,47 +740,56 @@ class Exec:
             (alg,flg) = dump.export('close_fail','NA',alg,flg)
         
 class Post_test:
-    def machine_check(hang_state, index):
+    def machine_check(hang_state, mca_err, index):
         machine_chk_error = debug.mca.analyze()
         if machine_chk_error != []:
+            mca_err += machine_chk_error
             hang_state[index] = 1
             target.powerCycle(waitOff=1,waitAfter=1)
             while True:
                 if target.readPostcode() == 0x10AD:
                     itp.unlock()
                     break
-        return hang_state
+        return hang_state,mca_err
 
-    def hang_validate_1by1(full_field_name, confirm_hang_regs, hang_stages):
+    def hang_validate_1by1(full_field_name, confirm_hang_regs, hang_stages, regs_mca_errs):
         wr_in_list = []
         rd_in_list = []
         fail_reason = []
         hang_state = [0,0,0,0]
+        mca_err = []
         (pre_rd,pass_fail_pre_rd) = Val_stage.pre_read(full_field_name)
-        hang_state = Post_test.machine_check(hang_state, 0)
+        (hang_state,mca_err) = Post_test.machine_check(hang_state, mca_err, 0)
         (wr_in_list,rd_in_list,pass_fail_1st_val) = Val_stage.first_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,'1st_stage_rdwr','A5',False)
-        hang_state = Post_test.machine_check(hang_state, 1)
+        (hang_state,mca_err) = Post_test.machine_check(hang_state, mca_err, 1)
         (wr_in_list,rd_in_list,pass_fail_2nd_val) = Val_stage.second_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,'2nd_stage_rdwr','5A',False)
-        hang_state = Post_test.machine_check(hang_state, 2)
+        (hang_state,mca_err) = Post_test.machine_check(hang_state, mca_err, 2)
         (wr_in_list,rd_in_list,pass_fail_3rd_val) = Val_stage.third_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,'3rd_stage_rdwr','A5',False)
-        hang_state = Post_test.machine_check(hang_state, 3)
+        (hang_state,mca_err) = Post_test.machine_check(hang_state, mca_err, 3)
         if 1 in hang_state:
             confirm_hang_regs.append(full_field_name)
             hang_stages.append(hang_state)
+            regs_mca_errs.append(mca_err)
         return confirm_hang_regs, hang_stages
 
     def validate2_hang_regs(sus_hang_regs, alg, flg, is_cont):
-        print(sus_hang_regs)
         confirm_hang_regs = []
         hang_stages = []
+        regs_mca_errs = []
         hang_stage_reason = ['Pre-read','1st read-write','2nd read-write','3rd read-write']
         #validate the suspect hang registers once and for all. Do machine check in every validation stages.
         try:
             for sus_regs in sus_hang_regs:
                 for reg in sus_regs:
-                    (confirm_hang_regs, hang_stages) = Post_test.hang_validate_1by1(reg, confirm_hang_regs, hang_stages)
+                    (confirm_hang_regs, hang_stages, regs_mca_errs) = Post_test.hang_validate_1by1(reg, confirm_hang_regs, hang_stages, regs_mca_errs)
         except KeyboardInterrupt:
             print('\n' + Fore.RED + 'Hang 2nd Validation forced to stopped!' + Fore.RESET)
+            (alg, flg, hlg) = disp.disp_hang_regs(confirm_hang_regs, final_hang_stages, alg, flg, hlg)
+            hlg.close()
+            dump.export_hang_regs(confirm_hang_regs)
+            return alg, flg
+        except:
+            print('\n' + Fore.RED + 'Hang 2nd Validation detected error message!' + Fore.RESET)
             (alg, flg, hlg) = disp.disp_hang_regs(confirm_hang_regs, final_hang_stages, alg, flg, hlg)
             hlg.close()
             dump.export_hang_regs(confirm_hang_regs)
