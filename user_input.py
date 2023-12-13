@@ -104,7 +104,6 @@ class Post_test:
     def disp_error_choice(Error, error_messages, auto, is_cont):
         msg_sorted = track.track_dif_errors(error_messages)
         disp_choice = 0
-        disp.error_table(msg_sorted)
         if is_cont:
             elg = open("AggressiVE_cont_error.log","a")
         else:
@@ -113,15 +112,18 @@ class Post_test:
             if auto:
                 disp_choice == ''
             else:
+                disp.error_table(msg_sorted)
                 disp_choice = input('Which error of registers to display?(Enter=All;"end"=stop):')
             if disp_choice != "end":
                 try:
-                    printed_error_msg = disp.disp_all_errors(disp_choice,msg_sorted,error_messages)
+                    (printed_error_msg,msg_sorted,error_messages) = disp.disp_all_errors(disp_choice,msg_sorted,error_messages)
                     elg.write(printed_error_msg)
                     elg.write('\n')
                 except KeyboardInterrupt:
                     print('\n' + Fore.RED + 'Error 2nd Validation forced to stopped!' + Fore.RESET)
                     break
+            if msg_sorted == []:
+                disp_choice = 'end'
         elg.close()
         if is_cont:
             print('All the printed error infos have been saved in C>>Users>>pgsvlab>>PythonSv>>Aggressive_logs>>AggressiVE_error.log')

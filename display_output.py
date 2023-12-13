@@ -204,15 +204,22 @@ def disp_all_errors(disp_choice,msg_sorted,error_info):
                 if msg == error_info[reg]:
                     rowdictlist += [{'Num':str(i),'Registers':reg}]
                     i += 1
+            #remove all msg_sorted & error_info
+        msg_sorted = []
+        error_info = {}
     else:
         msg = msg_sorted[int(disp_choice)-1]
         for reg in error_info.keys():
             if msg == error_info[reg]:
                 rowdictlist += [{'Num':str(i),'Registers':reg}]
                 i += 1
+                del error_info[reg]
+        #remove particular msg_sorted & error_info
+        msg_sorted.remove(msg)
+
     x = asciitable.AsciiTable.fromDictList(rowdictlist,headers)
     print(x.getTableText())
-    return x.getTableText()
+    return x.getTableText(),msg_sorted,error_info
 
 def time(sec):
     min = 0

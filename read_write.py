@@ -740,9 +740,24 @@ class Exec:
             (alg,flg) = dump.export('close_fail','NA',alg,flg)
         
 class Post_test:
+    def simplify_error_msg(full_err_msg):
+        simplified_msr = []
+        if isinstance(full_err_msg,list):
+            pass
+        else:
+            full_err_msg = [full_err_msg]
+        for msg in full_err_msg:
+            if "SOCKET" in msg:
+                index = msg.find("SOCKET")
+                simplified_msr.append(msg[index:])
+            else:
+                simplified_msr.append(msg)
+        return simplified_msr
+    
     def machine_check(hang_state, mca_err, index):
         machine_chk_error = debug.mca.analyze()
         if machine_chk_error != []:
+            machine_chk_error = Post_test.simplify_error_msg(machine_chk_error)
             mca_err += machine_chk_error
             hang_state[index] = 1
             target.powerCycle(waitOff=1,waitAfter=1)
@@ -770,31 +785,43 @@ class Post_test:
             confirm_hang_regs.append(full_field_name)
             hang_stages.append(hang_state)
             regs_mca_errs.append(mca_err)
-        return confirm_hang_regs, hang_stages
+        return confirm_hang_regs, hang_stages, regs_mca_errs
 
     def validate2_hang_regs(sus_hang_regs, alg, flg, is_cont):
         confirm_hang_regs = []
         hang_stages = []
         regs_mca_errs = []
         hang_stage_reason = ['Pre-read','1st read-write','2nd read-write','3rd read-write']
+        final_hang_stages = []
+        if is_cont:
+            hlg = open("AggressiVE_cont_hang.log","a")
+        else:
+            hlg = open("AggressiVE_hang.log","a")
+        #Do a reboot before validation to prevent hang at the beginning.
+        target.powerCycle(waitOff=1,waitAfter=1)
+        while True:
+            if target.readPostcode() == 0x10AD:
+                itp.unlock()
+                refresh()
+                break
         #validate the suspect hang registers once and for all. Do machine check in every validation stages.
         try:
             for sus_regs in sus_hang_regs:
                 for reg in sus_regs:
+                    print('\n' + Fore.BLUE + f'REG{str(sus_regs.index(reg))}/{str(len(sus_regs))} in List{str(len(sus_hang_regs))}/{str(len(sus_regs))}' + Fore.BLUE)
                     (confirm_hang_regs, hang_stages, regs_mca_errs) = Post_test.hang_validate_1by1(reg, confirm_hang_regs, hang_stages, regs_mca_errs)
         except KeyboardInterrupt:
             print('\n' + Fore.RED + 'Hang 2nd Validation forced to stopped!' + Fore.RESET)
-            (alg, flg, hlg) = disp.disp_hang_regs(confirm_hang_regs, final_hang_stages, alg, flg, hlg)
+            (alg, flg, hlg) = disp.disp_hang_regs(confirm_hang_regs, final_hang_stages, regs_mca_errs, alg, flg, hlg)
             hlg.close()
             dump.export_hang_regs(confirm_hang_regs)
             return alg, flg
         except:
             print('\n' + Fore.RED + 'Hang 2nd Validation detected error message!' + Fore.RESET)
-            (alg, flg, hlg) = disp.disp_hang_regs(confirm_hang_regs, final_hang_stages, alg, flg, hlg)
+            (alg, flg, hlg) = disp.disp_hang_regs(confirm_hang_regs, final_hang_stages, regs_mca_errs, alg, flg, hlg)
             hlg.close()
             dump.export_hang_regs(confirm_hang_regs)
             return alg, flg
-        final_hang_stages = []
         ##for reg_hang_stages in hang_stages:
         for hang_stage in hang_stages:
             temp = []
@@ -802,11 +829,7 @@ class Post_test:
                 if hang_stage[n] == 1:
                     temp.append(hang_stage_reason[n])
             final_hang_stages.append(temp)
-        if is_cont:
-            hlg = open("AggressiVE_cont_hang.log","a")
-        else:
-            hlg = open("AggressiVE_hang.log","a")
-        (alg, flg, hlg) = disp.disp_hang_regs(confirm_hang_regs, final_hang_stages, alg, flg, hlg)
+        (alg, flg, hlg) = disp.disp_hang_regs(confirm_hang_regs, final_hang_stages, regs_mca_errs, alg, flg, hlg)
         hlg.close()
         dump.export_hang_regs(confirm_hang_regs)
         if is_cont:
@@ -831,7 +854,6 @@ class Post_test:
         Error2 = 0
         num=1
         reserved_print_num = len(fail_regs)
-        print(f'Total All stored fail regs: {str(fail_regs)}')
         for fail_field_name in fail_regs:
             #to ask user for the num of table display.
             if num2print == 0:#to ask user for the num of table display.
