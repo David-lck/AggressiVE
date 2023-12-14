@@ -781,6 +781,7 @@ def aggressive(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xlsx'):
     hang_detection = df['hang_detection'].values.tolist()[0]
     auto = df['auto'].values.tolist()[0]
     mca_check = df['mca_check'].values.tolist()[0]
+    dump.goto_default_path()
     dump.create_log_folder()
     dump.goto_latest_log_folder()
     if len(auto_attr) == 1:

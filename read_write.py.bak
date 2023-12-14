@@ -635,6 +635,8 @@ class Exec:
         #validation.
         num_chosen_attr_fields = len(chosen_attr_fields)
         reserved_print_num=len(chosen_attr_fields)
+        print(len(valid_fields))
+        print(len(chosen_attr_fields))
         for full_field_name in chosen_attr_fields:
             #to ask user for the num of table display.
             if num2print == 0:                                                                                                              
@@ -808,6 +810,7 @@ class Post_test:
         try:
             for sus_regs in sus_hang_regs:
                 for reg in sus_regs:
+                    print('\n' + Fore.BLUE + f'REG{str(sus_regs.index(reg))}/{str(len(sus_regs))} in List{str(len(sus_hang_regs))}/{str(len(sus_regs))}' + Fore.BLUE)
                     (confirm_hang_regs, hang_stages, regs_mca_errs) = Post_test.hang_validate_1by1(reg, confirm_hang_regs, hang_stages, regs_mca_errs)
         except KeyboardInterrupt:
             print('\n' + Fore.RED + 'Hang 2nd Validation forced to stopped!' + Fore.RESET)

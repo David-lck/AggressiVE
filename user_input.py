@@ -69,7 +69,10 @@ class Pre_test:
     def attr_choice(avai_attrs,auto_attr):
         choice = auto_attr
         if isinstance(choice, list):
-            return choice
+            if 'None' not in choice:
+                return choice
+            else:
+                return 'None'
         if choice.isdigit() and choice != 'None':
             choice = avai_attrs[int(choice)-1]
         elif choice != 'None' and choice.isdigit() == False:

@@ -122,6 +122,8 @@ class Post_test:
                 except KeyboardInterrupt:
                     print('\n' + Fore.RED + 'Error 2nd Validation forced to stopped!' + Fore.RESET)
                     break
+            if msg_sorted == []:
+                disp_choice = 'end'
         elg.close()
         if is_cont:
             print('All the printed error infos have been saved in C>>Users>>pgsvlab>>PythonSv>>Aggressive_logs>>AggressiVE_error.log')
