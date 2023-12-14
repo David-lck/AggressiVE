@@ -3,7 +3,8 @@ import os
 import time
 
 def export(choice,content,alg,flg):#Write/store only
-    dump_mode = "w"
+    #dump_mode = "w"
+    dump_mode = "a"
     if choice == 'close_all':
         alg.close()
     elif choice == 'close_fail':

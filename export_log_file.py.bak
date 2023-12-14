@@ -143,7 +143,6 @@ def goto_latest_log_folder():#Assume C:\Users\pgsvlab\PythonSv is the default lo
     while True:
         try:
             os.chdir(r'C:\Users\pgsvlab\PythonSv\Aggressive_logs'+str(log_num))
-            
         except:
             break
         log_num+=1
