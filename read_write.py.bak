@@ -185,7 +185,7 @@ class Algorithm:
         rd_in_bin = Conv.convert_hex_to_bin(rd)
         pre_rd_in_bin = Conv.convert_hex_to_bin(pre_rd)
         if len(wr_in_bin) > len(rd_in_bin):#add zero in front of rd due to rd bit lower than wr bit
-            num_bit_dif = len(wr_in_bin) - len(rd_in_bit)
+            num_bit_dif = len(wr_in_bin) - len(rd_in_bin)
             rd_in_bin = ('0' * num_bit_dif) + rd_in_bin
         elif len(wr_in_bin) < len(rd_in_bin):#add zero in front of wd due to rd bit lower than rd bit
             num_bit_dif = len(rd_in_bin) - len(wr_in_bin)
@@ -635,8 +635,6 @@ class Exec:
         #validation.
         num_chosen_attr_fields = len(chosen_attr_fields)
         reserved_print_num=len(chosen_attr_fields)
-        print(len(valid_fields))
-        print(len(chosen_attr_fields))
         for full_field_name in chosen_attr_fields:
             #to ask user for the num of table display.
             if num2print == 0:                                                                                                              
@@ -733,6 +731,13 @@ class Exec:
         error_infos = [error_messages]
         num_status = [Pass, Fail, Error, Hang]
         status_infos = [pass_infos,fail_infos,sus_hang_infos,error_infos]
+        print("Reboot for post validation in case it is hang!")
+        target.powerCycle(waitOff=1,waitAfter=1)
+        while True:
+            if target.readPostcode() == 0x10AD:
+                itp.unlock()
+                refresh()
+                break
         (alg, flg) = user.Post_test.choose_post_test(num_status,alg,flg,status_infos,is_cont,detections,auto)
         if is_cont:
             (alg,flg) = dump.export_cont('close_all','NA',alg,flg)
@@ -855,6 +860,7 @@ class Post_test:
         Unknown2 = 0
         Error2 = 0
         num=1
+        error_messages = {}
         reserved_print_num = len(fail_regs)
         for fail_field_name in fail_regs:
             #to ask user for the num of table display.
@@ -874,6 +880,15 @@ class Post_test:
                 disp.disp_fail_content(fail_x,alg,flg)
                 disp.disp_total_pass_fail(Pass2,Fail2,Unknown2,Error2,0)
                 break
+            except:
+                message = sys.exc_info()[1]
+                fail_reason = str(message)
+                if len(fail_reason) >= 30:
+                    fail_reason = fail_reason[:35-len(fail_reason)]+'...'
+                fail_reason = [fail_reason]
+                error_messages[fail_field_name]=str(message)
+                pass_fail = 'error'
+                pre_rd = wr_in_list = rd_in_list = []
             attr = eval(fail_field_name+'.info["attribute"]')
             (fail_rowdl,fail_x) = disp.store_fail_content(fail_rowdl,fail_x,num,fail_field_name,attr,pass_fail,pre_rd,wr_in_list,rd_in_list,fail_reason)
             (Pass2,Fail2,Unknown2,Error2) = track.track_num_pass_fail(pass_fail,Pass2,Fail2,Unknown2,Error2)
@@ -955,9 +970,9 @@ class Post_test:
         num_chosen_attr_fields = len(final_list_regs)
         reserved_print_num=len(final_list_regs)
         Pass,Fail,Unknown,Error,Hang = 0,0,0,0,0
-		
-        print('2nd validation for pass regs only!')
-        plg = dump.export_write_pass(plg,'2nd validation for pass regs only!')
+        print('Post-validation: Pass Registers Re-write is chosen!')
+        (alg,flg) = dump.export('store','Post-validation: Pass Registers Re-write is chosen!',alg,flg)
+        plg = dump.export_write_pass(plg,'Post-validation: Pass Registers Re-write is chosen!')
         for reg in final_list_regs:
             #to ask user for the num of table display.
             if num2print == 0:                                                                                                              
@@ -985,7 +1000,7 @@ class Post_test:
                 fail_reason = [fail_reason]
                 error_messages[reg]=str(message)
                 pass_fail = 'error'
-                pre_rd = wr_in_list = rd_in_list = []
+                pre_rd = wr_in_list = rd_in_list = ['NA','NA','NA']
             #display and storing validation info in table form.
             attr = eval(reg+'.info["attribute"]')
             (rowdictlist,x) = disp.store_content(rowdictlist,x,num,reg,attr,pass_fail,pre_rd,wr_in_list,rd_in_list,fail_reason)

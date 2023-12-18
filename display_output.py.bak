@@ -205,11 +205,15 @@ def disp_all_errors(disp_choice,msg_sorted,error_info):
                     rowdictlist += [{'Num':str(i),'Registers':reg}]
                     i += 1
             #remove all msg_sorted & error_info
-            msg = []
-            error_info = {}
+        msg_sorted = []
+        error_info = {}
     else:
         msg = msg_sorted[int(disp_choice)-1]
+        print(error_info)
         for reg in error_info.keys():
+            print('Enter')
+            print(reg)
+            print(error_info[reg])
             if msg == error_info[reg]:
                 rowdictlist += [{'Num':str(i),'Registers':reg}]
                 i += 1
