@@ -27,8 +27,10 @@ try:
 except:
     from tqdm import tqdm
 import pysvtools.fv_common.target as target
-from meteorlake import debug
-
+try:
+    from meteorlake import debug
+except:
+    from pantherlake import debug
 
 all_undefined_attrs = ['dc','rw/ac','rw/l/k','rw/s/l','rw/fuse','rw/strap']
 partial_defined_attrs = ['ro/c/v','ro/p','ro/v','ro/v/p','rw/1c/p','rw/1c/v','rw/1c/v/p','rw/0c/v','rw/1s/v/p','rw/1s/v','rw/1s/v/l','rw/o/p','rw/o/v/l','rw/p','rw/p/l','rw/v','rw/v/p','rw/v/l','rw/v/p/l','rw/v2','ro/c','rw/cr','wo/1','wo/c','na','rw0c_fw','rw1c_fw','double buffered','r/w hardware clear','read/32 bit write only','r/w firmware only']

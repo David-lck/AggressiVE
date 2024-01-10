@@ -792,22 +792,24 @@ def aggressive(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xlsx'):
         return
     #detect die availability
     avail_die = 0
+    filtered_input_regs = []
     for input_reg in input_regs:
         try:
             eval('__main__.'+input_reg)
             avail_die += 1
+            filtered_input_regs.append(input_reg)
         except:
             print(f'No {str(input_reg)} die exist in this project!')
             print('Will continue without it.')
     if avail_die == 0:
-        print('There is not correct die to be validated.')
+        print('There is no correct die to be validated.')
         print('Please enter the correct one!')
         return 
     #detection mode changed
     detections = [halt_detection,reset_detection,hang_detection,mca_check]
     #AggressiVE_error.log & AggressiVE_hang.log & AggressiVE_pass.log?
     Pre_test.initial_setting()
-    for input_reg in input_regs:
+    for input_reg in filtered_input_regs:
         (attr_fields,chosen_attr) = Pre_test._main(input_reg,auto_attr,auto_access)#run all pretest features.
         rdwr.Exec.validate(attr_fields,chosen_attr,auto,False,detections)#validation.
     dump.goto_default_path()

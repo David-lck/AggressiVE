@@ -888,7 +888,7 @@ class Post_test:
                 fail_reason = [fail_reason]
                 error_messages[fail_field_name]=str(message)
                 pass_fail = 'error'
-                pre_rd = wr_in_list = rd_in_list = []
+                pre_rd = wr_in_list = rd_in_list = ['NA','NA','NA']
             attr = eval(fail_field_name+'.info["attribute"]')
             (fail_rowdl,fail_x) = disp.store_fail_content(fail_rowdl,fail_x,num,fail_field_name,attr,pass_fail,pre_rd,wr_in_list,rd_in_list,fail_reason)
             (Pass2,Fail2,Unknown2,Error2) = track.track_num_pass_fail(pass_fail,Pass2,Fail2,Unknown2,Error2)

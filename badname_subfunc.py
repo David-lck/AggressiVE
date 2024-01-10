@@ -28,7 +28,10 @@ try:
 except:
     from tqdm import tqdm
 import pysvtools.fv_common.target as target
-from meteorlake import debug
+try:
+    from meteorlake import debug
+except:
+    from pantherlake import debug
 from pysvtools.asciitable import AsciiTable as Table
 import os
 
