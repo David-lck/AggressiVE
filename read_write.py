@@ -634,6 +634,7 @@ class Exec:
             (alg,flg) = dump.export('open','NA',alg,flg)
         #Exclude all the fields with non-chosen attr.
         chosen_attr_fields = track.track_chosen_attr_fields(valid_fields,chosen_attr)
+        print(f"Total Num Available= {str(len(chosen_attr_fields))}")
         #validation.
         num_chosen_attr_fields = len(chosen_attr_fields)
         reserved_print_num=len(chosen_attr_fields)
@@ -664,7 +665,7 @@ class Exec:
                 error_messages[full_field_name]=str(message)
                 pass_fail = 'error'
                 pre_rd = wr_in_list = rd_in_list = []
-                if "'Python SV time-out reached (0.1 se..." in fail_reason:
+                if "'Python SV time-out reached (0.1 se..." in fail_reason and reset_detection:
                     print('\n' + Fore.RED + "AggressiVE Forced Reboot due to error message!" + Fore.RESET)
                     print(f"Reg: {full_field_name}")
                     target.powerCycle(waitOff=1,waitAfter=1)
@@ -733,13 +734,14 @@ class Exec:
         error_infos = [error_messages]
         num_status = [Pass, Fail, Error, Hang]
         status_infos = [pass_infos,fail_infos,sus_hang_infos,error_infos]
-        print("Reboot for post validation in case it is hang!")
-        target.powerCycle(waitOff=1,waitAfter=1)
-        while True:
-            if target.readPostcode() == 0x10AD:
-                itp.unlock()
-                refresh()
-                break
+        if reset_detection:
+            print("Reboot for post validation in case it is hang!")
+            target.powerCycle(waitOff=1,waitAfter=1)
+            while True:
+                if target.readPostcode() == 0x10AD:
+                    itp.unlock()
+                    refresh()
+                    break
         (alg, flg) = user.Post_test.choose_post_test(num_status,alg,flg,status_infos,is_cont,detections,auto)
         if is_cont:
             (alg,flg) = dump.export_cont('close_all','NA',alg,flg)

@@ -157,7 +157,6 @@ class Post_test:
                 if val_choice in ['1','2','3','4','end']:
                     break
                 print('Please enter properly!')
-
             if val_choice == 'end':
                 break
             elif 'Pass' in avail_choice[int(val_choice)-1]:

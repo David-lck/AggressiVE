@@ -25,7 +25,7 @@ try:
 except:
     from tqdm import tqdm
 
-project = itp.threads.device.alias[0]
+#project = itp.threads.device.alias[0]
 import sys
 #itp.unlockerflush()
 #itp.entercredentials()
@@ -787,9 +787,12 @@ def aggressive(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xlsx'):
     if len(auto_attr) == 1:
         auto_attr = auto_attr[0]
     #input parameters naming correction
-    if mca_check not in ['every_failreg','every_10val']:
-        print('Input Parameter mca_check can only be either "every_failreg" or "every_10val". Please changed!')
+    if mca_check not in ['every_failreg','every_10val',False]:
+        print('Input Parameter mca_check can only be either "every_failreg" or "every_10val" or "False". Please changed!')
         return
+    #nan input to None.
+    auto_attr = "None" if str(auto_attr) == "nan" and not isinstance(auto_attr, list) else auto_attr
+    auto_access = "None" if str(auto_access) == "nan" and not isinstance(auto_access, list) else auto_access
     #detect die availability
     avail_die = 0
     filtered_input_regs = []
