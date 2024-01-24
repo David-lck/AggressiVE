@@ -209,17 +209,21 @@ def disp_all_errors(disp_choice,msg_sorted,error_info):
         error_info = {}
     else:
         msg = msg_sorted[int(disp_choice)-1]
-        for reg in error_info.keys():
-            print('Enter')
-            print(reg)
-            print(error_info[reg])
-            if msg == error_info[reg]:
-                rowdictlist += [{'Num':str(i),'Registers':reg}]
-                i += 1
-                del error_info[reg]
+        keys_to_remove = [key for key, value in error_info.items() if value == msg]
+        for key in keys_to_remove:
+            rowdictlist += [{'Num':str(i),'Registers':key}]
+            i+=1
+            del error_info[key]
+        #for reg in error_info.keys():
+        #    print('Enter')
+        #    if msg == error_info[reg]:
+        #        print('Enter here.')
+        #        rowdictlist += [{'Num':str(i),'Registers':reg}]
+        #        i += 1
+        #        del modified_error_info[reg]
         #remove particular msg_sorted & error_info
         msg_sorted.remove(msg)
-
+        #error_info = modified_error_info
     x = asciitable.AsciiTable.fromDictList(rowdictlist,headers)
     print(x.getTableText())
     return x.getTableText(),msg_sorted,error_info
