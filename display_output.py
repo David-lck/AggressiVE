@@ -209,6 +209,7 @@ def disp_all_errors(disp_choice,msg_sorted,error_info):
         error_info = {}
     else:
         msg = msg_sorted[int(disp_choice)-1]
+        print(f'Error = {msg}')
         keys_to_remove = [key for key, value in error_info.items() if value == msg]
         for key in keys_to_remove:
             rowdictlist += [{'Num':str(i),'Registers':key}]

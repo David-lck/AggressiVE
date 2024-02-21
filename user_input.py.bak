@@ -138,6 +138,7 @@ class Post_test:
         [pass_infos,fail_infos,sus_hang_infos,error_infos] = status_infos
         avail_choice = []
         print('Second Validation!')
+        print(num_status)
         if Pass != 0:
             avail_choice.append('Pass Registers.')
         if Fail != 0:
@@ -157,8 +158,9 @@ class Post_test:
                 if val_choice in ['1','2','3','4','end']:
                     break
                 print('Please enter properly!')
+            print(val_choice)
             print(avail_choice)
-            print(int(val_choice))
+            print(avail_choice[int(val_choice)-1])
             if val_choice == 'end':
                 break
             elif 'Pass' in avail_choice[int(val_choice)-1]:
