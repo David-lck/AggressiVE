@@ -337,6 +337,8 @@ class Bit_Compare:
         result_value0 = result_value1 = ''
         if pre_rd == '0':
             pre_rd = '0' * len(wr)
+        elif pre_rd != '0' and len(pre_rd) < len(wr):
+            pre_rd = ('0' * (len(wr)-len(pre_rd))) + pre_rd
         for bit_wr in wr:
             if bit_wr == '0':
                 if expect_value == 'pre' and pre_rd[i] == rd[i]:
@@ -382,7 +384,7 @@ def arr_compare_value(attr,wr,rd,pre_rd):
     undefined_ro_behav_attrs = ['rw/ac','rw/fuse','rw/strap','dc']
     if attr in ['roswc','rw/cr'] or attr in undefined_attrs or attr in undefined_ro_behav_attrs:
         return [wr,rd[0],rd[1],pre_rd[0],pre_rd[1]]
-    elif attr in ['ro/c','wo/1','wo/c','na','rw0c_fw','rw1c_fw','double buffered','r/w hardware clear','read/32 bit write only','r/w firmware only','rw/0c/v']:
+    elif attr in ['ro/c','wo/1','wo/c','na','rw0c_fw','rw1c_fw','double buffered','r/w hardware clear','read/32 bit write only','r/w firmware only','rw/0c/v','ro/c/v']:
         return [wr,rd[0],pre_rd[0],pre_rd[1]]
     else:
         return [wr,rd,pre_rd[1]]
@@ -655,31 +657,31 @@ class Exec:
             reserved_num += 1
             disp.progress(reserved_num, reserved_print_num, prefix=f'Progress [{reserved_num}:{reserved_print_num}]:', infix1 = f'StartTime= {time.ctime()}', suffix=f'Reg: [{full_field_name}]')
             #validate
-            #try:
-            (pre_rd,wr_in_list,rd_in_list,pass_fail,fail_reason) = Exec.validate_1by1(full_field_name,reset_detection,halt_detection)
-            #except KeyboardInterrupt:
-            #    print('\n' + Fore.RED + 'Validation forced to stopped!' + Fore.RESET)
-            #    disp.disp_content(rowdictlist,x,alg,flg)
-            #    disp.disp_total_pass_fail(Pass,Fail,Unknown,Error,Hang)
-            #    break
-            #except:
-            #    message = sys.exc_info()[1]
-            #    fail_reason = str(message)
-            #    if len(fail_reason) >= 30:
-            #        fail_reason = fail_reason[:35-len(fail_reason)]+'...'
-            #    fail_reason = [fail_reason]
-            #    error_messages[full_field_name]=str(message)
-            #    pass_fail = 'error'
-            #    pre_rd = wr_in_list = rd_in_list = []
-            #    if "'Python SV time-out reached (0.1 se..." in fail_reason and reset_detection:
-            #        print('\n' + Fore.RED + "AggressiVE Forced Reboot due to error message!" + Fore.RESET)
-            #        print(f"Reg: {full_field_name}")
-            #        target.powerCycle(waitOff=1,waitAfter=1)
-            #        while True:
-            #            if target.readPostcode() == 0x10AD:
-            #                itp.unlock()
-            #                refresh()
-            #                break
+            try:
+                (pre_rd,wr_in_list,rd_in_list,pass_fail,fail_reason) = Exec.validate_1by1(full_field_name,reset_detection,halt_detection)
+            except KeyboardInterrupt:
+                print('\n' + Fore.RED + 'Validation forced to stopped!' + Fore.RESET)
+                disp.disp_content(rowdictlist,x,alg,flg)
+                disp.disp_total_pass_fail(Pass,Fail,Unknown,Error,Hang)
+                break
+            except:
+                message = sys.exc_info()[1]
+                fail_reason = str(message)
+                if len(fail_reason) >= 30:
+                    fail_reason = fail_reason[:35-len(fail_reason)]+'...'
+                fail_reason = [fail_reason]
+                error_messages[full_field_name]=str(message)
+                pass_fail = 'error'
+                pre_rd = wr_in_list = rd_in_list = []
+                if "'Python SV time-out reached (0.1 se..." in fail_reason and reset_detection:
+                    print('\n' + Fore.RED + "AggressiVE Forced Reboot due to error message!" + Fore.RESET)
+                    print(f"Reg: {full_field_name}")
+                    target.powerCycle(waitOff=1,waitAfter=1)
+                    while True:
+                        if target.readPostcode() == 0x10AD:
+                            itp.unlock()
+                            refresh()
+                            break
             attr = eval(full_field_name+'.info["attribute"]')
             #store fail fields validation info.
             if pass_fail == 'fail':
@@ -732,6 +734,7 @@ class Exec:
                         itp.unlock()
                         refresh()
                         break
+
         dump.export_regs(pass_regs, fail_regs, error_regs, sus_hang_regs)
         #Post Validation
         pass_infos = [pass_regs]
@@ -927,7 +930,11 @@ class Post_test:
                 else:
                     hang_reason = 'Validation will be stopped due to the present of machine check error'
                     print(hang_reason)
-                break
+                #break
+                while True:
+                    if target.readPostcode() == 0x10AD:
+                        itp.unlock()
+                        break
                 if is_cont:
                     (alg,flg) = dump.export_cont('store',hang_reason,alg,flg)
                     (alg,flg) = dump.export_cont('store',str(machine_chk_error),alg,flg)
