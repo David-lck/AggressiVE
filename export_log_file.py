@@ -122,6 +122,15 @@ def export_invalidate(choice,content,invf,vf):
         vf.write(content)
         vf.write('\n')
     return invf,vf
+	
+def export_regtrack(choice,content,rt):
+    if choice == 'open':
+        rt = open("regtrack.log","w")
+    elif choice == 'close':
+        rt.close()
+    elif choice == 'store_invalid':
+        rt.write(content)
+        rt.write('\n')
 
 def export_write_pass(plg,content):
     #For AggressiVE_pass.log

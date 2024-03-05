@@ -520,6 +520,7 @@ class Exec:
             pass
         return attr_badname_regs, their_attr
 
+
 def theory():
     '''
     Command:
@@ -653,6 +654,22 @@ def invalidate(input_reg,validate=False):#Completed(die,ip,fields)
     print('C>>Users>>pgsvlab>>Documents>>PythonSv>>attr_fields.log.' + Fore.RESET)
     if validate == True:
         return attr_fields,attr_ips
+		
+def reg_track(input_reg,validate=True):
+    input_reg = badname_regs(input_reg,validate)
+    (attr_fields,attr_ips) = invalidate(input_reg,validate)
+	numlist = []
+	rt = export_regtrack('open','','')
+    for attr_ip in attr_ips:
+        for attr_field in attr_fields:
+            if attr_ip in attr_field:
+                try:
+                    numlist[attr_ips.index(attr_ip)] += 1
+                except IndexError:
+                    numlist.append(1)
+        print(f"{attr_ip}= {str(numlist[attr_ips.index(attr_ip)])}")
+		rt = export_regtrack("store",f"{attr_ip}= {str(numlist[attr_ips.index(attr_ip)])}",rt)
+    rt = export_regtrack("close",'',rt)
         
 def attr_all(input_regs,validate=False):#for die, ip, register, and fields
     '''
