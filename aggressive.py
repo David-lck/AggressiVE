@@ -658,8 +658,8 @@ def invalidate(input_reg,validate=False):#Completed(die,ip,fields)
 def reg_track(input_reg,validate=True):
     input_reg = badname_regs(input_reg,validate)
     (attr_fields,attr_ips) = invalidate(input_reg,validate)
-	numlist = []
-	rt = export_regtrack('open','','')
+    numlist = []
+    rt = dump.export_regtrack('open','','')
     for attr_ip in attr_ips:
         for attr_field in attr_fields:
             if attr_ip in attr_field:
@@ -668,8 +668,8 @@ def reg_track(input_reg,validate=True):
                 except IndexError:
                     numlist.append(1)
         print(f"{attr_ip}= {str(numlist[attr_ips.index(attr_ip)])}")
-		rt = export_regtrack("store",f"{attr_ip}= {str(numlist[attr_ips.index(attr_ip)])}",rt)
-    rt = export_regtrack("close",'',rt)
+        rt = dump.export_regtrack("store",f"{attr_ip}= {str(numlist[attr_ips.index(attr_ip)])}",rt)
+    rt = dump.export_regtrack("close",'',rt)
         
 def attr_all(input_regs,validate=False):#for die, ip, register, and fields
     '''
