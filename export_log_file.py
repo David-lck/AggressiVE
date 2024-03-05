@@ -128,9 +128,10 @@ def export_regtrack(choice,content,rt):
         rt = open("regtrack.log","w")
     elif choice == 'close':
         rt.close()
-    elif choice == 'store_invalid':
+    elif choice == 'store':
         rt.write(content)
         rt.write('\n')
+    return rt
 
 def export_write_pass(plg,content):
     #For AggressiVE_pass.log
