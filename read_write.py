@@ -639,7 +639,7 @@ class Exec:
             print("AggressiVE Forced reset!!!")
         return pre_rd,wr_in_list,rd_in_list,pass_fail,fail_reason
         
-    def validate(valid_fields,chosen_attr,auto,is_cont,detections,num_val_seq,random):
+    def validate(valid_fields,chosen_attr,auto,detections,num_val_seq,random):
         [halt_detection,reset_detection,hang_detection,mca_check] = detections
         num=1
         Pass, Fail, Unknown, Error, Hang = 0, 0, 0, 0, 0
@@ -650,10 +650,7 @@ class Exec:
         error_messages = {}
         pass_regs, fail_regs, error_regs, sus_hang_regs = [], [], [], []
         cont_fail_cnt = 0
-        if is_cont:
-            (alg,flg) = dump.export_cont('open','NA',alg,flg)
-        else:
-            (alg,flg) = dump.export('open','NA',alg,flg)
+        (alg,flg) = dump.export('open','NA',alg,flg)
         #Exclude all the fields with non-chosen attr.
         chosen_attr_fields_all = track.track_chosen_attr_fields(valid_fields,chosen_attr)
         print(f"\nTotal Num Available= {str(len(chosen_attr_fields_all))}")
@@ -770,10 +767,7 @@ class Exec:
                     itp.unlock()
                     refresh()
                     break
-        (alg, flg) = user.Post_test.choose_post_test(num_status,alg,flg,status_infos,is_cont,detections,auto,num_val_seq)
-        if is_cont:
-            (alg,flg) = dump.export_cont('close_all','NA',alg,flg)
-            (alg,flg) = dump.export_cont('close_fail','NA',alg,flg)
+        (alg, flg) = user.Post_test.choose_post_test(num_status,alg,flg,status_infos,detections,auto,num_val_seq)
         else:
             (alg,flg) = dump.export('close_all','NA',alg,flg)
             (alg,flg) = dump.export('close_fail','NA',alg,flg)
@@ -826,16 +820,13 @@ class Post_test:
             regs_mca_errs.append(mca_err)
         return confirm_hang_regs, hang_stages, regs_mca_errs
 
-    def validate2_hang_regs(sus_hang_regs, alg, flg, is_cont):
+    def validate2_hang_regs(sus_hang_regs, alg, flg):
         confirm_hang_regs = []
         hang_stages = []
         regs_mca_errs = []
         hang_stage_reason = ['Pre-read','1st read-write','2nd read-write','3rd read-write']
         final_hang_stages = []
-        if is_cont:
-            hlg = open("AggressiVE_cont_hang.log","a")
-        else:
-            hlg = open("AggressiVE_hang.log","a")
+        hlg = open("AggressiVE_hang.log","a")
         #Do a reboot before validation to prevent hang at the beginning.
         target.powerCycle(waitOff=1,waitAfter=1)
         while True:
@@ -871,17 +862,14 @@ class Post_test:
         (alg, flg, hlg) = disp.disp_hang_regs(confirm_hang_regs, final_hang_stages, regs_mca_errs, alg, flg, hlg)
         hlg.close()
         dump.export_hang_regs(confirm_hang_regs)
-        if is_cont:
-            print('All the hang infos are stored in C>>Users>>pgsvlab>>PythonSv>>Aggressive_logs>>AggressiVE_cont_hang.log')
-        else:
-            print('All the hang infos are stored in C>>Users>>pgsvlab>>PythonSv>>Aggressive_logs>>AggressiVE_hang.log')
+        print('All the hang infos are stored in C>>Users>>pgsvlab>>PythonSv>>Aggressive_logs>>AggressiVE_hang.log')
         target.powerCycle(waitOff=1,waitAfter=1)
         while True:
             if target.readPostcode() == 0x10AD:
                 itp.unlock()
                 return alg, flg
 
-    def validate2_fail_regs(fail_regs,alg,flg,Fail,auto,is_cont,detections,num_val_seq):
+    def validate2_fail_regs(fail_regs,alg,flg,Fail,auto,detections,num_val_seq):
         num2print=0
         num_chosen_attr_fields = len(fail_regs)
         reserved_print_num = num_chosen_attr_fields
@@ -954,16 +942,10 @@ class Post_test:
                     if target.readPostcode() == 0x10AD:
                         itp.unlock()
                         break
-                if is_cont:
-                    (alg,flg) = dump.export_cont('store',hang_reason,alg,flg)
-                    (alg,flg) = dump.export_cont('store',str(machine_chk_error),alg,flg)
-                    (alg,flg) = dump.export_cont('store_fail',hang_reason,alg,flg)
-                    (alg,flg) = dump.export_cont('store_fail',str(machine_chk_error),alg,flg)
-                else:
-                    (alg,flg) = dump.export('store',hang_reason,alg,flg)
-                    (alg,flg) = dump.export('store',str(machine_chk_error),alg,flg)
-                    (alg,flg) = dump.export('store_fail',hang_reason,alg,flg)
-                    (alg,flg) = dump.export('store_fail',str(machine_chk_error),alg,flg)
+                (alg,flg) = dump.export('store',hang_reason,alg,flg)
+                (alg,flg) = dump.export('store',str(machine_chk_error),alg,flg)
+                (alg,flg) = dump.export('store_fail',hang_reason,alg,flg)
+                (alg,flg) = dump.export('store_fail',str(machine_chk_error),alg,flg)
                     
         #shows num of passed fields.
         if Fail2 == Fail:
@@ -972,7 +954,7 @@ class Post_test:
             print(f"In second validation, there's {Pass2} pass registers.")
         return alg,flg
 
-    def validate_pass(pass_infos,Pass,alg,flg,is_cont,detections,auto,num_val_seq):
+    def validate_pass(pass_infos,Pass,alg,flg,detections,auto,num_val_seq):
         num = 1
         plg = []
         #pass_regs_sets = []
@@ -993,11 +975,8 @@ class Post_test:
             if final_list_regs == []:
                 final_list_regs = pass_regs_set
             else:
-                final_list_regs = list(set(final_list_regs) | set(pass_regs_set))	
-        if is_cont:
-            plg = open("AggressiVE_cont_pass.log","a")
-        else:       
-            plg = open("AggressiVE_pass.log","a")
+                final_list_regs = list(set(final_list_regs) | set(pass_regs_set))	      
+        plg = open("AggressiVE_pass.log","a")
         num=1
         num2print=0
         rowdictlist,x = [],[]
@@ -1070,16 +1049,10 @@ class Post_test:
             #detect hang and stop.
             if 'hang' in pass_fail:
                 print('Validation will be stopped due to the present of machine check error')
-                if is_cont:
-                    (alg,flg) = dump.export_cont('store','Validation will be stopped due to the present of machine check error',alg,flg)
-                    (alg,flg) = dump.export_cont('store',str(machine_chk_error),alg,flg)
-                    (alg,flg) = dump.export_cont('store_fail','Validation will be stopped due to the present of machine check error',alg,flg)
-                    (alg,flg) = dump.export_cont('store_fail',str(machine_chk_error),alg,flg)
-                else:
-                    (alg,flg) = dump.export('store','Validation will be stopped due to the present of machine check error',alg,flg)
-                    (alg,flg) = dump.export('store',str(machine_chk_error),alg,flg)
-                    (alg,flg) = dump.export('store_fail','Validation will be stopped due to the present of machine check error',alg,flg)
-                    (alg,flg) = dump.export('store_fail',str(machine_chk_error),alg,flg)
+                (alg,flg) = dump.export('store','Validation will be stopped due to the present of machine check error',alg,flg)
+                (alg,flg) = dump.export('store',str(machine_chk_error),alg,flg)
+                (alg,flg) = dump.export('store_fail','Validation will be stopped due to the present of machine check error',alg,flg)
+                (alg,flg) = dump.export('store_fail',str(machine_chk_error),alg,flg)
                 plg = dump.export_write_pass(plg,'Validation will be stopped due to the present of machine check error')
                 plg = dump.export_write_pass(plg,str(machine_chk_error))
                 target.powerCycle(waitOff=1,waitAfter=1)

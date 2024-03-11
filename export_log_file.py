@@ -19,23 +19,6 @@ def export(choice,content,alg,flg):#Write/store only
         alg = open("AggressiVE.log", dump_mode)
         flg = open("AggressiVE_fail.log", dump_mode)
     return alg,flg
-	
-def export_cont(choice,content,alg,flg):#Write/store only
-    dump_mode = "w"
-    if choice == 'close_all':
-        alg.close()
-    elif choice == 'close_fail':
-        flg.close()
-    elif choice == 'store':
-        alg.write(content)
-        alg.write('\n')
-    elif choice == 'store_fail':
-        flg.write(content)
-        flg.write('\n')
-    else:
-        alg = open("AggressiVE_cont.log", dump_mode)
-        flg = open("AggressiVE_cont_fail.log", dump_mode)
-    return alg,flg
     
 def export_badname(choice,content,blg):
     current_time = str(time.ctime().replace(" ","_").replace(":",""))

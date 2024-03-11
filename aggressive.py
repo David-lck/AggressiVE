@@ -60,7 +60,6 @@ AVAIL_FUNCS = {
 'invalidate' : 'To display all the fields which have the information of attribute.',
 'attr_all' : 'To display the number of fields we have with the specific attributes.',
 'aggressive' : 'Main function of AggressiVE. (Require the initial declaration from user if automatable.)',
-'aggressive_cont' : 'Another main function of AggressiVE. To continue the previous unfinish validation or validate specific regs.(Require log files that was generated from aggressive main function.)',
 'log' : 'To display logs that AgressiVE may generate.',
 'set_access_method' : 'To set and check for the access method',
 'reg_track' : 'To display the number of fields that is validatable in every IPs under input_reg.'
@@ -245,25 +244,6 @@ class Pre_test:
             (alg,flg) = dump.export('store',one_line_msg,alg,flg)
         (alg,flg) = dump.export('close_all','NA',alg,flg)
         (alg,flg) = dump.export('close_fail','NA',alg,flg)
-        
-    def _get_logs_regs(pass_regs, fail_regs, error_regs, hang_regs):
-        if pass_regs:
-            p_regs = track.detect_pass_regs_log()
-        else:
-            p_regs = []
-        if fail_regs:
-            f_regs = track.detect_fail_regs_log()
-        else:
-            f_regs = []
-        if error_regs:
-            e_regs = track.detect_error_regs_log()
-        else:
-            e_regs = []
-        if hang_regs:
-            h_regs = track.detect_hang_regs_log()
-        else:
-            h_regs = []
-        return p_regs,f_regs,e_regs,h_regs
 		
     def _main(input_reg,auto_attr,auto_access):
         full_fields = badname_regs(input_reg,True)#detect for error regs and fields. Exclude them out from good regs and fields.
@@ -273,18 +253,9 @@ class Pre_test:
         chosen_attr = user.Pre_test.attr_choice([],auto_attr)#choose the one for validation.('r/w' or '')
         Pre_test.export_pre_test_msg(log_store)#store access method info in 'AggressiVE.log'.
         return attr_fields,chosen_attr
-    
-    def _exclude_regs(input_regs,auto_attr,to_be_exc_regs,auto_access):
-        Pre_test.initial_setting()
-        input_regs = Pre_test.convert_str2list(input_regs)
-        regs = []
-        for input_reg in input_regs:
-            (attr_fields,chosen_attr) = Pre_test._main(input_reg,auto_attr,auto_access)#run all pretest features.
-            regs += attr_fields
-        return regs
 
 class Post_test:
-    def _fail_main(fail_infos,alg,flg,is_cont,detections,num_val_seq):
+    def _fail_main(fail_infos,alg,flg,detections,num_val_seq):
         [Fail,fail_regs,fail_x,auto] = fail_infos
         if Fail > 0 :
             chosen_fail_val = 1
@@ -293,7 +264,7 @@ class Post_test:
                 if chosen_fail_val == 2:
                     (alg,flg) = dump.export('store','Fail Registers Re-write is chosen!',alg,flg)
                     (alg,flg) = dump.export('store_fail','Fail Registers Re-write is chosen!',alg,flg)
-                    (alg,flg) = rdwr.Post_test.validate2_fail_regs(fail_regs,alg,flg,Fail,auto,is_cont,detections,num_val_seq)#2nd validation for fail fields(re-write)
+                    (alg,flg) = rdwr.Post_test.validate2_fail_regs(fail_regs,alg,flg,Fail,auto,detections,num_val_seq)#2nd validation for fail fields(re-write)
                 elif chosen_fail_val == 1:
                     disp.disp_fail_content(fail_x,alg,flg)#re-print fail fields
                     print('Fail:'+str(Fail))
@@ -468,10 +439,6 @@ class Logs:
     'error_regs' : 'C>>Users>>pgsvlab>>PythonSv>>Aggressive_logs>>error_regs.log',
     'sus_hang_regs' : 'C>>Users>>pgsvlab>>PythonSv>>Aggressive_logs>>sus_hang_regs.log',
     'hang_regs' : 'C>>Users>>pgsvlab>>PythonSv>>Aggressive_logs>>hang_regs.log',
-    'AggressiVE_cont' : 'C>>Users>>pgsvlab>>PythonSv>>Aggressive_logs>>AggressiVE_cont.log',
-    'AggressiVE_cont_fail' : 'C>>Users>>pgsvlab>>PythonSv>>Aggressive_logs>>AggressiVE_cont_fail.log',
-    'AggressiVE_cont_error' : 'C>>Users>>pgsvlab>>PythonSv>>Aggressive_logs>>AggressiVE_cont_error.log',
-    'AggressiVE_cont_hang' : 'C>>Users>>pgsvlab>>PythonSv>>Aggressive_logs>>AggressiVE_cont_hang.log',
     'AggressiVE_badname' : 'C>>Users>>pgsvlab>>PythonSv>>Aggressive_logs>>AggressiVE_badname.log',
     'regtrack' : 'C>>Users>>pgsvlab>>PythonSv>>Aggressive_logs>>regtrack.log'
 	}
@@ -489,10 +456,6 @@ class Logs:
     'error_regs' : 'List of registers that are not able to read and write and show error message.',
     'sus_hang_regs' : 'List of registers that might caused the system hang.',
     'hang_regs' : 'List of registers that caused the system hang.',
-    'AggressiVE_cont' : 'All the information when validating specified regs by running aggressive_cont().',
-    'AggressiVE_cont_fail' : 'All the fail validation information when validating specified regs by running aggressive_cont().',
-    'AggressiVE_cont_error' : "All the error validation information when running aggressive_cont().",
-    'AggressiVE_cont_hang' : 'All the hang validation information when running aggressive_cont().',
     'AggressiVE_badname' : 'All the information when validating unacceptable name regs by running aggressive_badname().',
     'regtrack' : 'List the number of validatable fields for every IPs under input_reg.'
 	}
@@ -506,14 +469,10 @@ class Logs:
     'AggressiVE_hang' : 'aggressive()',
     'attr_all' : 'NA',
     'pass_regs' : 'NA',
-    'fail_regs' : 'aggressive() & cont()',
-    'error_regs' : 'aggressive() & cont()',
+    'fail_regs' : 'aggressive()',
+    'error_regs' : 'aggressive()',
     'sus_hang_regs' : 'NA',
-    'hang_regs' : 'aggressive() & cont()',
-    'AggressiVE_cont' : 'aggressive_cont()',
-    'AggressiVE_cont_fail' : 'aggressive_cont()',
-    'AggressiVE_cont_error' : 'aggressive_cont()',
-    'AggressiVE_cont_hang' : 'aggressive_cont()',
+    'hang_regs' : 'aggressive()',
     'AggressiVE_badname' : 'NA',
     'regtrack' : 'reg_track()'
     }
@@ -857,115 +816,9 @@ def aggressive(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xlsx'):
     Pre_test.initial_setting()
     for input_reg in filtered_input_regs:
         (attr_fields,chosen_attr) = Pre_test._main(input_reg,auto_attr,auto_access)#run all pretest features.
-        rdwr.Exec.validate(attr_fields,chosen_attr,auto,False,detections,num_val_seq,random)#validation.
+        rdwr.Exec.validate(attr_fields,chosen_attr,auto,detections,num_val_seq,random)#validation.
     dump.goto_default_path()
 
-def aggressive_cont(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xlsx'):
-    '''
-    Command:
-        aggressive_cont()
-
-    Details:
-        Feature 1: Continue to validate the regs that user didn't finish by referring to the previous logs.
-        Feature 2: Validate with regs that has been filtered. (Excluded some categories of regs)
-        Feature 2: Validate only the 'regs' that only marked as True.
-
-    Inputs:
-        input_regs = Name of die/ Name of IP/ Name of reg.
-        to_exclude = If True, it will exclude the "regs" you marked as True from the input_regs[continue unfinished work from aggressive()]. If False, it will ignore input_regs & validate the "regs" that marked as True only.
-        pass_regs = If True, it will refer to the registers from pass_regs.log
-        fail_regs = If True, it will refer to the registers from fail_regs.log
-        error_regs = If True, it will refer to the registers from error_regs.log
-        hang_regs = If True, it will refer to the registers from hang_regs.log
-        Log Files:
-            - pass_regs.log
-            - fail_regs.log
-            - error_regs.log
-            - hang_regs.log
-
-    Outputs:
-        Table with the information of validation.
-        Log Files:
-            - pass_regs.log [generate new log]
-            - fail_regs.log [append[to_exclude=True];override[to_exclude=False]]
-            - error_regs.log [append[to_exclude=True];override[to_exclude=False]]
-            - hang_regs.log [append[to_exclude=True];override[to_exclude=False]]
-            - AggressiVE_cont.log [append[to_exclude=True];override[to_exclude=False]]
-            - AggressiVE_cont_fail.log [append[to_exclude=True];override[to_exclude=False]]
-            - AggressiVE_cont_pass.log [append[to_exclude=True];override[to_exclude=False]]
-            - AggresiVE_cont_error.log [append[to_exclude=True];override[to_exclude=False]]
-            - AggressiVE_cont_hang.log [append[to_exclude=True];override[to_exclude=False]]
-
-    EX:
-        >>> aggressive_cont('cdie')
-        >>> aggressive_cont('cdie.taps.core2_corepma')
-    '''
-    df = pd.read_excel(file,'aggressive_cont')
-    input_regs = df['input_regs'].values.tolist()[0]
-    to_exclude = df['to_exclude'].values.tolist()[0]
-    auto_attr = df['auto_attr'].values.tolist()[0]
-    auto_access = df['access_method'].values.tolist()[0]
-    pass_regs = df['pass_regs'].values.tolist()[0]
-    fail_regs = df['fail_regs'].values.tolist()[0]
-    error_regs = df['error_regs'].values.tolist()[0]
-    hang_regs = df['hang_regs'].values.tolist()[0]
-    halt_detection = df['halt_detection'].values.tolist()[0]
-    reset_detection = df['reset_detection'].values.tolist()[0]
-    hang_detection = df['hang_detection'].values.tolist()[0]
-    auto = df['auto'].values.tolist()[0]
-    mca_check = df['mca_check'].values.tolist()[0]
-    detections = [halt_detection,reset_detection,hang_detection,mca_check]
-    try:
-        eval('__main__.'+input_regs)
-    except:
-        print('No such die exist in this project!')
-        print('Please enter the correct one!')
-        return 
-    dump.goto_latest_log_folder()
-    (p_regs, f_regs, e_regs, h_regs) = Pre_test._get_logs_regs(pass_regs, fail_regs, error_regs, hang_regs)
-    if to_exclude:#continue unfinish work/ eclude the regs
-        to_be_exc_regs = p_regs + f_regs + e_regs + h_regs
-        regs = Pre_test._exclude_regs(input_regs,auto_attr,to_be_exc_regs,auto_access)
-        avai_attrs = attr_all(regs,True)#display available attributes
-        chosen_attr = user.Pre_test.attr_choice(avai_attrs,auto_attr)#choose the one for validation.('r/w' or '')
-        rdwr.Exec.validate(regs,chosen_attr,auto,True,detections)#validation.
-    else:
-        (log_store,chosen_access) = user.Pre_test.access_choice(input_regs,auto_access,True)#display available access method and choose access method.(only for ip)
-        log_store = track.feedback_access_method(chosen_access,attr_ips,log_store)
-        #validate pass regs
-        print('Validate pass_regs!')
-        dump.export_cont('open','',alg,flg)
-        dump.export_cont('store','Validate pass_regs!',alg,flg)
-        dump.export_cont('close','',alg,flg)
-        avai_attrs = attr_all(p_regs,True)#display available attributes
-        chosen_attr = user.Pre_test.attr_choice(avai_attrs,auto_attr)#choose the one for validation.('r/w' or '')
-        rdwr.Exec.validate(p_regs,chosen_attr,auto,True,detections)
-        #validate fail regs
-        print('Validate fail_regs!')
-        dump.export_cont('open','',alg,flg)
-        dump.export_cont('store','Validate fail_regs!',alg,flg)
-        dump.export_cont('close','',alg,flg)
-        avai_attrs = attr_all(f_regs,True)#display available attributes
-        chosen_attr = user.Pre_test.attr_choice(avai_attrs,auto_attr)#choose the one for validation.('r/w' or '')
-        rdwr.Exec.validate(f_regs,chosen_attr,auto,True,detections)
-        #validate error regs
-        print('Validate error_regs!')
-        dump.export_cont('open','',alg,flg)
-        dump.export_cont('store','Validate error_regs!',alg,flg)
-        dump.export_cont('close','',alg,flg)
-        avai_attrs = attr_all(e_regs,True)#display available attributes
-        chosen_attr = user.Pre_test.attr_choice(avai_attrs,auto_attr)#choose the one for validation.('r/w' or '')
-        rdwr.Exec.validate(e_regs,chosen_attr,auto,True,detections)
-        #validate hang regs
-        print('Validate hang_regs!')
-        dump.export_cont('open','',alg,flg)
-        dump.export_cont('store','Validate hang_regs!',alg,flg)
-        dump.export_cont('close','',alg,flg)
-        avai_attrs = attr_all(h_regs,True)#display available attributes
-        chosen_attr = user.Pre_test.attr_choice(h_regs,auto_attr)#choose the one for validation.('r/w' or '')
-        rdwr.Exec.validate(h_regs,chosen_attr,auto,True,detections)
-    dump.goto_default_path()
-		
 def aggressive_badname(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xlsx'):
     '''
     Command:
