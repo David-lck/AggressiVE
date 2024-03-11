@@ -31,6 +31,7 @@ try:
     from meteorlake import debug
 except:
     from pantherlake import debug
+import random as dice
 
 all_undefined_attrs = ['dc','rw/ac','rw/l/k','rw/s/l','rw/fuse','rw/strap']
 partial_defined_attrs = ['ro/c/v','ro/p','ro/v','ro/v/p','rw/1c/p','rw/1c/v','rw/1c/v/p','rw/0c/v','rw/1s/v/p','rw/1s/v','rw/1s/v/l','rw/o/p','rw/o/v/l','rw/p','rw/p/l','rw/v','rw/v/p','rw/v/l','rw/v/p/l','rw/v2','ro/c','rw/cr','wo/1','wo/c','na','rw0c_fw','rw1c_fw','double buffered','r/w hardware clear','read/32 bit write only','r/w firmware only']
@@ -596,19 +597,32 @@ class Exec:
             sus_hang_regs.append(chosen_attr_fields[chosen_attr_fields.index(full_field_name)-9:chosen_attr_fields.index(full_field_name)+1])
         return pass_regs, fail_regs, error_regs, sus_hang_regs
 
-    def validate_1by1(full_field_name,reset_detection,halt_detection):#only on one chosen attr or all attrs.
+    def validate_1by1(full_field_name,reset_detection,halt_detection,num_val_seq):#only on one chosen attr or all attrs.
         wr_in_list = []
         rd_in_list = []
         fail_reason = []
         (pre_rd,pass_fail_pre_rd) = Val_stage.pre_read(full_field_name)
         (wr_in_list,rd_in_list,pass_fail_1st_val) = Val_stage.first_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,'1st_stage_rdwr','A5',reset_detection)
-        (wr_in_list,rd_in_list,pass_fail_2nd_val) = Val_stage.second_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,'2nd_stage_rdwr','5A',reset_detection)
-        (wr_in_list,rd_in_list,pass_fail_3rd_val) = Val_stage.third_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,'3rd_stage_rdwr','A5',reset_detection)
+        if num_val_seq == 3:
+            (wr_in_list,rd_in_list,pass_fail_2nd_val) = Val_stage.second_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,'2nd_stage_rdwr','5A',reset_detection)
+            (wr_in_list,rd_in_list,pass_fail_3rd_val) = Val_stage.third_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,'3rd_stage_rdwr','A5',reset_detection)
+        else:
+            wr_in_list.append('NA')
+            wr_in_list.append('NA')
+            rd_in_list.append('NA')
+            rd_in_list.append('NA')
+            #if attr in ['roswc','rw/cr'] or attr in all_undefined_attrs:#store double read
+            #    rd_in_list.append('NA')
+            #    rd_in_list.append('NA')
+            pass_fail_2nd_val = 'NA'
+            pass_fail_3rd_val = 'NA'
         if 'fail' in [pass_fail_pre_rd,pass_fail_1st_val,pass_fail_2nd_val,pass_fail_3rd_val]:
             pass_fail = 'fail'
             fail_reason = track.track_fail_reason(pass_fail_pre_rd,pass_fail_1st_val,pass_fail_2nd_val,pass_fail_3rd_val)
-        elif 'NA' in [pass_fail_pre_rd,pass_fail_1st_val,pass_fail_2nd_val,pass_fail_3rd_val]:#for the fields with the non-prepared attr and ro/c.
-            if 'pass' in [pass_fail_pre_rd,pass_fail_1st_val,pass_fail_2nd_val,pass_fail_3rd_val]:#for ro/c and ro/v
+        elif 'NA' in [pass_fail_pre_rd,pass_fail_1st_val,pass_fail_2nd_val,pass_fail_3rd_val]:#for the fields with the non-prepared attr and 1 num_val_seq case.
+            if 'fail' in [pass_fail_pre_rd,pass_fail_1st_val,pass_fail_2nd_val,pass_fail_3rd_val]:#for ro/c and ro/v
+                pass_fail = 'fail'
+            elif 'pass' in [pass_fail_pre_rd,pass_fail_1st_val,pass_fail_2nd_val,pass_fail_3rd_val]:
                 pass_fail = 'pass'
             else:
                 pass_fail = 'NA'
@@ -625,7 +639,7 @@ class Exec:
             print("AggressiVE Forced reset!!!")
         return pre_rd,wr_in_list,rd_in_list,pass_fail,fail_reason
         
-    def validate(valid_fields,chosen_attr,auto,is_cont,detections):
+    def validate(valid_fields,chosen_attr,auto,is_cont,detections,num_val_seq,random):
         [halt_detection,reset_detection,hang_detection,mca_check] = detections
         num=1
         Pass, Fail, Unknown, Error, Hang = 0, 0, 0, 0, 0
@@ -641,8 +655,13 @@ class Exec:
         else:
             (alg,flg) = dump.export('open','NA',alg,flg)
         #Exclude all the fields with non-chosen attr.
-        chosen_attr_fields = track.track_chosen_attr_fields(valid_fields,chosen_attr)
-        print(f"\nTotal Num Available= {str(len(chosen_attr_fields))}")
+        chosen_attr_fields_all = track.track_chosen_attr_fields(valid_fields,chosen_attr)
+        print(f"\nTotal Num Available= {str(len(chosen_attr_fields_all))}")
+        if random != False:
+            chosen_attr_fields = dice.sample(chosen_attr_fields_all, random)
+            print(f"Total Random Num Available= {str(len(chosen_attr_fields))}")
+        else:
+            chosen_attr_fields = chosen_attr_fields_all
         #validation.
         num_chosen_attr_fields = len(chosen_attr_fields)
         reserved_print_num=len(chosen_attr_fields)
@@ -658,7 +677,7 @@ class Exec:
             disp.progress(reserved_num, reserved_print_num, prefix=f'Progress [{reserved_num}:{reserved_print_num}]:', infix1 = f'StartTime= {time.ctime()}', suffix=f'Reg: [{full_field_name}]')
             #validate
             try:
-                (pre_rd,wr_in_list,rd_in_list,pass_fail,fail_reason) = Exec.validate_1by1(full_field_name,reset_detection,halt_detection)
+                (pre_rd,wr_in_list,rd_in_list,pass_fail,fail_reason) = Exec.validate_1by1(full_field_name,reset_detection,halt_detection,num_val_seq)
             except KeyboardInterrupt:
                 print('\n' + Fore.RED + 'Validation forced to stopped!' + Fore.RESET)
                 disp.disp_content(rowdictlist,x,alg,flg)
@@ -693,11 +712,11 @@ class Exec:
                         Hang+=1
                     else:
                         cont_fail_cnt += 1
-                (fail_rowdl,fail_x) = disp.store_fail_content(fail_rowdl,fail_x,num,full_field_name,attr,pass_fail,pre_rd,wr_in_list,rd_in_list,fail_reason)
+                (fail_rowdl,fail_x) = disp.store_fail_content(fail_rowdl,fail_x,num,full_field_name,attr,pass_fail,pre_rd,wr_in_list,rd_in_list,fail_reason,num_val_seq)
             elif pass_fail =='pass':#this statement is for continuous fail due to undetected hang
                 cont_fail_cnt = 0 #reset it back due to not continuous fail.
             #display and storing validation info in table form.
-            (rowdictlist,x) = disp.store_content(rowdictlist,x,num,full_field_name,attr,pass_fail,pre_rd,wr_in_list,rd_in_list,fail_reason)
+            (rowdictlist,x) = disp.store_content(rowdictlist,x,num,full_field_name,attr,pass_fail,pre_rd,wr_in_list,rd_in_list,fail_reason,num_val_seq)
             (Pass,Fail,Unknown,Error) = track.track_num_pass_fail(pass_fail,Pass,Fail,Unknown,Error)
             #print the table when reach number user want to print.
             num2print -= 1
@@ -751,7 +770,7 @@ class Exec:
                     itp.unlock()
                     refresh()
                     break
-        (alg, flg) = user.Post_test.choose_post_test(num_status,alg,flg,status_infos,is_cont,detections,auto)
+        (alg, flg) = user.Post_test.choose_post_test(num_status,alg,flg,status_infos,is_cont,detections,auto,num_val_seq)
         if is_cont:
             (alg,flg) = dump.export_cont('close_all','NA',alg,flg)
             (alg,flg) = dump.export_cont('close_fail','NA',alg,flg)
@@ -862,7 +881,7 @@ class Post_test:
                 itp.unlock()
                 return alg, flg
 
-    def validate2_fail_regs(fail_regs,alg,flg,Fail,auto,is_cont,detections):
+    def validate2_fail_regs(fail_regs,alg,flg,Fail,auto,is_cont,detections,num_val_seq):
         num2print=0
         num_chosen_attr_fields = len(fail_regs)
         reserved_print_num = num_chosen_attr_fields
@@ -887,7 +906,7 @@ class Post_test:
             disp.progress(reserved_num, reserved_print_num, prefix=f'Progress [{reserved_num}:{reserved_print_num}]:', infix1 = f'StartTime= {time.ctime()}', suffix=f'Reg: [{fail_field_name}]')
             #validate
             try:
-                (pre_rd,wr_in_list,rd_in_list,pass_fail,fail_reason) = Exec.validate_1by1(fail_field_name,detections[1],detections[0])
+                (pre_rd,wr_in_list,rd_in_list,pass_fail,fail_reason) = Exec.validate_1by1(fail_field_name,detections[1],detections[0],num_val_seq)
             except KeyboardInterrupt:
                 print('\n' + Fore.RED + 'Fail 2nd Validation forced to stopped!' + Fore.RESET)
                 disp.disp_fail_content(fail_x,alg,flg)
@@ -903,7 +922,7 @@ class Post_test:
                 pass_fail = 'error'
                 pre_rd = wr_in_list = rd_in_list = ['NA','NA','NA']
             attr = eval(fail_field_name+'.info["attribute"]')
-            (fail_rowdl,fail_x) = disp.store_fail_content(fail_rowdl,fail_x,num,fail_field_name,attr,pass_fail,pre_rd,wr_in_list,rd_in_list,fail_reason)
+            (fail_rowdl,fail_x) = disp.store_fail_content(fail_rowdl,fail_x,num,fail_field_name,attr,pass_fail,pre_rd,wr_in_list,rd_in_list,fail_reason,num_val_seq)
             (Pass2,Fail2,Unknown2,Error2) = track.track_num_pass_fail(pass_fail,Pass2,Fail2,Unknown2,Error2)
             if 'hang' in fail_reason:
                 num2print = 0
@@ -953,7 +972,7 @@ class Post_test:
             print(f"In second validation, there's {Pass2} pass registers.")
         return alg,flg
 
-    def validate_pass(pass_infos,Pass,alg,flg,is_cont,detections,auto):#wip...#dont plan auto yet...
+    def validate_pass(pass_infos,Pass,alg,flg,is_cont,detections,auto,num_val_seq):
         num = 1
         plg = []
         #pass_regs_sets = []
@@ -1003,7 +1022,7 @@ class Post_test:
             disp.progress(reserved_num, reserved_print_num, prefix=f'Progress [{reserved_num}:{reserved_print_num}]:', infix1 = f'StartTime= {time.ctime()}', suffix=f'Reg: [{reg}]')
             #validate
             try:
-                (pre_rd,wr_in_list,rd_in_list,pass_fail,fail_reason) = Exec.validate_1by1(reg,detections[1],detections[0])
+                (pre_rd,wr_in_list,rd_in_list,pass_fail,fail_reason) = Exec.validate_1by1(reg,detections[1],detections[0],num_val_seq)
             except KeyboardInterrupt:
                 print('\n' + Fore.RED + 'Pass 2nd Validation forced to stopped!' + Fore.RESET)
                 disp.disp_content(rowdictlist,x,alg,flg)
@@ -1020,7 +1039,7 @@ class Post_test:
                 pre_rd = wr_in_list = rd_in_list = ['NA','NA','NA']
             #display and storing validation info in table form.
             attr = eval(reg+'.info["attribute"]')
-            (rowdictlist,x) = disp.store_content(rowdictlist,x,num,reg,attr,pass_fail,pre_rd,wr_in_list,rd_in_list,fail_reason)
+            (rowdictlist,x) = disp.store_content(rowdictlist,x,num,reg,attr,pass_fail,pre_rd,wr_in_list,rd_in_list,fail_reason,num_val_seq)
             (Pass,Fail,Unknown,Error) = track.track_num_pass_fail(pass_fail,Pass,Fail,Unknown,Error)
             #print the table when reach number user want to print.
             if pass_fail == 'fail':

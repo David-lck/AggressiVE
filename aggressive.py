@@ -62,7 +62,8 @@ AVAIL_FUNCS = {
 'aggressive' : 'Main function of AggressiVE. (Require the initial declaration from user if automatable.)',
 'aggressive_cont' : 'Another main function of AggressiVE. To continue the previous unfinish validation or validate specific regs.(Require log files that was generated from aggressive main function.)',
 'log' : 'To display logs that AgressiVE may generate.',
-'set_access_method' : 'To set and check for the access method'
+'set_access_method' : 'To set and check for the access method',
+'reg_track' : 'To display the number of fields that is validatable in every IPs under input_reg.'
 }
 def list_all_cmd():
     headers = ['Available Functions','Description']
@@ -283,7 +284,7 @@ class Pre_test:
         return regs
 
 class Post_test:
-    def _fail_main(fail_infos,alg,flg,is_cont,detections):
+    def _fail_main(fail_infos,alg,flg,is_cont,detections,num_val_seq):
         [Fail,fail_regs,fail_x,auto] = fail_infos
         if Fail > 0 :
             chosen_fail_val = 1
@@ -292,7 +293,7 @@ class Post_test:
                 if chosen_fail_val == 2:
                     (alg,flg) = dump.export('store','Fail Registers Re-write is chosen!',alg,flg)
                     (alg,flg) = dump.export('store_fail','Fail Registers Re-write is chosen!',alg,flg)
-                    (alg,flg) = rdwr.Post_test.validate2_fail_regs(fail_regs,alg,flg,Fail,auto,is_cont,detections)#2nd validation for fail fields(re-write)
+                    (alg,flg) = rdwr.Post_test.validate2_fail_regs(fail_regs,alg,flg,Fail,auto,is_cont,detections,num_val_seq)#2nd validation for fail fields(re-write)
                 elif chosen_fail_val == 1:
                     disp.disp_fail_content(fail_x,alg,flg)#re-print fail fields
                     print('Fail:'+str(Fail))
@@ -471,7 +472,8 @@ class Logs:
     'AggressiVE_cont_fail' : 'C>>Users>>pgsvlab>>PythonSv>>Aggressive_logs>>AggressiVE_cont_fail.log',
     'AggressiVE_cont_error' : 'C>>Users>>pgsvlab>>PythonSv>>Aggressive_logs>>AggressiVE_cont_error.log',
     'AggressiVE_cont_hang' : 'C>>Users>>pgsvlab>>PythonSv>>Aggressive_logs>>AggressiVE_cont_hang.log',
-    'AggressiVE_badname' : 'C>>Users>>pgsvlab>>PythonSv>>Aggressive_logs>>AggressiVE_badname.log'
+    'AggressiVE_badname' : 'C>>Users>>pgsvlab>>PythonSv>>Aggressive_logs>>AggressiVE_badname.log',
+    'regtrack' : 'C>>Users>>pgsvlab>>PythonSv>>Aggressive_logs>>regtrack.log'
 	}
     DESC = {
     'wout_attr_fields' : "Fields that don't have attribute information.",
@@ -491,7 +493,8 @@ class Logs:
     'AggressiVE_cont_fail' : 'All the fail validation information when validating specified regs by running aggressive_cont().',
     'AggressiVE_cont_error' : "All the error validation information when running aggressive_cont().",
     'AggressiVE_cont_hang' : 'All the hang validation information when running aggressive_cont().',
-    'AggressiVE_badname' : 'All the information when validating unacceptable name regs by running aggressive_badname().'
+    'AggressiVE_badname' : 'All the information when validating unacceptable name regs by running aggressive_badname().',
+    'regtrack' : 'List the number of validatable fields for every IPs under input_reg.'
 	}
     AR = {
     'wout_attr_fields' : 'NA',
@@ -511,7 +514,8 @@ class Logs:
     'AggressiVE_cont_fail' : 'aggressive_cont()',
     'AggressiVE_cont_error' : 'aggressive_cont()',
     'AggressiVE_cont_hang' : 'aggressive_cont()',
-    'AggressiVE_badname' : 'NA'
+    'AggressiVE_badname' : 'NA',
+    'regtrack' : 'reg_track()'
     }
 
 class Exec:
@@ -656,6 +660,26 @@ def invalidate(input_reg,validate=False):#Completed(die,ip,fields)
         return attr_fields,attr_ips
 		
 def reg_track(input_reg,validate=True):
+    '''
+    Command:
+        reg_track()
+
+    Details:
+        Displaying the number (per IPs) of all the registers available and 'validatable' under the input_reg.
+
+    Inputs:
+        input_regs = Name of die/ Name of IP
+
+    Outputs:
+        Table with the number of registers in every IPs under the input_regs.
+        Log File: regtrack.log
+
+    EX:
+        >>> input_reg('soc')
+        >>> input_reg('cdie')
+        >>> input_reg('ioe')
+        >>> input_reg('gcd')
+    '''
     input_reg = badname_regs(input_reg,validate)
     (attr_fields,attr_ips) = invalidate(input_reg,validate)
     numlist = []
@@ -798,6 +822,8 @@ def aggressive(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xlsx'):
     hang_detection = df['hang_detection'].values.tolist()[0]
     auto = df['auto'].values.tolist()[0]
     mca_check = df['mca_check'].values.tolist()[0]
+    num_val_seq = df['num_val_seq'].values.tolist()[0]
+    random = df['random'].values.tolist()[0]
     dump.goto_default_path()
     dump.create_log_folder()
     dump.goto_latest_log_folder()
@@ -831,7 +857,7 @@ def aggressive(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xlsx'):
     Pre_test.initial_setting()
     for input_reg in filtered_input_regs:
         (attr_fields,chosen_attr) = Pre_test._main(input_reg,auto_attr,auto_access)#run all pretest features.
-        rdwr.Exec.validate(attr_fields,chosen_attr,auto,False,detections)#validation.
+        rdwr.Exec.validate(attr_fields,chosen_attr,auto,False,detections,num_val_seq,random)#validation.
     dump.goto_default_path()
 
 def aggressive_cont(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xlsx'):
