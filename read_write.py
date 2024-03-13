@@ -768,9 +768,8 @@ class Exec:
                     refresh()
                     break
         (alg, flg) = user.Post_test.choose_post_test(num_status,alg,flg,status_infos,detections,auto,num_val_seq)
-        else:
-            (alg,flg) = dump.export('close_all','NA',alg,flg)
-            (alg,flg) = dump.export('close_fail','NA',alg,flg)
+        (alg,flg) = dump.export('close_all','NA',alg,flg)
+        (alg,flg) = dump.export('close_fail','NA',alg,flg)
         
 class Post_test:
     def simplify_error_msg(full_err_msg):
