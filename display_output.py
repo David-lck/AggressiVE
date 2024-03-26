@@ -252,7 +252,7 @@ def disp_all_errors(disp_choice,msg_sorted,error_info):
         #error_info = modified_error_info
     x = asciitable.AsciiTable.fromDictList(rowdictlist,headers)
     print(x.getTableText())
-    return x.getTableText(),msg_sorted,error_info
+    return x.getTableText(),msg_sorted,error_info, f'Error = {msg}'
 
 def time(sec):
     min = 0

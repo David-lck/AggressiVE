@@ -116,7 +116,9 @@ class Post_test:
                 disp_choice = input('Which error of registers to display?(Enter=All;"end"=stop):')
             if disp_choice != "end":
                 try:
-                    (printed_error_msg,msg_sorted,error_messages) = disp.disp_all_errors(disp_choice,msg_sorted,error_messages)
+                    (printed_error_msg,msg_sorted,error_messages,error_type) = disp.disp_all_errors(disp_choice,msg_sorted,error_messages)
+                    elg.write(error_type)
+                    elg.write('\n')
                     elg.write(printed_error_msg)
                     elg.write('\n')
                 except KeyboardInterrupt:
