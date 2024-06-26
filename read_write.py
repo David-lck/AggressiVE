@@ -27,10 +27,14 @@ try:
 except:
     from tqdm import tqdm
 import pysvtools.fv_common.target as target
-try:
-    from meteorlake import debug
-except:
-    from pantherlake import debug
+import debug
+#try:
+#    from arrowlake import debug
+#except:
+#    try:
+#        from meteorlake import debug
+#    finally:
+#        from pantherlake import debug
 import random as dice
 
 all_undefined_attrs = ['dc','rw/ac','rw/l/k','rw/s/l','rw/fuse','rw/strap']
