@@ -783,9 +783,12 @@ def aggressive(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xlsx'):
     mca_check = df['mca_check'].values.tolist()[0]
     num_val_seq = df['num_val_seq'].values.tolist()[0]
     random = df['random'].values.tolist()[0]
+    dfd_en = df['dfd_en'].values.tolist()[0]
     dump.goto_default_path()
     dump.create_log_folder()
     dump.goto_latest_log_folder()
+    if dfd_en:
+        halt_detection = reset_detection = hang_detection = False
     if len(auto_attr) == 1:
         auto_attr = auto_attr[0]
     #input parameters naming correction
@@ -813,7 +816,8 @@ def aggressive(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xlsx'):
     #detection mode changed
     detections = [halt_detection,reset_detection,hang_detection,mca_check]
     #AggressiVE_error.log & AggressiVE_hang.log & AggressiVE_pass.log?
-    Pre_test.initial_setting()
+    if dfd_en:
+        Pre_test.initial_setting()
     for input_reg in filtered_input_regs:
         (attr_fields,chosen_attr) = Pre_test._main(input_reg,auto_attr,auto_access)#run all pretest features.
         rdwr.Exec.validate(attr_fields,chosen_attr,auto,detections,num_val_seq,random)#validation.
