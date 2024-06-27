@@ -787,7 +787,7 @@ def aggressive(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xlsx'):
     dump.goto_default_path()
     dump.create_log_folder()
     dump.goto_latest_log_folder()
-    if dfd_en:
+    if dfd_en == False:
         halt_detection = reset_detection = hang_detection = False
     if len(auto_attr) == 1:
         auto_attr = auto_attr[0]
