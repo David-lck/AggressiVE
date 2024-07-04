@@ -51,8 +51,14 @@ Current disabled/pending features:
 2. aggressive import
 '''
 
-itp.unlockerflush()
-itp.entercredentials()
+try:
+    itp.unlockerflush()
+except:
+    print('Failed to itp.unlockerflush()!')
+try:
+    itp.entercredentials()
+except:
+    print('Failed to enter credential!')
 
 AVAIL_FUNCS = {
 'theory' : 'To display the validation algorithms of AggressiVE in term of attributes.',
@@ -784,6 +790,8 @@ def aggressive(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xlsx'):
     num_val_seq = df['num_val_seq'].values.tolist()[0]
     random = df['random'].values.tolist()[0]
     dfd_en = df['dfd_en'].values.tolist()[0]
+    post_val = df['post_val'].values.tolist()[0]
+    pre_rd_num = df['pre_rd'].values.tolist()[0]
     dump.goto_default_path()
     dump.create_log_folder()
     dump.goto_latest_log_folder()
@@ -814,7 +822,7 @@ def aggressive(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xlsx'):
         print('Please enter the correct one!')
         return 
     #detection mode changed
-    detections = [halt_detection,reset_detection,hang_detection,mca_check]
+    detections = [halt_detection,reset_detection,hang_detection,mca_check,post_val,pre_rd_num]
     #AggressiVE_error.log & AggressiVE_hang.log & AggressiVE_pass.log?
     if dfd_en:
         Pre_test.initial_setting()

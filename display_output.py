@@ -84,8 +84,13 @@ def store_content(rowdictlist,x,num,full_field_name,attr,pass_fail,pre_rd,wr_in_
     undefined_attrs = ['dc','rw/ac','rw/l/k','rw/s/l','rw/fuse','rw/strap']
     if num_val_seq == 3:
         headers=['Num','Field Name','Attr',Fore.LIGHTWHITE_EX+'Status'+Fore.RESET,'1st_Pre_RD','2nd_Pre_RD','1st_Val_WR','1st_Val_RD','2nd_Val_WR','2nd_Val_RD','3rd_Val_WR','3rd_Val_RD']
+    elif num_val_seq == 2:
+        headers=['Num','Field Name','Attr',Fore.LIGHTWHITE_EX+'Status'+Fore.RESET,'1st_Pre_RD','2nd_Pre_RD','1st_Val_WR','1st_Val_RD','2nd_Val_WR','2nd_Val_RD']
     elif num_val_seq == 1:
         headers=['Num','Field Name','Attr',Fore.LIGHTWHITE_EX+'Status'+Fore.RESET,'1st_Pre_RD','2nd_Pre_RD','1st_Val_WR','1st_Val_RD']
+    if len(pre_rd) == 1:
+        headers.remove('2nd_Pre_RD')
+        headers = ['Pre_RD' if x == '1st_Pre_RD' else x for x in headers]
     if pre_rd == []:#for those that are not able to read and write.
         if attr in ['ro/swc','rw/cr'] or attr in undefined_attrs:
             rowdictlist += [{'Num':str(num),'Field Name':full_field_name,'Attr':attr,Fore.LIGHTWHITE_EX+'Status'+Fore.RESET: pass_fail+str(fail_reason),'1st_Pre_RD':'NA','2nd_Pre_RD':'NA','1st_Val_WR':'NA','1st_Val_RD':'1strd:NA;2ndrd:NA','2nd_Val_WR':'NA','2nd_Val_RD':'1strd:NA;2ndrd:NA','3rd_Val_WR':'NA','3rd_Val_RD':'1strd:NA;2ndrd:NA'}]
@@ -93,27 +98,57 @@ def store_content(rowdictlist,x,num,full_field_name,attr,pass_fail,pre_rd,wr_in_
             rowdictlist += [{'Num':str(num),'Field Name':full_field_name,'Attr':attr,Fore.LIGHTWHITE_EX+'Status'+Fore.RESET:pass_fail+str(fail_reason),'1st_Pre_RD':'NA','2nd_Pre_RD':'NA','1st_Val_WR':'NA','1st_Val_RD':'NA','2nd_Val_WR':'NA','2nd_Val_RD':'NA','3rd_Val_WR':'NA','3rd_Val_RD':'NA'}]
     elif num_val_seq == 1:
         if attr in ['ro/swc','rw/cr'] or attr in undefined_attrs:
-            rowdictlist += [{'Num':str(num),'Field Name':full_field_name,'Attr':attr,Fore.LIGHTWHITE_EX+'Status'+Fore.RESET: pass_fail+str(fail_reason),'1st_Pre_RD':pre_rd[0],'2nd_Pre_RD':pre_rd[1],'1st_Val_WR':wr_in_list[0],'1st_Val_RD':'1strd:'+rd_in_list[0]+';2ndrd:'+rd_in_list[1]}]
+            if len(pre_rd) == 2:
+                rowdictlist += [{'Num':str(num),'Field Name':full_field_name,'Attr':attr,Fore.LIGHTWHITE_EX+'Status'+Fore.RESET: pass_fail+str(fail_reason),'1st_Pre_RD':pre_rd[0],'2nd_Pre_RD':pre_rd[1],'1st_Val_WR':wr_in_list[0],'1st_Val_RD':'1strd:'+rd_in_list[0]+';2ndrd:'+rd_in_list[1]}]
+            elif len(pre_rd) == 1:
+                rowdictlist += [{'Num':str(num),'Field Name':full_field_name,'Attr':attr,Fore.LIGHTWHITE_EX+'Status'+Fore.RESET: pass_fail+str(fail_reason),'Pre_RD':pre_rd[0],'1st_Val_WR':wr_in_list[0],'1st_Val_RD':'1strd:'+rd_in_list[0]+';2ndrd:'+rd_in_list[1]}]
         else:
             Pre_RD1 = str(pre_rd[0])
-            Pre_RD2 = str(pre_rd[1])
             WR1 = str(wr_in_list[0])
             RD1 = str(rd_in_list[0])
-            rowdictlist += [{'Num':str(num),'Field Name':full_field_name,'Attr':attr,Fore.LIGHTWHITE_EX+'Status'+Fore.RESET:pass_fail+str(fail_reason),'1st_Pre_RD':Pre_RD1,'2nd_Pre_RD':Pre_RD2,'1st_Val_WR':WR1,'1st_Val_RD':RD1}]    
+            if len(pre_rd) == 2:
+                Pre_RD2 = str(pre_rd[1])
+                rowdictlist += [{'Num':str(num),'Field Name':full_field_name,'Attr':attr,Fore.LIGHTWHITE_EX+'Status'+Fore.RESET:pass_fail+str(fail_reason),'1st_Pre_RD':Pre_RD1,'2nd_Pre_RD':Pre_RD2,'1st_Val_WR':WR1,'1st_Val_RD':RD1}]
+            elif len(pre_rd) == 1:
+                rowdictlist += [{'Num':str(num),'Field Name':full_field_name,'Attr':attr,Fore.LIGHTWHITE_EX+'Status'+Fore.RESET:pass_fail+str(fail_reason),'Pre_RD':Pre_RD1,'1st_Val_WR':WR1,'1st_Val_RD':RD1}]
+    elif num_val_seq == 2:
+        if attr in ['ro/swc','rw/cr'] or attr in undefined_attrs:
+            print(rd_in_list)
+            if len(pre_rd) == 2:
+                rowdictlist += [{'Num':str(num),'Field Name':full_field_name,'Attr':attr,Fore.LIGHTWHITE_EX+'Status'+Fore.RESET: pass_fail+str(fail_reason),'1st_Pre_RD':pre_rd[0],'2nd_Pre_RD':pre_rd[1],'1st_Val_WR':wr_in_list[0],'1st_Val_RD':'1strd:'+rd_in_list[0]+';2ndrd:'+rd_in_list[1],'2nd_Val_WR':wr_in_list[1],'2nd_Val_RD':'1strd:'+rd_in_list[2]+';2ndrd:'+rd_in_list[3]}]
+            elif len(pre_rd) == 1:
+                rowdictlist += [{'Num':str(num),'Field Name':full_field_name,'Attr':attr,Fore.LIGHTWHITE_EX+'Status'+Fore.RESET: pass_fail+str(fail_reason),'Pre_RD':pre_rd[0],'1st_Val_WR':wr_in_list[0],'1st_Val_RD':'1strd:'+rd_in_list[0]+';2ndrd:'+rd_in_list[1],'2nd_Val_WR':wr_in_list[1],'2nd_Val_RD':'1strd:'+rd_in_list[2]+';2ndrd:'+rd_in_list[3]}]
+        else:
+            Pre_RD1 = str(pre_rd[0])
+            WR1 = str(wr_in_list[0])
+            RD1 = str(rd_in_list[0])
+            WR2 = str(wr_in_list[1])
+            RD2 = str(rd_in_list[1])
+            if len(pre_rd) == 2:
+                Pre_RD2 = str(pre_rd[1])
+                rowdictlist += [{'Num':str(num),'Field Name':full_field_name,'Attr':attr,Fore.LIGHTWHITE_EX+'Status'+Fore.RESET:pass_fail+str(fail_reason),'1st_Pre_RD':Pre_RD1,'2nd_Pre_RD':Pre_RD2,'1st_Val_WR':WR1,'1st_Val_RD':RD1,'2nd_Val_WR':WR2,'2nd_Val_RD':RD2}]
+            elif len(pre_rd) == 1:
+                rowdictlist += [{'Num':str(num),'Field Name':full_field_name,'Attr':attr,Fore.LIGHTWHITE_EX+'Status'+Fore.RESET:pass_fail+str(fail_reason),'Pre_RD':Pre_RD1,'1st_Val_WR':WR1,'1st_Val_RD':RD1,'2nd_Val_WR':WR2,'2nd_Val_RD':RD2}]
     else:#normal one
         if attr in ['ro/swc','rw/cr'] or attr in undefined_attrs:
             print(rd_in_list)
-            rowdictlist += [{'Num':str(num),'Field Name':full_field_name,'Attr':attr,Fore.LIGHTWHITE_EX+'Status'+Fore.RESET: pass_fail+str(fail_reason),'1st_Pre_RD':pre_rd[0],'2nd_Pre_RD':pre_rd[1],'1st_Val_WR':wr_in_list[0],'1st_Val_RD':'1strd:'+rd_in_list[0]+';2ndrd:'+rd_in_list[1],'2nd_Val_WR':wr_in_list[1],'2nd_Val_RD':'1strd:'+rd_in_list[2]+';2ndrd:'+rd_in_list[3],'3rd_Val_WR':wr_in_list[2],'3rd_Val_RD':'1strd:'+rd_in_list[4]+';2ndrd:'+rd_in_list[5]}]
+            if len(pre_rd) == 2:
+                rowdictlist += [{'Num':str(num),'Field Name':full_field_name,'Attr':attr,Fore.LIGHTWHITE_EX+'Status'+Fore.RESET: pass_fail+str(fail_reason),'1st_Pre_RD':pre_rd[0],'2nd_Pre_RD':pre_rd[1],'1st_Val_WR':wr_in_list[0],'1st_Val_RD':'1strd:'+rd_in_list[0]+';2ndrd:'+rd_in_list[1],'2nd_Val_WR':wr_in_list[1],'2nd_Val_RD':'1strd:'+rd_in_list[2]+';2ndrd:'+rd_in_list[3],'3rd_Val_WR':wr_in_list[2],'3rd_Val_RD':'1strd:'+rd_in_list[4]+';2ndrd:'+rd_in_list[5]}]
+            elif len(pre_rd) == 1:
+                rowdictlist += [{'Num':str(num),'Field Name':full_field_name,'Attr':attr,Fore.LIGHTWHITE_EX+'Status'+Fore.RESET: pass_fail+str(fail_reason),'Pre_RD':pre_rd[0],'1st_Val_WR':wr_in_list[0],'1st_Val_RD':'1strd:'+rd_in_list[0]+';2ndrd:'+rd_in_list[1],'2nd_Val_WR':wr_in_list[1],'2nd_Val_RD':'1strd:'+rd_in_list[2]+';2ndrd:'+rd_in_list[3],'3rd_Val_WR':wr_in_list[2],'3rd_Val_RD':'1strd:'+rd_in_list[4]+';2ndrd:'+rd_in_list[5]}]
         else:
             Pre_RD1 = str(pre_rd[0])
-            Pre_RD2 = str(pre_rd[1])
             WR1 = str(wr_in_list[0])
             RD1 = str(rd_in_list[0])
             WR2 = str(wr_in_list[1])
             RD2 = str(rd_in_list[1])
             WR3 = str(wr_in_list[2])
             RD3 = str(rd_in_list[2])
-            rowdictlist += [{'Num':str(num),'Field Name':full_field_name,'Attr':attr,Fore.LIGHTWHITE_EX+'Status'+Fore.RESET:pass_fail+str(fail_reason),'1st_Pre_RD':Pre_RD1,'2nd_Pre_RD':Pre_RD2,'1st_Val_WR':WR1,'1st_Val_RD':RD1,'2nd_Val_WR':WR2,'2nd_Val_RD':RD2,'3rd_Val_WR':WR3,'3rd_Val_RD':RD3}]    
+            if len(pre_rd) == 2:
+                Pre_RD2 = str(pre_rd[1])
+                rowdictlist += [{'Num':str(num),'Field Name':full_field_name,'Attr':attr,Fore.LIGHTWHITE_EX+'Status'+Fore.RESET:pass_fail+str(fail_reason),'1st_Pre_RD':Pre_RD1,'2nd_Pre_RD':Pre_RD2,'1st_Val_WR':WR1,'1st_Val_RD':RD1,'2nd_Val_WR':WR2,'2nd_Val_RD':RD2,'3rd_Val_WR':WR3,'3rd_Val_RD':RD3}]    
+            elif len(pre_rd) == 1:
+                rowdictlist += [{'Num':str(num),'Field Name':full_field_name,'Attr':attr,Fore.LIGHTWHITE_EX+'Status'+Fore.RESET:pass_fail+str(fail_reason),'Pre_RD':Pre_RD1,'1st_Val_WR':WR1,'1st_Val_RD':RD1,'2nd_Val_WR':WR2,'2nd_Val_RD':RD2,'3rd_Val_WR':WR3,'3rd_Val_RD':RD3}]    
     x = asciitable.AsciiTable.fromDictList(rowdictlist,headers)
     return rowdictlist,x
     
@@ -124,32 +159,69 @@ def store_fail_content(fail_rowdl,fail_x,num,full_field_name,attr,pass_fail,pre_
         pass_fail = Fore.RED + 'fail' + Fore.RESET
     if num_val_seq == 3:
         headers=['Num','Field Name','Attr',Fore.LIGHTWHITE_EX+'Status'+Fore.RESET,'1st_Pre_RD','2nd_Pre_RD','1st_Val_WR','1st_Val_RD','2nd_Val_WR','2nd_Val_RD','3rd_Val_WR','3rd_Val_RD']
+    elif num_val_seq == 2:
+        headers=['Num','Field Name','Attr',Fore.LIGHTWHITE_EX+'Status'+Fore.RESET,'1st_Pre_RD','2nd_Pre_RD','1st_Val_WR','1st_Val_RD','2nd_Val_WR','2nd_Val_RD']
     elif num_val_seq == 1:
         headers=['Num','Field Name','Attr',Fore.LIGHTWHITE_EX+'Status'+Fore.RESET,'1st_Pre_RD','2nd_Pre_RD','1st_Val_WR','1st_Val_RD']
+    if len(pre_rd) == 1:
+        headers.remove('2nd_Pre_RD')
+        headers = ['Pre_RD' if x == '1st_Pre_RD' else x for x in headers]
     undefined_attrs = ['dc','rw/ac','rw/l/k','rw/s/l','rw/fuse','rw/strap']
     new_defined_attrs = ['ro/c','rw/cr','wo/1','wo/c','na','rw0c_fw','rw1c_fw','double buffered','r/w hardware clear','read/32 bit write only','r/w firmware only']
     if num_val_seq == 3:
         if attr in ['ro/swc','rw/cr'] or attr in undefined_attrs:
-            fail_rowdl += [{'Num':str(num),'Field Name':full_field_name,'Attr':attr,Fore.LIGHTWHITE_EX+'Status'+Fore.RESET: pass_fail+str(fail_reason),'1st_Pre_RD':pre_rd[0],'2nd_Pre_RD':pre_rd[1],'1st_Val_WR':wr_in_list[0],'1st_Val_RD':'1strd:'+rd_in_list[0]+';2ndrd:'+rd_in_list[1],'2nd_Val_WR':wr_in_list[1],'2nd_Val_RD':'1strd:'+rd_in_list[2]+';2ndrd:'+rd_in_list[3],'3rd_Val_WR':wr_in_list[2],'3rd_Val_RD':'1strd:'+rd_in_list[4]+';2ndrd:'+rd_in_list[5]}]
+            if len(pre_rd) == 2:
+                fail_rowdl += [{'Num':str(num),'Field Name':full_field_name,'Attr':attr,Fore.LIGHTWHITE_EX+'Status'+Fore.RESET: pass_fail+str(fail_reason),'1st_Pre_RD':pre_rd[0],'2nd_Pre_RD':pre_rd[1],'1st_Val_WR':wr_in_list[0],'1st_Val_RD':'1strd:'+rd_in_list[0]+';2ndrd:'+rd_in_list[1],'2nd_Val_WR':wr_in_list[1],'2nd_Val_RD':'1strd:'+rd_in_list[2]+';2ndrd:'+rd_in_list[3],'3rd_Val_WR':wr_in_list[2],'3rd_Val_RD':'1strd:'+rd_in_list[4]+';2ndrd:'+rd_in_list[5]}]
+            elif len(pre_rd) == 1:
+                fail_rowdl += [{'Num':str(num),'Field Name':full_field_name,'Attr':attr,Fore.LIGHTWHITE_EX+'Status'+Fore.RESET: pass_fail+str(fail_reason),'Pre_RD':pre_rd[0],'1st_Val_WR':wr_in_list[0],'1st_Val_RD':'1strd:'+rd_in_list[0]+';2ndrd:'+rd_in_list[1],'2nd_Val_WR':wr_in_list[1],'2nd_Val_RD':'1strd:'+rd_in_list[2]+';2ndrd:'+rd_in_list[3],'3rd_Val_WR':wr_in_list[2],'3rd_Val_RD':'1strd:'+rd_in_list[4]+';2ndrd:'+rd_in_list[5]}]
         else:
             Pre_RD1 = str(pre_rd[0])
-            Pre_RD2 = str(pre_rd[1])
+            if len(pre_rd) == 2:
+                Pre_RD2 = str(pre_rd[1])
             WR1 = str(wr_in_list[0])
             RD1 = str(rd_in_list[0])
             WR2 = str(wr_in_list[1])
             RD2 = str(rd_in_list[1])
             WR3 = str(wr_in_list[2])
             RD3 = str(rd_in_list[2])
-            fail_rowdl += [{'Num':str(num),'Field Name':full_field_name,'Attr':attr,Fore.LIGHTWHITE_EX+'Status'+Fore.RESET:pass_fail+str(fail_reason),'1st_Pre_RD':Pre_RD1,'2nd_Pre_RD':Pre_RD2,'1st_Val_WR':WR1,'1st_Val_RD':RD1,'2nd_Val_WR':WR2,'2nd_Val_RD':RD2,'3rd_Val_WR':WR3,'3rd_Val_RD':RD3}]
-    elif num_val_seq == 1:
+            if len(pre_rd) == 2:
+                fail_rowdl += [{'Num':str(num),'Field Name':full_field_name,'Attr':attr,Fore.LIGHTWHITE_EX+'Status'+Fore.RESET:pass_fail+str(fail_reason),'1st_Pre_RD':Pre_RD1,'2nd_Pre_RD':Pre_RD2,'1st_Val_WR':WR1,'1st_Val_RD':RD1,'2nd_Val_WR':WR2,'2nd_Val_RD':RD2,'3rd_Val_WR':WR3,'3rd_Val_RD':RD3}]
+            elif len(pre_rd) == 1:
+                fail_rowdl += [{'Num':str(num),'Field Name':full_field_name,'Attr':attr,Fore.LIGHTWHITE_EX+'Status'+Fore.RESET:pass_fail+str(fail_reason),'Pre_RD':Pre_RD1,'1st_Val_WR':WR1,'1st_Val_RD':RD1,'2nd_Val_WR':WR2,'2nd_Val_RD':RD2,'3rd_Val_WR':WR3,'3rd_Val_RD':RD3}]
+    elif num_val_seq == 2:
         if attr in ['ro/swc','rw/cr'] or attr in undefined_attrs:
-            fail_rowdl += [{'Num':str(num),'Field Name':full_field_name,'Attr':attr,Fore.LIGHTWHITE_EX+'Status'+Fore.RESET: pass_fail+str(fail_reason),'1st_Pre_RD':pre_rd[0],'2nd_Pre_RD':pre_rd[1],'1st_Val_WR':wr_in_list[0],'1st_Val_RD':'1strd:'+rd_in_list[0]+';2ndrd:'+rd_in_list[1]}]
+            if len(pre_rd) == 2:
+                fail_rowdl += [{'Num':str(num),'Field Name':full_field_name,'Attr':attr,Fore.LIGHTWHITE_EX+'Status'+Fore.RESET: pass_fail+str(fail_reason),'1st_Pre_RD':pre_rd[0],'2nd_Pre_RD':pre_rd[1],'1st_Val_WR':wr_in_list[0],'1st_Val_RD':'1strd:'+rd_in_list[0]+';2ndrd:'+rd_in_list[1],'2nd_Val_WR':wr_in_list[1],'2nd_Val_RD':'1strd:'+rd_in_list[2]+';2ndrd:'+rd_in_list[3]}]
+            elif len(pre_rd) == 1:
+                fail_rowdl += [{'Num':str(num),'Field Name':full_field_name,'Attr':attr,Fore.LIGHTWHITE_EX+'Status'+Fore.RESET: pass_fail+str(fail_reason),'Pre_RD':pre_rd[0],'1st_Val_WR':wr_in_list[0],'1st_Val_RD':'1strd:'+rd_in_list[0]+';2ndrd:'+rd_in_list[1],'2nd_Val_WR':wr_in_list[1],'2nd_Val_RD':'1strd:'+rd_in_list[2]+';2ndrd:'+rd_in_list[3]}]
         else:
             Pre_RD1 = str(pre_rd[0])
-            Pre_RD2 = str(pre_rd[1])
+            if len(pre_rd) == 2:
+                Pre_RD2 = str(pre_rd[1])
             WR1 = str(wr_in_list[0])
             RD1 = str(rd_in_list[0])
-            fail_rowdl += [{'Num':str(num),'Field Name':full_field_name,'Attr':attr,Fore.LIGHTWHITE_EX+'Status'+Fore.RESET:pass_fail+str(fail_reason),'1st_Pre_RD':Pre_RD1,'2nd_Pre_RD':Pre_RD2,'1st_Val_WR':WR1,'1st_Val_RD':RD1}]
+            WR2 = str(wr_in_list[1])
+            RD2 = str(rd_in_list[1])
+            if len(pre_rd) == 2:
+                fail_rowdl += [{'Num':str(num),'Field Name':full_field_name,'Attr':attr,Fore.LIGHTWHITE_EX+'Status'+Fore.RESET:pass_fail+str(fail_reason),'1st_Pre_RD':Pre_RD1,'2nd_Pre_RD':Pre_RD2,'1st_Val_WR':WR1,'1st_Val_RD':RD1,'2nd_Val_WR':WR2,'2nd_Val_RD':RD2,'3rd_Val_WR':WR3,'3rd_Val_RD':RD3}]
+            elif len(pre_rd) == 1:
+                fail_rowdl += [{'Num':str(num),'Field Name':full_field_name,'Attr':attr,Fore.LIGHTWHITE_EX+'Status'+Fore.RESET:pass_fail+str(fail_reason),'Pre_RD':Pre_RD1,'1st_Val_WR':WR1,'1st_Val_RD':RD1,'2nd_Val_WR':WR2,'2nd_Val_RD':RD2,'3rd_Val_WR':WR3,'3rd_Val_RD':RD3}]
+    elif num_val_seq == 1:
+        if attr in ['ro/swc','rw/cr'] or attr in undefined_attrs:
+            if len(pre_rd) == 2:
+                fail_rowdl += [{'Num':str(num),'Field Name':full_field_name,'Attr':attr,Fore.LIGHTWHITE_EX+'Status'+Fore.RESET: pass_fail+str(fail_reason),'1st_Pre_RD':pre_rd[0],'2nd_Pre_RD':pre_rd[1],'1st_Val_WR':wr_in_list[0],'1st_Val_RD':'1strd:'+rd_in_list[0]+';2ndrd:'+rd_in_list[1]}]
+            elif len(pre_rd) == 1:
+                fail_rowdl += [{'Num':str(num),'Field Name':full_field_name,'Attr':attr,Fore.LIGHTWHITE_EX+'Status'+Fore.RESET: pass_fail+str(fail_reason),'Pre_RD':pre_rd[0],'1st_Val_WR':wr_in_list[0],'1st_Val_RD':'1strd:'+rd_in_list[0]+';2ndrd:'+rd_in_list[1]}]
+        else:
+            Pre_RD1 = str(pre_rd[0])
+            if len(pre_rd) == 2:
+                Pre_RD2 = str(pre_rd[1])
+            WR1 = str(wr_in_list[0])
+            RD1 = str(rd_in_list[0])
+            if len(pre_rd) == 2:
+                fail_rowdl += [{'Num':str(num),'Field Name':full_field_name,'Attr':attr,Fore.LIGHTWHITE_EX+'Status'+Fore.RESET:pass_fail+str(fail_reason),'1st_Pre_RD':Pre_RD1,'2nd_Pre_RD':Pre_RD2,'1st_Val_WR':WR1,'1st_Val_RD':RD1}]
+            elif len(pre_rd) == 1:
+                fail_rowdl += [{'Num':str(num),'Field Name':full_field_name,'Attr':attr,Fore.LIGHTWHITE_EX+'Status'+Fore.RESET:pass_fail+str(fail_reason),'Pre_RD':Pre_RD1,'1st_Val_WR':WR1,'1st_Val_RD':RD1}]
     fail_x = asciitable.AsciiTable.fromDictList(fail_rowdl,headers)
     return fail_rowdl,fail_x
 
