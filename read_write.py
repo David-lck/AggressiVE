@@ -272,6 +272,38 @@ class Algorithm:
             elif result_value1 == [] or result_value0 == []:
                 return Bit_Compare.single_bit_pass_fail(result_value0,result_value1,'different','different')
         return 'fail'
+        
+    def val_rwop(numbit,val_stage,compare_value):
+        wr = compare_value[0]
+        rd = compare_value[1]
+        pre_rd = compare_value[2]
+        wr_in_bin = Conv.convert_hex_to_bin(wr)
+        rd_in_bin = Conv.convert_hex_to_bin(rd)
+        pre_rd_in_bin = Conv.convert_hex_to_bin(pre_rd)
+        if len(wr_in_bin) > len(rd_in_bin):
+            num_bit_dif = len(wr_in_bin) - len(rd_in_bin)
+            rd_in_bin = ('0' * num_bit_dif) + rd_in_bin
+        elif len(wr_in_bin) < len(rd_in_bin):
+            num_bit_dif = len(rd_in_bin) - len(wr_in_bin)
+            wr_in_bin = ('0' * num_bit_dif) + wr_in_bin
+        if val_stage in ['1st_stage_rdwr','3rd_stage_rdwr']:
+            (result_value1,result_value0) = Bit_Compare.compare_bit2bit(wr_in_bin,rd_in_bin)
+            if 'different' not in result_value0 and 'different' not in result_value1:
+                return 'pass'
+            elif 'different' in result_value0 and 'different' in result_value1:
+                if rd_in_bin == pre_rd_in_bin:
+                    return 'pass'
+                else:
+                    return 'fail'
+            elif result_value1 == [] or result_value0 == []:
+                return Bit_Compare.single_bit_pass_fail(result_value0,result_value1,'same','same')
+        elif val_stage == '2nd_stage_rdwr':
+            (result_value1,result_value0) = Bit_Compare.compare_bit2bit(wr_in_bin,rd_in_bin)
+            if 'same' not in result_value0 and 'same' not in result_value1:
+                return 'pass'
+            elif result_value1 == [] or result_value0 == []:
+                return Bit_Compare.single_bit_pass_fail(result_value0,result_value1,'different','different')
+        return 'fail'
 
     def val_rw1c(numbit,val_stage,compare_value):
         wr = compare_value[0]
@@ -429,7 +461,7 @@ compare = {
 'rw':Algorithm.val_rw, 'rw/v':Algorithm.val_rw, 'rw/v/p':Algorithm.val_rw, 'rw/p':Algorithm.val_rw, 'rw/v2':Algorithm.val_rw, 
 'rw/s':Algorithm.val_rws,
 'rw/l':Algorithm.val_rwl, 'rw/p/l':Algorithm.val_rwl, 'rw/v/l':Algorithm.val_rwl, 'rw/v/p/l':Algorithm.val_rwl,
-'rw/o':Algorithm.val_rwo, 'rw/o/p':Algorithm.val_rwo, 'rw/o/v/l':Algorithm.val_rwo,
+'rw/o':Algorithm.val_rwo, 'rw/o/p':Algorithm.val_rwop, 'rw/o/v/l':Algorithm.val_rwop,
 'rw/1c':Algorithm.val_rw1c, 'rw/1c/p':Algorithm.val_rw1c, 'rw/1c/v':Algorithm.val_rw1c, 'rw/1c/v/p':Algorithm.val_rw1c, 
 'rw/1l':Algorithm.val_rw1l, 
 'rw/1s':Algorithm.val_rw1s, 'rw/1s/v/p':Algorithm.val_rw1s, 'rw/1s/v':Algorithm.val_rw1s, 'rw/1s/v/l':Algorithm.val_rw1s, 
