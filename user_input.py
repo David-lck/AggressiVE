@@ -129,7 +129,7 @@ class Post_test:
         elg.close()
         print('All the printed error infos have been saved in C>>Users>>pgsvlab>>PythonSv>>Aggressive_logs>>AggressiVE_cont_error.log')
 
-    def choose_post_test(num_status,alg,flg,status_infos,detections,auto,num_val_seq):
+    def choose_post_test(num_status,alg,flg,status_infos,detections,auto,num_val_seq,locklists):
         [Pass,Fail,Error,Hang] = num_status
         [pass_infos,fail_infos,sus_hang_infos,error_infos] = status_infos
         avail_choice = []
@@ -156,10 +156,10 @@ class Post_test:
             if val_choice == 'end':
                 break
             elif 'Pass' in avail_choice[int(val_choice)-1]:
-                (alg, flg) = rw.Post_test.validate_pass(pass_infos, Pass, alg, flg,detections,auto,num_val_seq)
+                (alg, flg) = rw.Post_test.validate_pass(pass_infos, Pass, alg, flg,detections,auto,num_val_seq,locklists)
                 avail_choice.remove('Pass Registers.')
             elif 'Fail' in avail_choice[int(val_choice)-1]:
-                (alg, flg) = ags.Post_test._fail_main(fail_infos, alg, flg,detections,num_val_seq)#run post feature (Validate or display fail fields only).
+                (alg, flg) = ags.Post_test._fail_main(fail_infos, alg, flg,detections,num_val_seq,locklists)#run post feature (Validate or display fail fields only).
                 avail_choice.remove('Fail Registers.')
             elif 'Hang' in avail_choice[int(val_choice)-1]:
                 [sus_hang_regs] = sus_hang_infos

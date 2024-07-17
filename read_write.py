@@ -65,26 +65,33 @@ class Algorithm:
         if val_stage == 'pre_rd' and len(compare_value) == 2:
             pre_rd1 = compare_value[0]
             pre_rd2 = compare_value[1]
-            if pre_rd2 == '0' and pre_rd1 == '0':
+            if pre_rd2 in ['0x0','0'] and pre_rd1 in ['0x0','0']:
                 return 'pass'
             else:
-                print(val_stage)
                 return 'fail'
         elif val_stage == 'pre_rd' and len(compare_value) == 1:
             pre_rd = compare_value[0]
-            if pre_rd == '0':
+            if pre_rd in ['0x0','0']:
                 return 'pass'
             else:
-                print(val_stage)
                 return 'fail'
         elif val_stage == '1st_stage_rdwr':
-            print(compare_value)
             wr = compare_value[0]
             rd1 = compare_value[1]
             #rd2 = compare_value[2]
             pre_rd1 = compare_value[2]
             #pre_rd2 = compare_value[3]
-            if rd1 == '0':
+            if rd1 in ['0x0','0']:
+                return 'pass'
+            else:
+                return 'fail'
+        elif val_stage in ['2nd_stage_rdwr','3rd_stage_rdwr']:
+            wr = compare_value[0]
+            rd1 = compare_value[1]
+            #rd2 = compare_value[2]
+            pre_rd1 = compare_value[2]
+            #pre_rd2 = compare_value[3]
+            if rd1 in ['0x0','0']:
                 return 'pass'
             else:
                 return 'fail'
@@ -288,9 +295,9 @@ class Algorithm:
             wr_in_bin = ('0' * num_bit_dif) + wr_in_bin
         if val_stage in ['1st_stage_rdwr','3rd_stage_rdwr']:
             (result_value1,result_value0) = Bit_Compare.compare_bit2bit(wr_in_bin,rd_in_bin)
-            if 'different' not in result_value0 and 'different' not in result_value1:
+            if result_value0 in (['same'],[]) and result_value1 in (['same'],[]):
                 return 'pass'
-            elif 'different' in result_value0 and 'different' in result_value1:
+            elif result_value0 in (['different'],[]) and result_value1 in (['different'],[]):
                 if rd_in_bin == pre_rd_in_bin:
                     return 'pass'
                 else:
@@ -298,8 +305,8 @@ class Algorithm:
             elif result_value1 == [] or result_value0 == []:
                 return Bit_Compare.single_bit_pass_fail(result_value0,result_value1,'same','same')
         elif val_stage == '2nd_stage_rdwr':
-            (result_value1,result_value0) = Bit_Compare.compare_bit2bit(wr_in_bin,rd_in_bin)
-            if 'same' not in result_value0 and 'same' not in result_value1:
+            (result_value1,result_value0) = Bit_Compare.compare_bit2bit(pre_rd_in_bin,rd_in_bin)
+            if result_value0 in (['same'],[]) and result_value1 in (['same'],[]):
                 return 'pass'
             elif result_value1 == [] or result_value0 == []:
                 return Bit_Compare.single_bit_pass_fail(result_value0,result_value1,'different','different')
@@ -447,7 +454,7 @@ def arr_compare_value(attr,wr,rd,pre_rd):
     elif attr in ['ro/c','wo/1','wo/c','na','rw0c_fw','rw1c_fw','double buffered','r/w hardware clear','read/32 bit write only','r/w firmware only','rw/0c/v','ro/c/v']:
         if len(pre_rd) == 2:
            return [wr,rd[0],pre_rd[0],pre_rd[1]]
-       elif len(pre_rd) == 1:
+        elif len(pre_rd) == 1:
            return [wr,rd[0],pre_rd[0]]
     else:
         if len(pre_rd) == 2:
@@ -479,7 +486,7 @@ compare = {
 'r/w hardware clear':Algorithm.val_rwhwc, 
 'read/32 bit write only':Algorithm.val_r32wonly, 
 'r/w firmware only':Algorithm.val_rwfwo, 
-'ro/c/v':Algorithm.val_rwfwo, 
+'ro/c/v':Algorithm.val_roc, 
 'rw/ac':Algorithm.val_ro,'rw/fuse':Algorithm.val_ro,'rw/strap':Algorithm.val_ro,'dc':Algorithm.val_ro,
 'rw/l/k':Algorithm.val_dunno,'rw/s/l':Algorithm.val_dunno
 }
@@ -519,7 +526,8 @@ def create_value(numbit, value):#value = 'A5'/'5A'
     return created_value
 
 class Val_stage:
-    def pre_read(full_field_name,pre_rd_num):#It is mainly for attr = ro/swc
+    def pre_read(full_field_name,pre_rd_num,prefered_list):#It is mainly for attr = ro/swc
+        [prefered_attr, prefered_reason] = prefered_list
         pre_rd1 = str(eval(full_field_name))
         if pre_rd_num == 2:
             pre_rd2 = str(eval(full_field_name))
@@ -528,21 +536,28 @@ class Val_stage:
             pre_rd = [pre_rd1]
         attr = eval(full_field_name+'.info["attribute"]')
         numbit = track.track_field_bits(full_field_name)
-        if attr == 'ro/swc':
-            pass_fail = Algorithm.val_roswc(numbit,'pre_rd',pre_rd)
-            return pre_rd,pass_fail
-        elif attr == 'ro/c':
-            pass_fail = Algorithm.val_roc(numbit,'pre_rd',pre_rd)
-            return pre_rd,pass_fail
-        if attr == 'na':
-            pass_fail = Algorithm.val_na(numbit,'pre_rd',pre_rd)
-            return pre_rd,pass_fail
+        if prefered_attr != None:
+            pass
+        else:
+            if attr == 'ro/swc':
+                pass_fail = Algorithm.val_roswc(numbit,'pre_rd',pre_rd)
+                return pre_rd,pass_fail
+            elif attr == 'ro/c':
+                pass_fail = Algorithm.val_roc(numbit,'pre_rd',pre_rd)
+                return pre_rd,pass_fail
+            if attr == 'na':
+                pass_fail = Algorithm.val_na(numbit,'pre_rd',pre_rd)
+                return pre_rd,pass_fail
         return pre_rd,'pass'
 
-    def first_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,val_stage,wr_value,reset_detection,pre_rd_num):
+    def first_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,val_stage,wr_value,reset_detection,prefered_list):
+        [prefered_attr, prefered_reason] = prefered_list
         numbit = track.track_field_bits(full_field_name)
         #identify attr of this field in universal attr name.
-        attr = eval(full_field_name+'.info["attribute"]')
+        if prefered_attr == None:
+            attr = eval(full_field_name+'.info["attribute"]')
+        else:
+            attr = prefered_attr
         attr = track.Pre_test.track_attr_cat(attr)
         if len(attr) == 0:
             attr = eval(full_field_name+'.info["attribute"]')
@@ -588,12 +603,12 @@ class Val_stage:
                 pass_fail = 'sys_rst'
         return wr_in_list,rd_in_list,pass_fail
 
-    def second_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,val_stage,wr_value,reset_detection):
-        (wr_in_list,rd_in_list,pass_fail_1st_val) = Val_stage.first_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,val_stage,wr_value,reset_detection)
+    def second_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,val_stage,wr_value,reset_detection,prefered_list):
+        (wr_in_list,rd_in_list,pass_fail_1st_val) = Val_stage.first_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,val_stage,wr_value,reset_detection,prefered_list)
         return wr_in_list,rd_in_list,pass_fail_1st_val
 
-    def third_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,val_stage,wr_value,reset_detection):
-        (wr_in_list,rd_in_list,pass_fail_1st_val) = Val_stage.first_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,val_stage,wr_value,reset_detection)
+    def third_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,val_stage,wr_value,reset_detection,prefered_list):
+        (wr_in_list,rd_in_list,pass_fail_1st_val) = Val_stage.first_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,val_stage,wr_value,reset_detection,prefered_list)
         return wr_in_list,rd_in_list,pass_fail_1st_val
 
 class Exec:
@@ -609,17 +624,42 @@ class Exec:
             sus_hang_regs.append(chosen_attr_fields[chosen_attr_fields.index(full_field_name)-9:chosen_attr_fields.index(full_field_name)+1])
         return pass_regs, fail_regs, error_regs, sus_hang_regs
 
-    def validate_1by1(full_field_name,reset_detection,halt_detection,num_val_seq,pre_rd_num):#only on one chosen attr or all attrs.
+    def attr_preference(full_field_name, locklists):
+        [lockbit_regs,lockattr_regs] = locklists
+        if full_field_name in lockattr_regs:
+            lockbit_val = str(eval(lockbit_regs[lockattr_regs.index(full_field_name)]))
+            if lockbit_val == '0x0':
+                prefered_attr = "r/w"
+                prefered_reason = 'Lockbit=0'
+            elif lockbit_val == '0x1':
+                prefered_attr = "ro"
+                prefered_reason = 'Lockbit=1'
+            else:
+                prefered_attr = None
+                prefered_reason = f'Lockbit={lockbit_val}'
+        else:
+            prefered_attr = None
+            prefered_reason = None
+        return prefered_attr, prefered_reason
+
+    def validate_1by1(full_field_name,reset_detection,halt_detection,num_val_seq,pre_rd_num,locklists):#only on one chosen attr or all attrs.
         wr_in_list = []
         rd_in_list = []
         fail_reason = []
-        (pre_rd,pass_fail_pre_rd) = Val_stage.pre_read(full_field_name,pre_rd_num)
-        (wr_in_list,rd_in_list,pass_fail_1st_val) = Val_stage.first_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,'1st_stage_rdwr','A5',reset_detection)
+        [lockbit_regs,lockattr_regs] = locklists
+        (prefered_attr, prefered_reason) = Exec.attr_preference(full_field_name, locklists)
+        prefered_list = [prefered_attr, prefered_reason]
+        if prefered_reason == None:
+            pass
+        else:
+            fail_reason.append(prefered_reason)
+        (pre_rd,pass_fail_pre_rd) = Val_stage.pre_read(full_field_name,pre_rd_num,prefered_list)
+        (wr_in_list,rd_in_list,pass_fail_1st_val) = Val_stage.first_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,'1st_stage_rdwr','A5',reset_detection,prefered_list)
         if num_val_seq == 3:
-            (wr_in_list,rd_in_list,pass_fail_2nd_val) = Val_stage.second_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,'2nd_stage_rdwr','5A',reset_detection)
-            (wr_in_list,rd_in_list,pass_fail_3rd_val) = Val_stage.third_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,'3rd_stage_rdwr','A5',reset_detection)
+            (wr_in_list,rd_in_list,pass_fail_2nd_val) = Val_stage.second_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,'2nd_stage_rdwr','5A',reset_detection,prefered_list)
+            (wr_in_list,rd_in_list,pass_fail_3rd_val) = Val_stage.third_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,'3rd_stage_rdwr','A5',reset_detection,prefered_list)
         elif num_val_seq == 2:
-            (wr_in_list,rd_in_list,pass_fail_2nd_val) = Val_stage.second_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,'2nd_stage_rdwr','5A',reset_detection)
+            (wr_in_list,rd_in_list,pass_fail_2nd_val) = Val_stage.second_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,'2nd_stage_rdwr','5A',reset_detection,prefered_list)
             wr_in_list.append('NA')
             rd_in_list.append('NA')
             pass_fail_3rd_val = 'NA'
@@ -635,7 +675,7 @@ class Exec:
             pass_fail_3rd_val = 'NA'
         if 'fail' in [pass_fail_pre_rd,pass_fail_1st_val,pass_fail_2nd_val,pass_fail_3rd_val]:
             pass_fail = 'fail'
-            fail_reason = track.track_fail_reason(pass_fail_pre_rd,pass_fail_1st_val,pass_fail_2nd_val,pass_fail_3rd_val)
+            fail_reason = track.track_fail_reason(pass_fail_pre_rd,pass_fail_1st_val,pass_fail_2nd_val,pass_fail_3rd_val,fail_reason)
         elif 'NA' in [pass_fail_pre_rd,pass_fail_1st_val,pass_fail_2nd_val,pass_fail_3rd_val]:#for the fields with the non-prepared attr and 1 num_val_seq case.
             if 'fail' in [pass_fail_pre_rd,pass_fail_1st_val,pass_fail_2nd_val,pass_fail_3rd_val]:#for ro/c and ro/v
                 pass_fail = 'fail'
@@ -656,7 +696,7 @@ class Exec:
             print("AggressiVE Forced reset!!!")
         return pre_rd,wr_in_list,rd_in_list,pass_fail,fail_reason
         
-    def validate(valid_fields,chosen_attr,auto,detections,num_val_seq,random):
+    def validate(valid_fields,chosen_attr,auto,detections,num_val_seq,random,locklists):
         [halt_detection,reset_detection,hang_detection,mca_check,post_val,pre_rd_num] = detections
         num=1
         Pass, Fail, Unknown, Error, Hang = 0, 0, 0, 0, 0
@@ -691,7 +731,7 @@ class Exec:
             disp.progress(reserved_num, reserved_print_num, prefix=f'Progress [{reserved_num}:{reserved_print_num}]:', infix1 = f'StartTime= {time.ctime()}', suffix=f'Reg: [{full_field_name}]')
             #validate
             try:
-                (pre_rd,wr_in_list,rd_in_list,pass_fail,fail_reason) = Exec.validate_1by1(full_field_name,reset_detection,halt_detection,num_val_seq,pre_rd_num)
+                (pre_rd,wr_in_list,rd_in_list,pass_fail,fail_reason) = Exec.validate_1by1(full_field_name,reset_detection,halt_detection,num_val_seq,pre_rd_num,locklists)
             except KeyboardInterrupt:
                 print('\n' + Fore.RED + 'Validation forced to stopped!' + Fore.RESET)
                 disp.disp_content(rowdictlist,x,alg,flg)
@@ -726,7 +766,7 @@ class Exec:
                         Hang+=1
                     else:
                         cont_fail_cnt += 1
-                (fail_rowdl,fail_x) = disp.store_fail_content(fail_rowdl,fail_x,num,full_field_name,attr,pass_fail,pre_rd,wr_in_list,rd_in_list,fail_reason,num_val_seq,pre_rd_num)
+                (fail_rowdl,fail_x) = disp.store_fail_content(fail_rowdl,fail_x,num,full_field_name,attr,pass_fail,pre_rd,wr_in_list,rd_in_list,fail_reason,num_val_seq)
             elif pass_fail =='pass':#this statement is for continuous fail due to undetected hang
                 cont_fail_cnt = 0 #reset it back due to not continuous fail.
             #display and storing validation info in table form.
@@ -785,7 +825,7 @@ class Exec:
                         itp.unlock()
                         refresh()
                         break
-            (alg, flg) = user.Post_test.choose_post_test(num_status,alg,flg,status_infos,detections,auto,num_val_seq)
+            (alg, flg) = user.Post_test.choose_post_test(num_status,alg,flg,status_infos,detections,auto,num_val_seq,locklists)
         (alg,flg) = dump.export('close_all','NA',alg,flg)
         (alg,flg) = dump.export('close_fail','NA',alg,flg)
         
@@ -886,7 +926,7 @@ class Post_test:
                 itp.unlock()
                 return alg, flg
 
-    def validate2_fail_regs(fail_regs,alg,flg,Fail,auto,detections,num_val_seq):
+    def validate2_fail_regs(fail_regs,alg,flg,Fail,auto,detections,num_val_seq,locklists):
         num2print=0
         num_chosen_attr_fields = len(fail_regs)
         reserved_print_num = num_chosen_attr_fields
@@ -911,7 +951,7 @@ class Post_test:
             disp.progress(reserved_num, reserved_print_num, prefix=f'Progress [{reserved_num}:{reserved_print_num}]:', infix1 = f'StartTime= {time.ctime()}', suffix=f'Reg: [{fail_field_name}]')
             #validate
             try:
-                (pre_rd,wr_in_list,rd_in_list,pass_fail,fail_reason) = Exec.validate_1by1(fail_field_name,detections[1],detections[0],num_val_seq,detections[5])
+                (pre_rd,wr_in_list,rd_in_list,pass_fail,fail_reason) = Exec.validate_1by1(fail_field_name,detections[1],detections[0],num_val_seq,detections[5],locklists)
             except KeyboardInterrupt:
                 print('\n' + Fore.RED + 'Fail 2nd Validation forced to stopped!' + Fore.RESET)
                 disp.disp_fail_content(fail_x,alg,flg)
@@ -971,7 +1011,7 @@ class Post_test:
             print(f"In second validation, there's {Pass2} pass registers.")
         return alg,flg
 
-    def validate_pass(pass_infos,Pass,alg,flg,detections,auto,num_val_seq):
+    def validate_pass(pass_infos,Pass,alg,flg,detections,auto,num_val_seq,locklists):
         num = 1
         plg = []
         #pass_regs_sets = []
@@ -1018,7 +1058,7 @@ class Post_test:
             disp.progress(reserved_num, reserved_print_num, prefix=f'Progress [{reserved_num}:{reserved_print_num}]:', infix1 = f'StartTime= {time.ctime()}', suffix=f'Reg: [{reg}]')
             #validate
             try:
-                (pre_rd,wr_in_list,rd_in_list,pass_fail,fail_reason) = Exec.validate_1by1(reg,detections[1],detections[0],num_val_seq,detections[5])
+                (pre_rd,wr_in_list,rd_in_list,pass_fail,fail_reason) = Exec.validate_1by1(reg,detections[1],detections[0],num_val_seq,detections[5],locklists)
             except KeyboardInterrupt:
                 print('\n' + Fore.RED + 'Pass 2nd Validation forced to stopped!' + Fore.RESET)
                 disp.disp_content(rowdictlist,x,alg,flg)

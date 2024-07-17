@@ -230,8 +230,7 @@ def track_chosen_attr_fields(valid_fields,chosen_attr):
                 chosen_attr_fields.append(valid_field)
     return chosen_attr_fields
     
-def track_fail_reason(pass_fail_pre_rd,pass_fail_1st_val,pass_fail_2nd_val,pass_fail_3rd_val):
-    fail_reason = []
+def track_fail_reason(pass_fail_pre_rd,pass_fail_1st_val,pass_fail_2nd_val,pass_fail_3rd_val,fail_reason):
     if pass_fail_pre_rd == 'fail':
         fail_reason.append('Pre_rd')
     if pass_fail_1st_val == 'fail':

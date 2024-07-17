@@ -251,6 +251,48 @@ class Pre_test:
         (alg,flg) = dump.export('close_all','NA',alg,flg)
         (alg,flg) = dump.export('close_fail','NA',alg,flg)
 		
+    def find_lockreg(attr_fields,chosen_attr):
+        lockbit_regs=[]
+        lockattr_regs=[]
+        for attr_field in attr_fields:
+            attr = eval(f"{attr_field}.info['attribute']")
+            if 'rw/p/l' in attr:
+                lockattr_regs.append(attr_field)
+                try:
+                    lockbit_name = eval(f"{attr_field}.info['LockKeyField'].lower()")
+                except:
+                    lockbit_name = None
+                    lockbit_reg = None
+                if lockbit_name != None:
+                    temp_lockbit_reg = attr_field.split('.')
+                    temp_lockbit_reg = temp_lockbit_reg[:-2]
+                    temp_lockbit_reg = '.'.join(temp_lockbit_reg)
+                    lockbit_reg = temp_lockbit_reg + '.' + lockbit_name
+                lockbit_regs.append(lockbit_reg)
+                lockattr_regs.append(attr_field)
+        return lockbit_regs,lockattr_regs
+                
+        
+    def feature_lock(attr_fields,chosen_attr):#wip
+        lockbit_regs = []
+        if isinstance(chosen_attr,list):
+            (lockbit_regs,lockattr_regs) = find_lockreg(attr_fields,chosen_attr)
+        elif isinstance(chosen_attr,str) and chosen_attr == "rw/p/l":
+            for field in attr_fields:
+                try:
+                    lockbit_name = eval(f"{field}.info['LockKeyField'].lower()")
+                except:
+                    lockbit_name = None
+                    lockbit_reg = None
+                if lockbit_name != None:
+                    temp_lockbit_reg = field.split('.')
+                    temp_lockbit_reg = temp_lockbit_reg[:-2]
+                    temp_lockbit_reg = '.'.join(temp_lockbit_reg)
+                    lockbit_reg = temp_lockbit_reg + '.' + lockbit_name
+                lockbit_regs.append(lockbit_reg)
+            lockattr_regs = attr_fields
+        return lockbit_regs,lockattr_regs
+        
     def _main(input_reg,auto_attr,auto_access):
         full_fields = badname_regs(input_reg,True)#detect for error regs and fields. Exclude them out from good regs and fields.
         (attr_fields,attr_ips) = invalidate(full_fields,True)#detect for invalid regs and fields without attribute info. Exclude them out.
@@ -258,10 +300,11 @@ class Pre_test:
         log_store = track.feedback_access_method(chosen_access,attr_ips,log_store)
         chosen_attr = user.Pre_test.attr_choice([],auto_attr)#choose the one for validation.('r/w' or '')
         Pre_test.export_pre_test_msg(log_store)#store access method info in 'AggressiVE.log'.
-        return attr_fields,chosen_attr
+        (lockbit_regs,lockattr_regs) = Pre_test.feature_lock(attr_fields,chosen_attr)
+        return attr_fields,chosen_attr,[lockbit_regs,lockattr_regs]
 
 class Post_test:
-    def _fail_main(fail_infos,alg,flg,detections,num_val_seq):
+    def _fail_main(fail_infos,alg,flg,detections,num_val_seq,locklists):
         [Fail,fail_regs,fail_x,auto] = fail_infos
         if Fail > 0 :
             chosen_fail_val = 1
@@ -270,7 +313,7 @@ class Post_test:
                 if chosen_fail_val == 2:
                     (alg,flg) = dump.export('store','Fail Registers Re-write is chosen!',alg,flg)
                     (alg,flg) = dump.export('store_fail','Fail Registers Re-write is chosen!',alg,flg)
-                    (alg,flg) = rdwr.Post_test.validate2_fail_regs(fail_regs,alg,flg,Fail,auto,detections,num_val_seq)#2nd validation for fail fields(re-write)
+                    (alg,flg) = rdwr.Post_test.validate2_fail_regs(fail_regs,alg,flg,Fail,auto,detections,num_val_seq,locklists)#2nd validation for fail fields(re-write)
                 elif chosen_fail_val == 1:
                     disp.disp_fail_content(fail_x,alg,flg)#re-print fail fields
                     print('Fail:'+str(Fail))
@@ -827,8 +870,8 @@ def aggressive(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xlsx'):
     if dfd_en:
         Pre_test.initial_setting()
     for input_reg in filtered_input_regs:
-        (attr_fields,chosen_attr) = Pre_test._main(input_reg,auto_attr,auto_access)#run all pretest features.
-        rdwr.Exec.validate(attr_fields,chosen_attr,auto,detections,num_val_seq,random)#validation.
+        (attr_fields,chosen_attr,locklists) = Pre_test._main(input_reg,auto_attr,auto_access)#run all pretest features.
+        rdwr.Exec.validate(attr_fields,chosen_attr,auto,detections,num_val_seq,random,locklists)#validation.
     dump.goto_default_path()
 
 def aggressive_badname(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xlsx'):
