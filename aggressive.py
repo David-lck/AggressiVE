@@ -291,6 +291,9 @@ class Pre_test:
                     lockbit_reg = temp_lockbit_reg + '.' + lockbit_name
                 lockbit_regs.append(lockbit_reg)
             lockattr_regs = attr_fields
+        else:
+            lockbit_regs=[]
+            lockattr_regs=[]
         return lockbit_regs,lockattr_regs
         
     def _main(input_reg,auto_attr,auto_access):

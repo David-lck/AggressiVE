@@ -280,7 +280,7 @@ class Algorithm:
                 return Bit_Compare.single_bit_pass_fail(result_value0,result_value1,'different','different')
         return 'fail'
         
-    def val_rwop(numbit,val_stage,compare_value):
+    def val_rwop(numbit,val_stage,compare_value,rd_in_list):
         wr = compare_value[0]
         rd = compare_value[1]
         pre_rd = compare_value[2]
@@ -305,7 +305,8 @@ class Algorithm:
             elif result_value1 == [] or result_value0 == []:
                 return Bit_Compare.single_bit_pass_fail(result_value0,result_value1,'same','same')
         elif val_stage == '2nd_stage_rdwr':
-            (result_value1,result_value0) = Bit_Compare.compare_bit2bit(pre_rd_in_bin,rd_in_bin)
+            first_rd_in_bin = Conv.convert_hex_to_bin(rd_in_list[0])
+            (result_value1,result_value0) = Bit_Compare.compare_bit2bit(first_rd_in_bin,rd_in_bin)
             if result_value0 in (['same'],[]) and result_value1 in (['same'],[]):
                 return 'pass'
             elif result_value1 == [] or result_value0 == []:
@@ -584,6 +585,8 @@ class Val_stage:
                 two_read_value = [rd,rd2]
                 ##pass_fail = compare(attr,wr,two_read_value,pre_rd,numbit,val_stage)
                 pass_fail = compare[attr](numbit,val_stage,arr_compare_value(attr,wr,two_read_value,pre_rd))
+            elif attr in ["rw/o/p","rw/o/v/l"]:
+                pass_fail = compare[attr](numbit,val_stage,arr_compare_value(attr,wr,rd,pre_rd),rd_in_list)
             else:
                 ##pass_fail = compare(attr,wr,rd,pre_rd,numbit,val_stage)
                 pass_fail = compare[attr](numbit,val_stage,arr_compare_value(attr,wr,rd,pre_rd))
@@ -627,7 +630,10 @@ class Exec:
     def attr_preference(full_field_name, locklists):
         [lockbit_regs,lockattr_regs] = locklists
         if full_field_name in lockattr_regs:
-            lockbit_val = str(eval(lockbit_regs[lockattr_regs.index(full_field_name)]))
+            if lockbit_regs[lockattr_regs.index(full_field_name)] == None:
+                lockbit_val = None
+            else:
+                lockbit_val = str(eval(lockbit_regs[lockattr_regs.index(full_field_name)]))
             if lockbit_val == '0x0':
                 prefered_attr = "r/w"
                 prefered_reason = 'Lockbit=0'
