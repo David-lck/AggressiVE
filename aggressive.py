@@ -183,6 +183,12 @@ class Pre_test:
                 pointer = avai_attrs.index(attr)
                 num_avai_attr[pointer] += 1
         return attr_fields,avai_attrs,num_avai_attr
+     
+    def _adjust_prerd_num(chosen_attr, detections):
+        if chosen_attr in ['ro/swc','na','ro/c']:
+            detections[-1] = 2
+            print(f"Detected validation attribute contain {chosen_attr}. Proceed with 2 pre_rd.")
+        return detections
         
     def _comb_same_attr(avai_attrs,num_avai_attr):
         new_attrs = [] 
@@ -276,7 +282,7 @@ class Pre_test:
     def feature_lock(attr_fields,chosen_attr):#wip
         lockbit_regs = []
         if isinstance(chosen_attr,list):
-            (lockbit_regs,lockattr_regs) = find_lockreg(attr_fields,chosen_attr)
+            (lockbit_regs,lockattr_regs) = Pre_test.find_lockreg(attr_fields,chosen_attr)
         elif isinstance(chosen_attr,str) and chosen_attr == "rw/p/l":
             for field in attr_fields:
                 try:
@@ -874,6 +880,7 @@ def aggressive(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xlsx'):
         Pre_test.initial_setting()
     for input_reg in filtered_input_regs:
         (attr_fields,chosen_attr,locklists) = Pre_test._main(input_reg,auto_attr,auto_access)#run all pretest features.
+        detections = Pre_test._adjust_prerd_num(chosen_attr, detections)
         rdwr.Exec.validate(attr_fields,chosen_attr,auto,detections,num_val_seq,random,locklists)#validation.
     dump.goto_default_path()
 

@@ -290,14 +290,23 @@ class Algorithm:
         if len(wr_in_bin) > len(rd_in_bin):
             num_bit_dif = len(wr_in_bin) - len(rd_in_bin)
             rd_in_bin = ('0' * num_bit_dif) + rd_in_bin
+            num_bit_dif = len(wr_in_bin) - len(pre_rd_in_bin)
+            pre_rd_in_bin = ('0' * num_bit_dif) + pre_rd_in_bin
         elif len(wr_in_bin) < len(rd_in_bin):
             num_bit_dif = len(rd_in_bin) - len(wr_in_bin)
             wr_in_bin = ('0' * num_bit_dif) + wr_in_bin
+            num_bit_dif = len(rd_in_bin) - len(pre_rd_in_bin)
+            pre_rd_in_bin = ('0' * num_bit_dif) + pre_rd_in_bin
         if val_stage in ['1st_stage_rdwr','3rd_stage_rdwr']:
             (result_value1,result_value0) = Bit_Compare.compare_bit2bit(wr_in_bin,rd_in_bin)
             if result_value0 in (['same'],[]) and result_value1 in (['same'],[]):
                 return 'pass'
-            elif result_value0 in (['different'],[]) and result_value1 in (['different'],[]):
+            elif result_value0 in (['different'],[]) or result_value1 in (['different'],[],['same','different']):
+                if rd_in_bin == pre_rd_in_bin:
+                    return 'pass'
+                else:
+                    return 'fail'
+            elif len(set(result_value1)) == 2 or len(set(result_value0)) == 2:
                 if rd_in_bin == pre_rd_in_bin:
                     return 'pass'
                 else:
@@ -311,6 +320,40 @@ class Algorithm:
                 return 'pass'
             elif result_value1 == [] or result_value0 == []:
                 return Bit_Compare.single_bit_pass_fail(result_value0,result_value1,'different','different')
+        return 'fail'
+
+    def val_rw0c(numbit,val_stage,compare_value):
+        wr = compare_value[0]
+        rd = compare_value[1]
+        pre_rd = compare_value[2]
+        wr_in_bin = Conv.convert_hex_to_bin(wr)
+        rd_in_bin = Conv.convert_hex_to_bin(rd)
+        pre_rd_in_bin = Conv.convert_hex_to_bin(pre_rd)
+        if len(wr_in_bin) > len(rd_in_bin):
+            num_bit_dif = len(wr_in_bin) - len(rd_in_bin)
+            rd_in_bin = ('0' * num_bit_dif) + rd_in_bin
+        elif len(wr_in_bin) < len(rd_in_bin):
+            num_bit_dif = len(rd_in_bin) - len(wr_in_bin)
+            wr_in_bin = ('0' * num_bit_dif) + wr_in_bin
+        if val_stage == '1st_stage_rdwr':
+            (result_value1,result_value0) = Bit_Compare.compare_bit2bit(wr_in_bin,rd_in_bin)
+            (result_value0) = Bit_Compare.compare_bit2bit_with_prerd(pre_rd_in_bin,wr_in_bin,rd_in_bin,'pre')
+            if 'different' not in result_value1 and 'same' in result_value0:
+                return 'pass'
+            elif result_value1 == [] or result_value0 == []:
+                return Bit_Compare.single_bit_pass_fail(result_value0,result_value1,['pre','no_zero'],'different')
+        elif val_stage == '2nd_stage_rdwr':
+            (result_value1,result_value0) = Bit_Compare.compare_bit2bit(wr_in_bin,rd_in_bin)
+            if 'different' not in result_value0 and 'same' not in result_value1:
+                return 'pass'
+            elif result_value1 == [] or result_value0 == []:
+                return Bit_Compare.single_bit_pass_fail(result_value0,result_value1,'same','different')
+        elif val_stage == '3rd_stage_rdwr':
+            (result_value1,result_value0) = Bit_Compare.compare_bit2bit(wr_in_bin,rd_in_bin)
+            if 'different' not in result_value0 and 'same' not in result_value1:
+                return 'pass'
+            elif result_value1 == [] or result_value0 == []:
+                return Bit_Compare.single_bit_pass_fail(result_value0,result_value1,'same','different')
         return 'fail'
 
     def val_rw1c(numbit,val_stage,compare_value):
@@ -435,6 +478,22 @@ class Bit_Compare:
             elif bit_value == '0' and bit_value != value2[i]:
                 result_value0.append('different')
             i+=1
+        result_value1,result_value0 = Bit_Compare.clean_compare_results(result_value1,result_value0)
+        return result_value1,result_value0
+        
+    def clean_compare_results(result_value1,result_value0):
+        if result_value1 == []:
+            pass
+        elif all(element == result_value1[0] for element in result_value1):
+            result_value1 = [result_value1[0]]
+        elif len(set(result_value1)) == 2:
+            result_value1 = ['different','same']
+        if result_value0 == []:
+            pass
+        elif all(element == result_value0[0] for element in result_value0):
+            result_value0 = [result_value0[0]]
+        elif len(set(result_value0)) == 2:
+            result_value0 = ['different','same']
         return result_value1,result_value0
         
 def read(full_field_name):
@@ -481,7 +540,8 @@ compare = {
 'wo/1':Algorithm.val_wo1, 
 'wo/c':Algorithm.val_woc, 
 'na':Algorithm.val_na, 
-'rw0c_fw':Algorithm.val_rw0cfw, 'rw/0c/v':Algorithm.val_rw0cfw, 
+'rw0c_fw':Algorithm.val_rw0cfw,
+'rw/0c/v':Algorithm.val_rw0c, 
 'rw1c_fw':Algorithm.val_rw1cfw, 
 'double buffered':Algorithm.val_db, 
 'r/w hardware clear':Algorithm.val_rwhwc, 
