@@ -20,6 +20,17 @@ def export(choice,content,alg,flg):#Write/store only
         flg = open("AggressiVE_fail.log", dump_mode)
     return alg,flg
     
+def export_nocheck(choice,content,nclg):
+    dump_mode = "a"
+    if choice == 'close':
+        nclg.close()
+    elif choice == 'store':
+        nclg.write(content)
+        nclg.write('\n')
+    else:
+        nclg = open("Printout_nocheck.log", dump_mode)
+    return nclg
+
 def export_badname(choice,content,blg):
     current_time = str(time.ctime().replace(" ","_").replace(":",""))
     if choice == 'open':
@@ -42,12 +53,13 @@ def export_badname_regs(choice,content,ilg):
         ilg.write('\n')
     return ilg
 	
-def export_regs(pass_regs, fail_regs, error_regs, sus_hang_regs):
-    prlg, frlg, erlg, shrlg = '', '', '', ''
+def export_regs(pass_regs, fail_regs, error_regs, sus_hang_regs, nocheck_regs):
+    prlg, frlg, erlg, shrlg, nclg = '', '', '', '', ''
     prlg = open("pass_regs.log","w")
     frlg = open("fail_regs.log","w")
     erlg = open("error_regs.log","w")
     shrlg = open("sus_hang_regs.log","w")
+    nclg = open("nocheck_regs.log","w")
     for pass_reg in pass_regs:
         prlg.write(pass_reg)
         prlg.write('\n')
@@ -61,14 +73,19 @@ def export_regs(pass_regs, fail_regs, error_regs, sus_hang_regs):
         for one_sus_reg in sus_hang_reg:
             shrlg.write(one_sus_reg)
             shrlg.write('\n')
+    for nocheck_reg in nocheck_regs:
+        nclg.write(nocheck_reg)
+        nclg.write('\n')
     print('All current list of pass registers have been saved to C>>Users>>pgsvlab>>PythonSv>>Aggressive_logs>>pass_regs.log')
     print('All current list of pass registers have been saved to C>>Users>>pgsvlab>>PythonSv>>Aggressive_logs>>fail_regs.log')
     print('All current list of error registers have been saved to C>>Users>>pgsvlab>>PythonSv>>Aggressive_logs>>error_regs.log')
     print('All current list of suspect hang registers have been saved to C>>Users>>pgsvlab>>PythonSv>>Aggressive_logs>>sus_hang_regs.log')
+    print('All current list of error registers have been saved to C>>Users>>pgsvlab>>PythonSv>>Aggressive_logs>>nocheck_regs.log')
     prlg.close()
     frlg.close()
     erlg.close()
     shrlg.close()
+    nclg.close()
     
 def export_hang_regs(confirm_hang_regs):
     hrlg = ''

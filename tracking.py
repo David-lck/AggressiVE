@@ -6,6 +6,8 @@ pch = __main__.pch if hasattr(__main__, 'pch') else None
 itp = __main__.itp if hasattr(__main__, 'itp') else None
 ioe = __main__.ioe if hasattr(__main__, 'ioe') else None
 gcd = __main__.gcd if hasattr(__main__, 'gcd') else None
+hub = __main__.gcd if hasattr(__main__, 'hub') else None
+pcd = __main__.gcd if hasattr(__main__, 'pcd') else None
 from builtins import *
 from builtins import str
 from builtins import range
@@ -223,10 +225,10 @@ def track_chosen_attr_fields(valid_fields,chosen_attr):
         elif attr == []:
             attr = eval(valid_field+'.info["attribute"]')
         if isinstance(chosen_attr,list):
-            if attr in chosen_attr:
+            if attr in chosen_attr or 'None' in chosen_attr or isinstance(chosen_attr[0],float):
                 chosen_attr_fields.append(valid_field)
         else:
-            if attr == chosen_attr or chosen_attr == 'None':
+            if attr == chosen_attr or chosen_attr == 'None' or isinstance(chosen_attr,float):
                 chosen_attr_fields.append(valid_field)
     return chosen_attr_fields
     

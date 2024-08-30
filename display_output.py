@@ -6,6 +6,8 @@ pch = __main__.pch if hasattr(__main__, 'pch') else None
 itp = __main__.itp if hasattr(__main__, 'itp') else None
 ioe = __main__.ioe if hasattr(__main__, 'ioe') else None
 gcd = __main__.gcd if hasattr(__main__, 'gcd') else None
+hub = __main__.gcd if hasattr(__main__, 'hub') else None
+pcd = __main__.gcd if hasattr(__main__, 'pcd') else None
 from builtins import *
 from builtins import str
 from builtins import range
@@ -151,6 +153,54 @@ def store_content(rowdictlist,x,num,full_field_name,attr,pass_fail,pre_rd,wr_in_
                 rowdictlist += [{'Num':str(num),'Field Name':full_field_name,'Attr':attr,Fore.LIGHTWHITE_EX+'Status'+Fore.RESET:pass_fail+str(fail_reason),'Pre_RD':Pre_RD1,'1st_Val_WR':WR1,'1st_Val_RD':RD1,'2nd_Val_WR':WR2,'2nd_Val_RD':RD2,'3rd_Val_WR':WR3,'3rd_Val_RD':RD3}]    
     x = asciitable.AsciiTable.fromDictList(rowdictlist,headers)
     return rowdictlist,x
+    
+def store_nocheck_content(nochk_rowdictlist,nochk_x,num,full_field_name,attr,pass_fail,pre_rd,wr_in_list,rd_in_list,num_val_seq):
+    if num_val_seq == 3:
+        headers=['Num','Field Name','Attr',Fore.LIGHTWHITE_EX+'Status'+Fore.RESET,'1st_Pre_RD','2nd_Pre_RD','1st_Val_WR','1st_Val_RD','2nd_Val_WR','2nd_Val_RD','3rd_Val_WR','3rd_Val_RD']
+    elif num_val_seq == 2:
+        headers=['Num','Field Name','Attr',Fore.LIGHTWHITE_EX+'Status'+Fore.RESET,'1st_Pre_RD','2nd_Pre_RD','1st_Val_WR','1st_Val_RD','2nd_Val_WR','2nd_Val_RD']
+    elif num_val_seq == 1:
+        headers=['Num','Field Name','Attr',Fore.LIGHTWHITE_EX+'Status'+Fore.RESET,'1st_Pre_RD','2nd_Pre_RD','1st_Val_WR','1st_Val_RD']
+    if len(pre_rd) == 1:
+        headers.remove('2nd_Pre_RD')
+        headers = ['Pre_RD' if nochk_x == '1st_Pre_RD' else nochk_x for nochk_x in headers]
+    if pre_rd == []:#for those that are not able to read and write.
+        nochk_rowdictlist += [{'Num':str(num),'Field Name':full_field_name,'Attr':attr,Fore.LIGHTWHITE_EX+'Status'+Fore.RESET:pass_fail,'1st_Pre_RD':'NA','2nd_Pre_RD':'NA','1st_Val_WR':'NA','1st_Val_RD':'NA','2nd_Val_WR':'NA','2nd_Val_RD':'NA','3rd_Val_WR':'NA','3rd_Val_RD':'NA'}]
+    elif num_val_seq == 1:
+        Pre_RD1 = str(pre_rd[0])
+        WR1 = str(wr_in_list[0])
+        RD1 = str(rd_in_list[0])
+        if len(pre_rd) == 2:
+            Pre_RD2 = str(pre_rd[1])
+            nochk_rowdictlist += [{'Num':str(num),'Field Name':full_field_name,'Attr':attr,Fore.LIGHTWHITE_EX+'Status'+Fore.RESET:pass_fail,'1st_Pre_RD':Pre_RD1,'2nd_Pre_RD':Pre_RD2,'1st_Val_WR':WR1,'1st_Val_RD':RD1}]
+        elif len(pre_rd) == 1:
+            nochk_rowdictlist += [{'Num':str(num),'Field Name':full_field_name,'Attr':attr,Fore.LIGHTWHITE_EX+'Status'+Fore.RESET:pass_fail,'Pre_RD':Pre_RD1,'1st_Val_WR':WR1,'1st_Val_RD':RD1}]
+    elif num_val_seq == 2:
+        Pre_RD1 = str(pre_rd[0])
+        WR1 = str(wr_in_list[0])
+        RD1 = str(rd_in_list[0])
+        WR2 = str(wr_in_list[1])
+        RD2 = str(rd_in_list[1])
+        if len(pre_rd) == 2:
+            Pre_RD2 = str(pre_rd[1])
+            nochk_rowdictlist += [{'Num':str(num),'Field Name':full_field_name,'Attr':attr,Fore.LIGHTWHITE_EX+'Status'+Fore.RESET:pass_fail,'1st_Pre_RD':Pre_RD1,'2nd_Pre_RD':Pre_RD2,'1st_Val_WR':WR1,'1st_Val_RD':RD1,'2nd_Val_WR':WR2,'2nd_Val_RD':RD2}]
+        elif len(pre_rd) == 1:
+            nochk_rowdictlist += [{'Num':str(num),'Field Name':full_field_name,'Attr':attr,Fore.LIGHTWHITE_EX+'Status'+Fore.RESET:pass_fail,'Pre_RD':Pre_RD1,'1st_Val_WR':WR1,'1st_Val_RD':RD1,'2nd_Val_WR':WR2,'2nd_Val_RD':RD2}]
+    else:#normal one
+        Pre_RD1 = str(pre_rd[0])
+        WR1 = str(wr_in_list[0])
+        RD1 = str(rd_in_list[0])
+        WR2 = str(wr_in_list[1])
+        RD2 = str(rd_in_list[1])
+        WR3 = str(wr_in_list[2])
+        RD3 = str(rd_in_list[2])
+        if len(pre_rd) == 2:
+            Pre_RD2 = str(pre_rd[1])
+            nochk_rowdictlist += [{'Num':str(num),'Field Name':full_field_name,'Attr':attr,Fore.LIGHTWHITE_EX+'Status'+Fore.RESET:pass_fail,'1st_Pre_RD':Pre_RD1,'2nd_Pre_RD':Pre_RD2,'1st_Val_WR':WR1,'1st_Val_RD':RD1,'2nd_Val_WR':WR2,'2nd_Val_RD':RD2,'3rd_Val_WR':WR3,'3rd_Val_RD':RD3}]    
+        elif len(pre_rd) == 1:
+            nochk_rowdictlist += [{'Num':str(num),'Field Name':full_field_name,'Attr':attr,Fore.LIGHTWHITE_EX+'Status'+Fore.RESET:pass_fail,'Pre_RD':Pre_RD1,'1st_Val_WR':WR1,'1st_Val_RD':RD1,'2nd_Val_WR':WR2,'2nd_Val_RD':RD2,'3rd_Val_WR':WR3,'3rd_Val_RD':RD3}]    
+    nochk_x = asciitable.AsciiTable.fromDictList(nochk_rowdictlist,headers)
+    return nochk_rowdictlist,nochk_x
     
 def store_fail_content(fail_rowdl,fail_x,num,full_field_name,attr,pass_fail,pre_rd,wr_in_list,rd_in_list,fail_reason,num_val_seq):
     if pass_fail == 'pass':

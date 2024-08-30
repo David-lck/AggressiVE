@@ -6,6 +6,8 @@ pch = __main__.pch if hasattr(__main__, 'pch') else None
 itp = __main__.itp if hasattr(__main__, 'itp') else None
 ioe = __main__.ioe if hasattr(__main__, 'ioe') else None
 gcd = __main__.gcd if hasattr(__main__, 'gcd') else None
+hub = __main__.gcd if hasattr(__main__, 'hub') else None
+pcd = __main__.gcd if hasattr(__main__, 'pcd') else None
 refresh = __main__.refresh if hasattr(__main__, 'refresh') else None
 import time
 import colorama
@@ -39,7 +41,6 @@ import random as dice
 
 all_undefined_attrs = ['dc','rw/ac','rw/l/k','rw/s/l','rw/fuse','rw/strap']
 partial_defined_attrs = ['ro/c/v','ro/p','ro/v','ro/v/p','rw/1c/p','rw/1c/v','rw/1c/v/p','rw/0c/v','rw/1s/v/p','rw/1s/v','rw/1s/v/l','rw/o/p','rw/o/v/l','rw/p','rw/p/l','rw/v','rw/v/p','rw/v/l','rw/v/p/l','rw/v2','ro/c','rw/cr','wo/1','wo/c','na','rw0c_fw','rw1c_fw','double buffered','r/w hardware clear','read/32 bit write only','r/w firmware only']
-#partial_defined_attrs =  ['ro/c/v','ro/p','ro/v','ro/v/p','rw/1c/p','rw/1c/v','rw/1c/v/p','rw/0c/v','rw/1s/v/p','rw/1s/v','rw/1s/v/l','rw/o/p','rw/o/v/l','rw/p','rw/p/l','rw/v','rw/v/p','rw/v/l','rw/v/p/l','rw/v2']
 
 class Conv:
     def convert_bin_to_hex(bin_value):
@@ -95,6 +96,9 @@ class Algorithm:
                 return 'pass'
             else:
                 return 'fail'
+
+    def val_rwv2(numbit,val_stage,compare_value):
+        return 'NA'
 
     def val_rwcr(numbit,val_stage,compare_value):
         wr = compare_value[0]
@@ -322,7 +326,7 @@ class Algorithm:
                 return Bit_Compare.single_bit_pass_fail(result_value0,result_value1,'different','different')
         return 'fail'
 
-    def val_rw0c(numbit,val_stage,compare_value):
+    def val_rw0cv(numbit,val_stage,compare_value):
         wr = compare_value[0]
         rd = compare_value[1]
         pre_rd = compare_value[2]
@@ -337,8 +341,8 @@ class Algorithm:
             wr_in_bin = ('0' * num_bit_dif) + wr_in_bin
         if val_stage == '1st_stage_rdwr':
             (result_value1,result_value0) = Bit_Compare.compare_bit2bit(wr_in_bin,rd_in_bin)
-            (result_value0) = Bit_Compare.compare_bit2bit_with_prerd(pre_rd_in_bin,wr_in_bin,rd_in_bin,'pre')
-            if 'different' not in result_value1 and 'same' in result_value0:
+            (result_value1) = Bit_Compare.compare_bit2bit_with_prerd_and_val1(pre_rd_in_bin,wr_in_bin,rd_in_bin,'pre')
+            if result_value1 == 'pre' and result_value0 in [[],['same']]:
                 return 'pass'
             elif result_value1 == [] or result_value0 == []:
                 return Bit_Compare.single_bit_pass_fail(result_value0,result_value1,['pre','no_zero'],'different')
@@ -391,7 +395,7 @@ class Algorithm:
         return 'fail'
     
     def val_rw1l(numbit,val_stage,compare_value):
-        pass_fail = Algorithm.val_rwl(numbit,val_stage,compare_value)
+        pass_fail = Algorithm.val_rws(numbit,val_stage,compare_value)
         return pass_fail
     
     def val_rw1s(numbit,val_stage,compare_value):
@@ -439,7 +443,25 @@ class Bit_Compare:
                 if exp_val0 not in result_value0:
                     return 'pass'
         return 'fail'
-    
+    def compare_bit2bit_with_prerd_and_val1(pre_rd,wr,rd,expect_value):
+        i = 0
+        result_value0 = result_value1 = ''
+        if pre_rd == '0':
+            pre_rd = '0' * len(wr)
+        elif pre_rd != '0' and len(pre_rd) < len(wr):
+            pre_rd = ('0' * (len(wr)-len(pre_rd))) + pre_rd
+        for bit_wr in wr:
+            if bit_wr == '1':
+                if expect_value == 'pre' and pre_rd[i] == rd[i]:
+                    result = 'pre'
+                elif expect_value == 'pre' and pre_rd[i] != rd[i]:
+                    result = 'not_pre'
+                    break
+            else:
+                result = 'no_one'
+            i+=1
+        return result
+ 
     def compare_bit2bit_with_prerd(pre_rd,wr,rd,expect_value):
         i = 0
         result_value0 = result_value1 = ''
@@ -525,9 +547,9 @@ def arr_compare_value(attr,wr,rd,pre_rd):
 compare = {
 'ro':Algorithm.val_ro, 'ro/p':Algorithm.val_ro, 'ro/v':Algorithm.val_ro, 'ro/v/p':Algorithm.val_ro,
 'wo':Algorithm.val_wo,
-'rw':Algorithm.val_rw, 'rw/v':Algorithm.val_rw, 'rw/v/p':Algorithm.val_rw, 'rw/p':Algorithm.val_rw, 'rw/v2':Algorithm.val_rw, 
+'rw':Algorithm.val_rw, 'rw/v':Algorithm.val_rw, 'rw/v/p':Algorithm.val_rw, 'rw/p':Algorithm.val_rw, 'rw/v2':Algorithm.val_rwv2, 
 'rw/s':Algorithm.val_rws,
-'rw/l':Algorithm.val_rwl, 'rw/p/l':Algorithm.val_rwl, 'rw/v/l':Algorithm.val_rwl, 'rw/v/p/l':Algorithm.val_rwl,
+'rw/l':Algorithm.val_rw, 'rw/p/l':Algorithm.val_rw, 'rw/v/l':Algorithm.val_rw, 'rw/v/p/l':Algorithm.val_rw,
 'rw/o':Algorithm.val_rwo, 'rw/o/p':Algorithm.val_rwop, 'rw/o/v/l':Algorithm.val_rwop,
 'rw/1c':Algorithm.val_rw1c, 'rw/1c/p':Algorithm.val_rw1c, 'rw/1c/v':Algorithm.val_rw1c, 'rw/1c/v/p':Algorithm.val_rw1c, 
 'rw/1l':Algorithm.val_rw1l, 
@@ -541,7 +563,7 @@ compare = {
 'wo/c':Algorithm.val_woc, 
 'na':Algorithm.val_na, 
 'rw0c_fw':Algorithm.val_rw0cfw,
-'rw/0c/v':Algorithm.val_rw0c, 
+'rw/0c/v':Algorithm.val_rw0cv, 
 'rw1c_fw':Algorithm.val_rw1cfw, 
 'double buffered':Algorithm.val_db, 
 'r/w hardware clear':Algorithm.val_rwhwc, 
@@ -568,21 +590,21 @@ def create_value_10_01(numbit,value):#value = '10'/'01'
         created_value = (value * round((round((numbit - 1)) / 2))) + value[0]
     return created_value
     
-def create_value(numbit, value):#value = 'A5'/'5A'
+def create_value(numbit, value):#value = 'A5'/'5A'/'FF'
     '''Method2:'''
-    stage = '5' if value == 'A5' else 'A' if value == '5A' else None
+    stage = '5' if value == 'A5' else 'A' if value == '5A' else 'F' if value == 'FF' else None
     created_value = ''
     numbit_remain = numbit
     if numbit > 4:
         while numbit_remain >= 4:
-            add = '1010' if stage == 'A' else '0101' if stage == '5' else None
+            add = '1010' if stage == 'A' else '0101' if stage == '5' else '1111' if stage == 'F' else None
             created_value = add + created_value
-            stage = 'A' if stage == '5' else '5'
+            stage = 'A' if stage == '5' else '5' if stage == 'A' else 'F'
             numbit_remain -= 4
-        add = '1010' if stage == 'A' else '0101'
+        add = '1010' if stage == 'A' else '0101' if stage == '5' else '1111'
         created_value = add[-numbit_remain:]+created_value if numbit_remain != 0 else created_value
     else:
-        add = '1010' if stage == 'A' else '0101'
+        add = '1010' if stage == 'A' else '0101' if stage == '5' else '1111'
         created_value = add[-numbit:]
     return created_value
 
@@ -676,7 +698,7 @@ class Val_stage:
 
 class Exec:
     def categorize_regs(pass_fail, full_field_name, chosen_attr_fields, cath_regs):
-        [pass_regs, fail_regs, error_regs, sus_hang_regs] = cath_regs
+        [pass_regs, fail_regs, error_regs, sus_hang_regs, nocheck_regs] = cath_regs
         if pass_fail == 'pass':
             pass_regs.append(full_field_name)
         elif pass_fail == 'fail':
@@ -685,7 +707,9 @@ class Exec:
             error_regs.append(full_field_name)
         elif pass_fail == 'hang':
             sus_hang_regs.append(chosen_attr_fields[chosen_attr_fields.index(full_field_name)-9:chosen_attr_fields.index(full_field_name)+1])
-        return pass_regs, fail_regs, error_regs, sus_hang_regs
+        elif pass_fail == 'NA':
+            nocheck_regs.append(full_field_name)
+        return pass_regs, fail_regs, error_regs, sus_hang_regs, nocheck_regs
 
     def attr_preference(full_field_name, locklists):
         [lockbit_regs,lockattr_regs] = locklists
@@ -701,7 +725,7 @@ class Exec:
                 prefered_attr = "ro"
                 prefered_reason = 'Lockbit=1'
             else:
-                prefered_attr = None
+                prefered_attr = "r/w"
                 prefered_reason = f'Lockbit={lockbit_val}'
         else:
             prefered_attr = None
@@ -720,7 +744,11 @@ class Exec:
         else:
             fail_reason.append(prefered_reason)
         (pre_rd,pass_fail_pre_rd) = Val_stage.pre_read(full_field_name,pre_rd_num,prefered_list)
-        (wr_in_list,rd_in_list,pass_fail_1st_val) = Val_stage.first_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,'1st_stage_rdwr','A5',reset_detection,prefered_list)
+        if num_val_seq == 1:
+            firststage_wr_value == 'FF'
+        else:
+            firststage_wr_value == 'A5'
+        (wr_in_list,rd_in_list,pass_fail_1st_val) = Val_stage.first_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,'1st_stage_rdwr',firststage_wr_value,reset_detection,prefered_list)
         if num_val_seq == 3:
             (wr_in_list,rd_in_list,pass_fail_2nd_val) = Val_stage.second_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,'2nd_stage_rdwr','5A',reset_detection,prefered_list)
             (wr_in_list,rd_in_list,pass_fail_3rd_val) = Val_stage.third_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,'3rd_stage_rdwr','A5',reset_detection,prefered_list)
@@ -767,13 +795,14 @@ class Exec:
         num=1
         Pass, Fail, Unknown, Error, Hang = 0, 0, 0, 0, 0
         num2print=0
-        rowdictlist, fail_rowdl = [], []
-        x, fail_x = [], []
-        alg, flg = '', ''
+        rowdictlist, fail_rowdl, nochk_rowdictlist = [], [], []
+        x, fail_x, nochk_x = [], [], []
+        alg, flg, nclg = '', ''
         error_messages = {}
-        pass_regs, fail_regs, error_regs, sus_hang_regs = [], [], [], []
-        cont_fail_cnt = 0
+        pass_regs, fail_regs, error_regs, sus_hang_regs, nocheck_regs = [], [], [], [], []
+        cont_fail_cnt, nochk_cnt = 0, 0
         (alg,flg) = dump.export('open','NA',alg,flg)
+        (nclg) = dump.export_nocheck('open','NA',nclg)
         #Exclude all the fields with non-chosen attr.
         chosen_attr_fields_all = track.track_chosen_attr_fields(valid_fields,chosen_attr)
         print(f"\nTotal Num Available= {str(len(chosen_attr_fields_all))}")
@@ -835,6 +864,9 @@ class Exec:
                 (fail_rowdl,fail_x) = disp.store_fail_content(fail_rowdl,fail_x,num,full_field_name,attr,pass_fail,pre_rd,wr_in_list,rd_in_list,fail_reason,num_val_seq)
             elif pass_fail =='pass':#this statement is for continuous fail due to undetected hang
                 cont_fail_cnt = 0 #reset it back due to not continuous fail.
+            elif pass_fail == 'NA':
+                nochk_cnt += 1
+                (nochk_rowdictlist,nochk_x) = disp.store_nocheck_content(nochk_rowdictlist,nochk_x,nochk_cnt,full_field_name,attr,pass_fail,pre_rd,wr_in_list,rd_in_list,num_val_seq)
             #display and storing validation info in table form.
             (rowdictlist,x) = disp.store_content(rowdictlist,x,num,full_field_name,attr,pass_fail,pre_rd,wr_in_list,rd_in_list,fail_reason,num_val_seq)
             (Pass,Fail,Unknown,Error) = track.track_num_pass_fail(pass_fail,Pass,Fail,Unknown,Error)
@@ -853,8 +885,8 @@ class Exec:
                 x=[]
             num+=1
             #categorize registers in different logs.
-            cath_regs = [pass_regs, fail_regs, error_regs, sus_hang_regs]
-            (pass_regs, fail_regs, error_regs, sus_hang_regs) = Exec.categorize_regs(pass_fail, full_field_name, chosen_attr_fields, cath_regs)
+            cath_regs = [pass_regs, fail_regs, error_regs, sus_hang_regs, nocheck_regs]
+            (pass_regs, fail_regs, error_regs, sus_hang_regs, nocheck_regs) = Exec.categorize_regs(pass_fail, full_field_name, chosen_attr_fields, cath_regs)
             #detect hang and stop.
             if 'hang' in pass_fail and hang_detection:
                 print('\n' + Fore.RED + "AggressiVE Forced Reboot due to hang!" + Fore.RESET)
@@ -874,7 +906,7 @@ class Exec:
                         refresh()
                         break
 
-        dump.export_regs(pass_regs, fail_regs, error_regs, sus_hang_regs)
+        dump.export_regs(pass_regs, fail_regs, error_regs, sus_hang_regs, nocheck_regs)
         #Post Validation
         if post_val:
             pass_infos = [pass_regs]
@@ -894,6 +926,7 @@ class Exec:
             (alg, flg) = user.Post_test.choose_post_test(num_status,alg,flg,status_infos,detections,auto,num_val_seq,locklists)
         (alg,flg) = dump.export('close_all','NA',alg,flg)
         (alg,flg) = dump.export('close_fail','NA',alg,flg)
+        nclg = dump.export_nocheck('close','NA',nclg)
         
 class Post_test:
     def simplify_error_msg(full_err_msg):

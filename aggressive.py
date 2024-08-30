@@ -283,7 +283,7 @@ class Pre_test:
         lockbit_regs = []
         if isinstance(chosen_attr,list):
             (lockbit_regs,lockattr_regs) = Pre_test.find_lockreg(attr_fields,chosen_attr)
-        elif isinstance(chosen_attr,str) and chosen_attr == "rw/p/l":
+        elif isinstance(chosen_attr,str) and chosen_attr in ["rw/p/l", "rw/v/l", "rw/v/p/l", "rw/l"]:
             for field in attr_fields:
                 try:
                     lockbit_name = eval(f"{field}.info['LockKeyField'].lower()")
@@ -393,93 +393,93 @@ class Algorithm:
     'r/wc':'Ready',
     'ro/swc':'Ready',
     'rsv':'Ready',
-    'ro/c':'ToBeTested',
-    'rw/cr':'ToBeTested',
-    'wo/1':'ToBeTested',
-    'wo/c':'ToBeTested',
-    'na':'ToBeTested',
-    'rw0c_fw':'ToBeTested',
-    'rw1c_fw':'ToBeTested',
-    'double buffered':'ToBeTested',
-    'r/w hardware clear':'ToBeTested',
-    'read/32 bit write only':'ToBeTested',
-    'r/w firmware only':'ToBeTested',
-    'rw/v/p':'ToBeTested',
-    'rw/v/l':'ToBeTested',
-    'rw/v/p/l':'ToBeTested',
-    'ro/v/p':'ToBeTested',
-    'rw/1c/p':'ToBeTested',
-    'rw/1c/v':'ToBeTested',
-    'rw/1c/v/p':'ToBeTested',
-    'rw/1s/v':'ToBeTested',
-    'rw/1s/v/l':'ToBeTested',
+    'ro/c':'Ready',
+    'rw/cr':'Ready',
+    'wo/1':'Ready',
+    'wo/c':'Ready',
+    'na':'Ready',
+    'rw0c_fw':'Ready',
+    'rw1c_fw':'Ready',
+    'double buffered':'Ready',
+    'r/w hardware clear':'Ready',
+    'read/32 bit write only':'Ready',
+    'r/w firmware only':'Ready',
+    'rw/v/p':'Ready',
+    'rw/v/l':'Ready',
+    'rw/v/p/l':'Ready',
+    'ro/v/p':'Ready',
+    'rw/1c/p':'Ready',
+    'rw/1c/v':'Ready',
+    'rw/1c/v/p':'Ready',
+    'rw/1s/v':'Ready',
+    'rw/1s/v/l':'Ready',
     'rw/ac':'Undefined',
-    'rw/o/p':'ToBeTested',
-    'rw/o/v/l':'ToBeTested',
-    'rw/p/l':'ToBeTested',
+    'rw/o/p':'Ready',
+    'rw/o/v/l':'Ready',
+    'rw/p/l':'Ready',
     'rw/fuse':'Undefined',
     'rw/strap':'Undefined',
     'dc':'Undefined',
-    'ro/c/v':'ToBeTested',
-    'ro/p':'ToBeTested',
-    'ro/v':'ToBeTested',
-    'rw/0c/v':'ToBeTested',
+    'ro/c/v':'Ready',
+    'ro/p':'Ready',
+    'ro/v':'Ready',
+    'rw/0c/v':'Ready',
     'rw/l/k':'Undefined',
-    'rw/p':'ToBeTested',
+    'rw/p':'Ready',
     'rw/s/l':'Undefined',
-    'rw/v':'ToBeTested',
-    'rw/v2':'ToBeTested'
+    'rw/v':'Ready',
+    'rw/v2':'Ready'
     }
 
     ALGORITHM = {
-    'ro':['0/1','0/1','10','pre_rd','01','pre_rd','10','pre_rd'],
-    'wo':['0/1','0/1','10','pre_rd','01','pre_rd','10','pre_rd'],
-    'r/w':['0/1','0/1','10','10','01','01','10','10'],
-    'rw/s':['0/1','0/1','10','1(pre_rd)','01','11','10','11'],
-    'rw/l':['0/1','0/1','10','1(pre_rd)','01','11','10','11'],
-    'rw/o':['0/1','0/1','10','10','01','10','10','10'],
-    'rw/1c':['0/1','0/1','10','0(pre_rd)','01','00','10','00'],
-    'rw/1l':['0/1','0/1','10','1(pre_rd)','01','11','10','11'],
-    'rw/1s':['0/1','0/1','10','1(pre_rd)','01','11','10','11'],
-    'r/wc':['0/1','0/1','10','0(pre_rd)','01','00','10','00'],
-    'ro/swc':['0','1','10','1strd=0;2ndrd=0','01','1strd=1;2ndrd=1','10','1strd=0;2ndrd=0'],
-    'rsv':['0/1','0/1','10','pre_rd','01','Pre_rd','10','Pre_rd'],
-    'ro/c':['?','0','10','0','NA','NA','NA','NA'],
-    'rw/cr':['1/0','1/0','10','1strd=10;2ndrd=0','01','1strd=01;2ndrd=0','NA','NA'],
-    'wo/1':['1/0','1/0','10','0','01','0','10','0'],
-    'wo/c':['1/0','1/0','10','0','01','0','10','0'],
-    'na':['0','0','10','0','01','0','10','0'],
-    'rw0c_fw':['1/0','1/0','10','10','01','01','10','10'],
-    'rw1c_fw':['1/0','1/0','10','10','01','01','10','10'],
-    'double buffered':['1/0','1/0','10','10','01','01','10','10'],
-    'r/w hardware clear':['1/0','1/0','10','10','01','01','10','10'],
-    'read/32 bit write only':['1/0','1/0','10','10','01','01','10','10'],
-    'r/w firmware only':['1/0','1/0','10','10','01','01','10','10'],
-    'rw/v/p':['r/w','r/w','r/w','r/w','r/w','r/w','r/w','r/w'],
-    'rw/v/l':['r/w','r/w','r/w','r/w','r/w','r/w','r/w','r/w'],
-    'rw/v/p/l':['r/w','r/w','r/w','r/w','r/w','r/w','r/w','r/w'],
-    'ro/v/p':['ro','ro','ro','ro','ro','ro','ro','ro'],
-    'rw/1c/p':['ro','ro','ro','ro','ro','ro','ro','ro'],
-    'rw/1c/v':['ro','ro','ro','ro','ro','ro','ro','ro'],
-    'rw/1c/v/p':['ro','ro','ro','ro','ro','ro','ro','ro'],
-    'rw/1s/v':['ro','ro','ro','ro','ro','ro','ro','ro'],
-    'rw/1s/v/l':['ro','ro','ro','ro','ro','ro','ro','ro'],
-    'rw/ac':['ro','ro','ro','ro','ro','ro','ro','ro'],
-    'rw/o/p':['ro','ro','ro','ro','ro','ro','ro','ro'],
-    'rw/o/v/l':['ro','ro','ro','ro','ro','ro','ro','ro'],
-    'rw/p/l':['ro','ro','ro','ro','ro','ro','ro','ro'],
-    'rw/fuse':['ro','ro','ro','ro','ro','ro','ro','ro'],
-    'rw/strap':['ro','ro','ro','ro','ro','ro','ro','ro'],
-    'dc':['ro','ro','ro','ro','ro','ro','ro','ro'],
-    'ro/c/v':['r/w','r/w','?','?','?','?','?','?'],
-    'ro/p':['r/w','r/w','?','?','?','?','?','?'],
-    'ro/v':['r/w','r/w','?','?','?','?','?','?'],
-    'rw/0c/v':['ro','ro','?','?','?','?','?','?'],
-    'rw/l/k':['ro','ro','?','?','?','?','?','?'],
-    'rw/p':['ro','ro','?','?','?','?','?','?'],
-    'rw/s/l':['ro','ro','?','?','?','?','?','?'],
-    'rw/v':['ro','ro','?','?','?','?','?','?'],
-    'rw/v2':['ro','ro','?','?','?','?','?','?']
+    'ro':['0/1','0/1','10','pre_rd','01','pre_rd','10','pre_rd'], # Done!
+    'wo':['0/1','0/1','10','pre_rd','01','pre_rd','10','pre_rd'], # Done!
+    'r/w':['0/1','0/1','10','10','01','01','10','10'], # Done!
+    'rw/s':['0/1','0/1','10','1(pre_rd/non-zero)','01','11','10','11'], # Done!
+    'rw/l':['0/1','0/1','10','1(pre_rd/non-zero)','01','11','10','11'], # Done!
+    'rw/o':['0/1','0/1','10','10','01','10','10','10'], # Done!
+    'rw/1c':['0/1','0/1','10','0(pre_rd/1)','01','00','10','00'], # Done!
+    'rw/1l':['0/1','0/1','10','1(pre_rd/non-zero)','01','11','10','11'], # Done!
+    'rw/1s':['0/1','0/1','10','1(pre_rd/non-zero)','01','11','10','11'], # Done!
+    'r/wc':['0/1','0/1','10','0(pre_rd/1)','01','00','10','00'], # Done!
+    'ro/swc':['0','1','10','1strd=10;2ndrd=10','01','1strd=01;2ndrd=01','10','1strd=10;2ndrd=10'], # Done!
+    'rsv':['0/1','0/1','10','pre_rd','01','pre_rd','10','pre_rd'], # Done!
+    'ro/c':['0','0','10','00','01','00','10','00'], # Done!
+    'rw/cr':['1/0','1/0','10','1strd=10;2ndrd=00','01','1strd=01;2ndrd=00','10','1strd=10;2ndrd=00'], # Done!
+    'wo/1':['1/0','1/0','10','00','01','00','10','00'], # Done!
+    'wo/c':['1/0','1/0','10','00','01','00','10','00'], # Done!
+    'na':['00','00','10','00','01','00','10','00'], # Done!
+    'rw0c_fw':['1/0','1/0','10','10','01','01','10','10'], # Done!
+    'rw1c_fw':['1/0','1/0','10','10','01','01','10','10'], # Done!
+    'double buffered':['1/0','1/0','10','10','01','01','10','10'], # Done!
+    'r/w hardware clear':['1/0','1/0','10','10','01','01','10','10'], # Done!
+    'read/32 bit write only':['1/0','1/0','10','10','01','01','10','10'], # Done!
+    'r/w firmware only':['1/0','1/0','10','10','01','01','10','10'], # Done!
+    'rw/v/p':['1/0','1/0','10','10','01','01','10','10'], # Done!
+    'rw/v/l':['0/1','0/1','10','1(pre_rd/non-zero)','01','11','10','11'], # Done!
+    'rw/v/p/l':['0/1','0/1','10','1(pre_rd/non-zero)','01','11','10','11'], # Done!
+    'ro/v/p':['0/1','0/1','10','pre_rd','01','pre_rd','10','pre_rd'], # Done!
+    'rw/1c/p':['0/1','0/1','10','0(pre_rd/1)','01','00','10','00'], # Done!
+    'rw/1c/v':['0/1','0/1','10','0(pre_rd/1)','01','00','10','00'], # Done!
+    'rw/1c/v/p':['0/1','0/1','10','0(pre_rd/1)','01','00','10','00'], # Done!
+    'rw/1s/v':['0/1','0/1','10','0(pre_rd/1)','01','00','10','00'], # Done!
+    'rw/1s/v/l':['0/1','0/1','10','0(pre_rd/1)','01','00','10','00'], # Done!
+    'rw/ac':['0/1','0/1','10','pre_rd','01','pre_rd','10','pre_rd'], # Done!
+    'rw/o/p':['0/1','0/1','10','case1=10;case2=pre_rd','01','01','10','case1=10;case2=pre_rd'], # Done!
+    'rw/o/v/l':['0/1','0/1','10','case1=10;case2=pre_rd','01','01','10','case1=10;case2=pre_rd'], # Done!
+    'rw/p/l':['0/1','0/1','10','1(pre_rd/non-zero)','01','11','10','11'], # Done!
+    'rw/fuse':['0/1','0/1','10','pre_rd','01','pre_rd','10','pre_rd'], # Done!
+    'rw/strap':['0/1','0/1','10','pre_rd','01','pre_rd','10','pre_rd'], # Done!
+    'dc':['0/1','0/1','10','pre_rd','01','pre_rd','10','pre_rd'], # Done!
+    'ro/c/v':['0','0','10','00','01','00','10','00'], # Done!
+    'ro/p':['0/1','0/1','10','pre_rd','01','pre_rd','10','pre_rd'], # Done!
+    'ro/v':['0/1','0/1','10','pre_rd','01','pre_rd','10','pre_rd'], # Done!
+    'rw/0c/v':['0/1','0/1','10','10','01','00','10','00'], # Done!
+    'rw/l/k':['NA','NA','NA','NA','NA','NA','NA','NA'], # Done!
+    'rw/p':['0/1','0/1','10','10','01','01','10','10'], # Done!
+    'rw/s/l':['NA','NA','NA','NA','NA','NA','NA','NA'], # Done!
+    'rw/v':['0/1','0/1','10','10','01','01','10','10'], # Done!
+    'rw/v2':['0/1','0/1','10','10','01','01','10','10'] # Done!
     }
 
 class Logs:
