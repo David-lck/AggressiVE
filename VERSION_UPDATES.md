@@ -21,4 +21,4 @@ generated to let user continue to validate without restarting everything. Other 
 read-write and read info but in different way. This is why we created aggressive_badname() with new subfunctions to validate it to manage the complexity and 
 nidiness of the scripts. For access method, this patch will only support to get and set the access in 'default' group.
 
-#Patch 1.0 = wip...	
+#Patch 1.0 = Officially tested on Pre-silicon Emulation Model and Transactor as well.
