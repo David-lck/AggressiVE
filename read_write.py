@@ -631,7 +631,10 @@ class Val_stage:
             if attr == 'na':
                 pass_fail = Algorithm.val_na(numbit,'pre_rd',pre_rd)
                 return pre_rd,pass_fail
-        return pre_rd,'pass'
+        if attr == 'rw/v2':
+            return pre_rd, 'NA'
+        else:
+            return pre_rd,'pass'
 
     def first_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,val_stage,wr_value,reset_detection,prefered_list):
         [prefered_attr, prefered_reason] = prefered_list
@@ -745,9 +748,9 @@ class Exec:
             fail_reason.append(prefered_reason)
         (pre_rd,pass_fail_pre_rd) = Val_stage.pre_read(full_field_name,pre_rd_num,prefered_list)
         if num_val_seq == 1:
-            firststage_wr_value == 'FF'
+            firststage_wr_value = 'FF'
         else:
-            firststage_wr_value == 'A5'
+            firststage_wr_value = 'A5'
         (wr_in_list,rd_in_list,pass_fail_1st_val) = Val_stage.first_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,'1st_stage_rdwr',firststage_wr_value,reset_detection,prefered_list)
         if num_val_seq == 3:
             (wr_in_list,rd_in_list,pass_fail_2nd_val) = Val_stage.second_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,'2nd_stage_rdwr','5A',reset_detection,prefered_list)
@@ -797,7 +800,7 @@ class Exec:
         num2print=0
         rowdictlist, fail_rowdl, nochk_rowdictlist = [], [], []
         x, fail_x, nochk_x = [], [], []
-        alg, flg, nclg = '', ''
+        alg, flg, nclg = '', '', ''
         error_messages = {}
         pass_regs, fail_regs, error_regs, sus_hang_regs, nocheck_regs = [], [], [], [], []
         cont_fail_cnt, nochk_cnt = 0, 0
@@ -883,6 +886,7 @@ class Exec:
                 disp.disp_total_pass_fail(Pass,Fail,Unknown,Error,Hang)
                 rowdictlist=[]
                 x=[]
+                nclg = dump.export_nocheck('store',nochk_x.getTableText(),nclg)
             num+=1
             #categorize registers in different logs.
             cath_regs = [pass_regs, fail_regs, error_regs, sus_hang_regs, nocheck_regs]
