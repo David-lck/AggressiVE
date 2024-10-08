@@ -6,6 +6,8 @@ pch = __main__.pch if hasattr(__main__, 'pch') else None
 itp = __main__.itp if hasattr(__main__, 'itp') else None
 ioe = __main__.ioe if hasattr(__main__, 'ioe') else None
 gcd = __main__.gcd if hasattr(__main__, 'gcd') else None
+hub = __main__.hub if hasattr(__main__, 'hub') else None
+pcd = __main__.pcd if hasattr(__main__, 'pcd') else None
 socket = __main__.socket if hasattr(__main__, 'socket') else None
 refresh = __main__.refresh if hasattr(__main__, 'refresh') else None
 

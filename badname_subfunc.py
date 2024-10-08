@@ -6,6 +6,8 @@ pch = __main__.pch if hasattr(__main__, 'pch') else None
 itp = __main__.itp if hasattr(__main__, 'itp') else None
 ioe = __main__.ioe if hasattr(__main__, 'ioe') else None
 gcd = __main__.gcd if hasattr(__main__, 'gcd') else None
+hub = __main__.hub if hasattr(__main__, 'hub') else None
+pcd = __main__.pcd if hasattr(__main__, 'pcd') else None
 import time
 import colorama
 from colorama import Fore
@@ -27,7 +29,10 @@ try:
     from tqdm.tqdm import tqdm
 except:
     from tqdm import tqdm
-import pysvtools.fv_common.target as target
+try:
+    import pysvtools.fv_common.target as target
+except:
+    print("target script is failed to import")
 import debug
 #try:
 #    from arrowlake import debug
