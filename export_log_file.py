@@ -138,6 +138,12 @@ def export_write_pass(plg,content):
     plg.write(content)
     plg.write('\n')
     return plg
+    
+def export_write_error(elg,content):
+    #For AggressiVE_error.log
+    elg.write(content)
+    elg.write('\n')
+    return elg
 
 def create_log_folder():
     log_num=1

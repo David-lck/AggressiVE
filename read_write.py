@@ -801,14 +801,16 @@ class Exec:
         num=1
         Pass, Fail, Unknown, Error, Hang = 0, 0, 0, 0, 0
         num2print=0
-        rowdictlist, fail_rowdl, nochk_rowdictlist = [], [], []
-        x, fail_x, nochk_x = [], [], []
+        rowdictlist, pass_rowdl, fail_rowdl, error_rowdl, nochk_rowdictlist = [], [], [], [], []
+        x, pass_x, fail_x, error_x, nochk_x = [], [], [], [], []
         alg, flg, nclg = '', '', ''
         error_messages = {}
         pass_regs, fail_regs, error_regs, sus_hang_regs, nocheck_regs = [], [], [], [], []
         cont_fail_cnt, nochk_cnt = 0, 0
         (alg,flg) = dump.export('open','NA',alg,flg)
         (nclg) = dump.export_nocheck('open','NA',nclg)
+        plg = open("AggressiVE_pass.log","a")
+        elg = open("AggressiVE_error.log","a")
         #Exclude all the fields with non-chosen attr.
         chosen_attr_fields_all = track.track_chosen_attr_fields(valid_fields,chosen_attr)
         print(f"\nTotal Num Available= {str(len(chosen_attr_fields_all))}")
@@ -847,6 +849,7 @@ class Exec:
                 error_messages[full_field_name]=str(message)
                 pass_fail = 'error'
                 pre_rd = wr_in_list = rd_in_list = []
+                (error_rowdl,error_x) = disp.store_content(error_rowdl,error_x,num,full_field_name,attr,pass_fail,pre_rd,wr_in_list,rd_in_list,fail_reason,num_val_seq)
                 if "'Python SV time-out reached (0.1 se..." in fail_reason and reset_detection:
                     print('\n' + Fore.RED + "AggressiVE Forced Reboot due to error message!" + Fore.RESET)
                     print(f"Reg: {full_field_name}")
@@ -857,7 +860,7 @@ class Exec:
                             refresh()
                             break
             attr = eval(full_field_name+'.info["attribute"]')
-            #store fail fields validation info.
+            #store pass and fail fields validation info separately.
             if pass_fail == 'fail':
                 if hang_detection and mca_check == 'every_failreg':#will do the machine check every fial reg detected.
                     machine_chk_error = debug.mca.analyze()
@@ -870,6 +873,7 @@ class Exec:
                 (fail_rowdl,fail_x) = disp.store_fail_content(fail_rowdl,fail_x,num,full_field_name,attr,pass_fail,pre_rd,wr_in_list,rd_in_list,fail_reason,num_val_seq)
             elif pass_fail =='pass':#this statement is for continuous fail due to undetected hang
                 cont_fail_cnt = 0 #reset it back due to not continuous fail.
+                (pass_rowdl,pass_x) = disp.store_content(pass_rowdl,pass_x,num,full_field_name,attr,pass_fail,pre_rd,wr_in_list,rd_in_list,fail_reason,num_val_seq)
             elif pass_fail == 'NA':
                 nochk_cnt += 1
                 (nochk_rowdictlist,nochk_x) = disp.store_nocheck_content(nochk_rowdictlist,nochk_x,nochk_cnt,full_field_name,attr,pass_fail,pre_rd,wr_in_list,rd_in_list,num_val_seq)
@@ -886,10 +890,19 @@ class Exec:
                         pass_fail = 'hang'
                         Hang+=1
                 disp.disp_content(rowdictlist,x,alg,flg)
+                (alg, flg) = dump.export("store_fail", fail_x.getTableText(), alg, flg)
+                if pass_rowdl != []:
+                    plg = dump.export_write_pass(plg, pass_x.getTableText())
+                if error_rowdl != []:
+                    elg = dump.export_write_error(elg, error_x.getTableText())
                 disp.disp_total_pass_fail(Pass,Fail,Unknown,Error,Hang)
-                rowdictlist=[]
-                x=[]
-                nclg = dump.export_nocheck('store',nochk_x.getTableText(),nclg)
+                rowdictlist = []
+                pass_rowdl = []
+                fail_rowdl = []
+                error_rowdl = []
+                x = []
+                if nochk_rowdictlist != []:
+                    nclg = dump.export_nocheck('store',nochk_x.getTableText(),nclg)
             num+=1
             #categorize registers in different logs.
             cath_regs = [pass_regs, fail_regs, error_regs, sus_hang_regs, nocheck_regs]
@@ -934,6 +947,8 @@ class Exec:
         (alg,flg) = dump.export('close_all','NA',alg,flg)
         (alg,flg) = dump.export('close_fail','NA',alg,flg)
         nclg = dump.export_nocheck('close','NA',nclg)
+        plg.close()
+        elg.close()
         
 class Post_test:
     def simplify_error_msg(full_err_msg):
