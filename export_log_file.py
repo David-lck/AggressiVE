@@ -20,6 +20,16 @@ def export(choice,content,alg,flg):#Write/store only
         flg = open("AggressiVE_fail.log", dump_mode)
     return alg,flg
     
+def export_acessibility(choice, content, sclg):
+    if choice == 'close':
+        sclg.close()
+    elif choice == 'store':
+        sclg.write(content)
+        sclg.write('\n')
+    else:
+        sclg = open("accessibility.log", "a")
+    return sclg
+    
 def export_nocheck(choice,content,nclg):
     dump_mode = "a"
     if choice == 'close':

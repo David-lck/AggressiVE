@@ -38,6 +38,17 @@ class Pre_test:
         print(f'Number of valid fields: {str(total_valid_f)+Fore.RESET}')
         total = [total_invalid,total_valid,total_invalid_f,total_valid_f]
         return total
+    
+    def disp_accessibility(data): # done!
+        print("Displaying the inaccessible table...")
+        headers = ["DIELETS", "INACCESSIBLE MESSAGES", "NUMBER OF SUBCOMPONENTS"]
+        table = []
+        for dielet, no_acc_info_in_dict in data.items():
+            for no_acc_msg, subcoms_in_list in no_acc_info_in_dict.items():
+                #convert subcoms name in list to table
+                table += [{"DIELETS": dielet, "INACCESSIBLE MESSAGES": no_acc_msg, "NUMBER OF SUBCOMPONENTS": str(len(subcoms_in_list))}]
+        x = Table.fromDictList(table,headers)
+        print(x.getTableText())
         
 def disp_avail_access(avail_access):
     headers=['Groups','Access_Methods']

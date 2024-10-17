@@ -90,6 +90,55 @@ def log():
     print(x.getTableText())
 
 class Pre_test:
+    def _show_subcomponents(stage1_comps, stage2_comps): # didnt finish
+        subcomponents = []
+        if stage1_comps == "NA":
+            return list(stage2_comps.show())
+        else:
+            for stage1_comp in stage1_comps:
+                for stage2_comp in stage2_comps:
+                    subcomponents.append(eval(stage1_comp + "." + stage2_comp.show()))
+        return subcomponents
+    
+    def _get_and_read_subcomponents(dielet): # need to check. # didnt finish
+        subcomponents_lv1 = Pre_Test._show_subcomponents("NA", dielet)
+        subcomponents_lv2 = Pre_Test._show_subcomponents([dielet], subcomponents_lv1)
+        return subcomponents
+        
+    def _filter_subcomponent_data(subcomponents, messages_shown): # done!
+        not_acc_subcoms, not_acc_messages_shown, acc_subcoms = [], [], []
+        loop = 0
+        for message in messages_shown:
+            if isinstance(message, str):
+                if any(char.isalpha() for char in message): # if the message is inaccessible
+                    not_acc_subcoms.append(subcomponent[loop])
+                    not_acc_messages_shown.append(message)
+                else: # if it is digit value in str
+                    acc_subcoms.append(subcomponent[loop])
+            else: # if it is digit value in int
+                acc_subcoms.append(subcomponent[loop])
+            loop += 1
+        return acc_subcoms, not_acc_subcoms, not_acc_messages_shown
+        
+    def _convert_acc_subcoms_list2table(subcoms_in_list): # done!
+        headers = ["Subcomponents"]
+        table = []
+        for subcom in subcoms_in_list:
+            table += [{"Subcomponents": subcom}]
+        x = Table.fromDictList(table,headers)
+        return x.getTableText()
+            
+    def _manage_and_dump_accessibility_data(data): # done!
+        sclg = dump.export_acessibility("open", "NA", "")
+        for dielet, no_acc_info_in_dict in data.items():
+            sclg = dump.export_acessibility("store", f"{dielet}:", sclg)
+            for no_acc_msg, subcoms_in_list in no_acc_info_in_dict.items():
+                sclg = dump.export_acessibility("store", f"Message: {no_acc_msg}", sclg)
+                #convert subcoms name in list to table
+                subcom_in_table = Pre_Test._convert_acc_subcoms_list2table(subcoms_in_list)
+                sclg = dump.export_acessibility("store", subcom_in_table, sclg)
+        sclg = dump.export_acessibility("close", "NA", sclg)
+    
     def _dump_badname_reg(badname_registers):
         blg = dump.export_badname_regs('open','','')
         print('Storing unacceptable name registers to bad_name_regs.log...')
@@ -280,7 +329,6 @@ class Pre_test:
                 lockattr_regs.append(attr_field)
         return lockbit_regs,lockattr_regs
                 
-        
     def feature_lock(attr_fields,chosen_attr):#wip
         lockbit_regs = []
         if isinstance(chosen_attr,list):
@@ -797,6 +845,28 @@ def attr_all(input_regs,validate=False):#for die, ip, register, and fields
     aa = dump.export_attr_all('close','',aa)
     if validate == True:
         return new_attrs
+
+def check_accessibility():
+    #get all dielets
+    dielets = socket.show() # assume will get in the form of list.
+    #get their final level of subcomponents per dielet
+    data = {}
+    print("Checking for subcomponents' accessibility...")
+    for dielet in dielets:
+        print(f"Currently checking for {dielet}...")
+        (subcomponents, messages_shown) = Pre_Test._get_and_read_subcomponents(dielet) # this is the only one need to be checked!
+        (acc_subcoms, not_acc_subcoms, not_acc_messages_shown) = Pre_Test._filter_subcomponent_data(subcomponents, messages_shown)
+        #store data in dict which separated by dielet
+        data[dielet] = {}
+        loop = 0
+        for message in not_acc_messages_shown:
+            if message not in data[dielet]:
+                data[dielet][message] = []
+            data[dielet][message].append(not_acc_subcoms[loop])
+            loop += 1
+    #display & dump data
+    disp.Pre_test.disp_accessibility(data)
+    Pre_Test._manage_and_dump_accessibility_data(data)
 
 def aggressive(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xlsx'):
     '''
