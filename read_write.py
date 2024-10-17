@@ -890,7 +890,8 @@ class Exec:
                         pass_fail = 'hang'
                         Hang+=1
                 disp.disp_content(rowdictlist,x,alg,flg)
-                (alg, flg) = dump.export("store_fail", fail_x.getTableText(), alg, flg)
+                if fail_rowdl != []:
+                    (alg, flg) = dump.export("store_fail", fail_x.getTableText(), alg, flg)
                 if pass_rowdl != []:
                     plg = dump.export_write_pass(plg, pass_x.getTableText())
                 if error_rowdl != []:
