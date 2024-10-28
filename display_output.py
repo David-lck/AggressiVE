@@ -39,15 +39,32 @@ class Pre_test:
         total = [total_invalid,total_valid,total_invalid_f,total_valid_f]
         return total
     
-    def disp_accessibility(data): # done!
+    def disp_inaccessibility(data): # done!
         print("Displaying the inaccessible table...")
         headers = ["DIELETS", "INACCESSIBLE MESSAGES", "NUMBER OF SUBCOMPONENTS"]
         table = []
         for dielet, no_acc_info_in_dict in data.items():
+            if no_acc_info_in_dict == {}:
+                table += [{"DIELETS": dielet, "INACCESSIBLE MESSAGES": "None", "NUMBER OF SUBCOMPONENTS": "0"}]
+                continue
             for no_acc_msg, subcoms_in_list in no_acc_info_in_dict.items():
                 #convert subcoms name in list to table
                 table += [{"DIELETS": dielet, "INACCESSIBLE MESSAGES": no_acc_msg, "NUMBER OF SUBCOMPONENTS": str(len(subcoms_in_list))}]
-        x = Table.fromDictList(table,headers)
+        x = asciitable.AsciiTable.fromDictList(table,headers)
+        print(x.getTableText())
+        
+    def disp_accessibility(data): # done!
+        print("Displaying the inaccessible table...")
+        headers = ["DIELETS", "STATUS", "NUMBER OF SUBCOMPONENTS"]
+        table = []
+        for dielet, acc_info_in_dict in data.items():
+            if acc_info_in_dict == {}:
+                table += [{"DIELETS": dielet, "STATUS": "Accessible", "NUMBER OF SUBCOMPONENTS": "0"}]
+                continue
+            for acc_msg, acc_num in acc_info_in_dict.items():
+                #convert subcoms name in list to table
+                table += [{"DIELETS": dielet, "STATUS": acc_msg, "NUMBER OF SUBCOMPONENTS": acc_num[0]}]
+        x = asciitable.AsciiTable.fromDictList(table,headers)
         print(x.getTableText())
         
 def disp_avail_access(avail_access):

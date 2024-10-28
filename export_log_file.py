@@ -27,7 +27,7 @@ def export_acessibility(choice, content, sclg):
         sclg.write(content)
         sclg.write('\n')
     else:
-        sclg = open("accessibility.log", "a")
+        sclg = open("accessibility.log", "w")
     return sclg
     
 def export_nocheck(choice,content,nclg):

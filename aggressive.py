@@ -89,34 +89,109 @@ def log():
     x = Table.fromDictList(table,headers)
     print(x.getTableText())
 
+def my_test():
+    temp = eval("hub.hub_fusehip.intel_hvm_idx_top_cfg_seq[100]")
+    n = 0
+    print(temp)
+    for i in temp:
+        print(f"{n}: {i}")
+        n += 1
+
 class Pre_test:
-    def _show_subcomponents(stage1_comps, stage2_comps): # didnt finish
-        subcomponents = []
-        if stage1_comps == "NA":
-            return list(stage2_comps.show())
-        else:
-            for stage1_comp in stage1_comps:
-                for stage2_comp in stage2_comps:
-                    subcomponents.append(eval(stage1_comp + "." + stage2_comp.show()))
-        return subcomponents
+    def _detect_fid_subcomps(comp):
+        nextstage_comps = []
+        comps_with_fid = eval(comp)
+        num_of_comps_w_fid = len(comps_with_fid)
+        if num_of_comps_w_fid <= 1: # for those subcom without fid
+            print(f"{comp} has no fid. Will skip it.")
+            return []
+        # for those subcom with fid
+        add_num = 0
+        for i in range(num_of_comps_w_fid):
+            while True:
+                try:
+                    comps_with_fid = eval(f"{comp}[{str(i+add_num)}]")
+                    nextstage_comps.append(f"{comp}[{str(i+add_num)}]")
+                except LookupError:
+                    add_num += 1
+                    continue
+                break
+        return nextstage_comps
     
+    def _show_subcomponents(firstlvl_comps, unfinalized_subcom):
+        subcomps = []
+        nextstage_comps = []
+        for firstlvl_comp in firstlvl_comps:
+            nextstage_comps = eval(f"{firstlvl_comp}.search('')")
+            if nextstage_comps == []:
+                nextstage_comps = Pre_test._detect_fid_subcomps(firstlvl_comp)
+                unfinalized_subcom = []
+            else:
+                nextstage_comps = list(map(lambda item: firstlvl_comp + "." + item, nextstage_comps))
+            subcomps += nextstage_comps
+        return subcomps, unfinalized_subcom
+        
+    def _read_subcomponents(subcomponents):
+        messages = []
+        for subcomponent in tqdm(subcomponents):
+            try:# for digit & still subcomponent
+                message = str(eval(subcomponent))
+            except Exception as e:# for not accessible
+                error_message = str(e).split('(')[0]
+                messages.append(error_message)
+                continue
+            #categorize the output message for digit and subcom.
+            if message[:2] == "0x":
+                messages.append("Accessible")
+            else:
+                messages.append("IsSubcomponent")
+        return messages
+            
+    def _categorize_subcomponents(subcomponents, messages, final_data):
+        [finalized_subcom, unfinalized_subcom, finalized_msgs] = final_data
+        loop = 0
+        for msg in messages:
+            if msg != "IsSubcomponent":
+                finalized_subcom.append(subcomponents[loop])
+                finalized_msgs.append(msg)
+                if subcomponents[loop] in unfinalized_subcom:
+                    unfinalized_subcom.remove(subcomponents[loop])
+            else:
+                unfinalized_subcom.append(subcomponents[loop])
+            loop += 1
+        print(f"Detected {len(finalized_subcom)} finalized_subcom & {len(unfinalized_subcom)} unfinalized_subcom")
+        return finalized_subcom, unfinalized_subcom, finalized_msgs
+
     def _get_and_read_subcomponents(dielet): # need to check. # didnt finish
-        subcomponents_lv1 = Pre_Test._show_subcomponents("NA", dielet)
-        subcomponents_lv2 = Pre_Test._show_subcomponents([dielet], subcomponents_lv1)
-        return subcomponents
+        subcomponents = []
+        finalized_subcom, unfinalized_subcom, finalized_msgs = [], [], []
+        loop = 1
+        while True:
+            print(f"({loop})Executing Step1/3 [_show_subcomponents()]...")
+            if subcomponents == []:
+                (subcomponents, unfinalized_subcom) = Pre_test._show_subcomponents([dielet], unfinalized_subcom)
+            else:
+                (subcomponents, unfinalized_subcom) = Pre_test._show_subcomponents(unfinalized_subcom, unfinalized_subcom)
+            print(f"({loop})Executing Step2/3 [_read_subcomponents()]...")
+            messages = Pre_test._read_subcomponents(subcomponents)
+            print(f"({loop})Executing Step3/3 [_categorize_subcomponents()]...")
+            (finalized_subcom, unfinalized_subcom, finalized_msgs) = Pre_test._categorize_subcomponents(subcomponents, messages, [finalized_subcom, unfinalized_subcom, finalized_msgs])
+            if unfinalized_subcom == []:
+                return finalized_subcom, finalized_msgs
+            loop += 1
         
     def _filter_subcomponent_data(subcomponents, messages_shown): # done!
         not_acc_subcoms, not_acc_messages_shown, acc_subcoms = [], [], []
         loop = 0
         for message in messages_shown:
             if isinstance(message, str):
-                if any(char.isalpha() for char in message): # if the message is inaccessible
-                    not_acc_subcoms.append(subcomponent[loop])
+                if message == "Accessible":
+                    acc_subcoms.append(subcomponents[loop])
+                elif any(char.isalpha() for char in message): # if the message is inaccessible
+                    not_acc_subcoms.append(subcomponents[loop])
                     not_acc_messages_shown.append(message)
-                else: # if it is digit value in str
-                    acc_subcoms.append(subcomponent[loop])
-            else: # if it is digit value in int
-                acc_subcoms.append(subcomponent[loop])
+            else: # if it is digit value in int # this statement is bogus #have this here just in case.
+                acc_subcoms.append(subcomponents[loop])
             loop += 1
         return acc_subcoms, not_acc_subcoms, not_acc_messages_shown
         
@@ -132,10 +207,13 @@ class Pre_test:
         sclg = dump.export_acessibility("open", "NA", "")
         for dielet, no_acc_info_in_dict in data.items():
             sclg = dump.export_acessibility("store", f"{dielet}:", sclg)
+            if no_acc_info_in_dict == {}:
+                sclg = dump.export_acessibility("store", f"No Inaccessible subcomponent.", sclg)
+                continue
             for no_acc_msg, subcoms_in_list in no_acc_info_in_dict.items():
                 sclg = dump.export_acessibility("store", f"Message: {no_acc_msg}", sclg)
                 #convert subcoms name in list to table
-                subcom_in_table = Pre_Test._convert_acc_subcoms_list2table(subcoms_in_list)
+                subcom_in_table = Pre_test._convert_acc_subcoms_list2table(subcoms_in_list)
                 sclg = dump.export_acessibility("store", subcom_in_table, sclg)
         sclg = dump.export_acessibility("close", "NA", sclg)
     
@@ -846,27 +924,34 @@ def attr_all(input_regs,validate=False):#for die, ip, register, and fields
     if validate == True:
         return new_attrs
 
-def check_accessibility():
+def check_accessibility(dielets=[]):
     #get all dielets
-    dielets = socket.show() # assume will get in the form of list.
+    if dielets == []:
+        dielets = socket.show() # assume will get in the form of list.
     #get their final level of subcomponents per dielet
-    data = {}
+    not_acc_data = {}
+    acc_data = {}
     print("Checking for subcomponents' accessibility...")
     for dielet in dielets:
         print(f"Currently checking for {dielet}...")
-        (subcomponents, messages_shown) = Pre_Test._get_and_read_subcomponents(dielet) # this is the only one need to be checked!
-        (acc_subcoms, not_acc_subcoms, not_acc_messages_shown) = Pre_Test._filter_subcomponent_data(subcomponents, messages_shown)
+        (subcomponents, messages_shown) = Pre_test._get_and_read_subcomponents(dielet) # this is the only one need to be checked!
+        (acc_subcoms, not_acc_subcoms, not_acc_messages_shown) = Pre_test._filter_subcomponent_data(subcomponents, messages_shown)
         #store data in dict which separated by dielet
-        data[dielet] = {}
+        not_acc_data[dielet] = {}
+        acc_data[dielet] = {}
         loop = 0
+        for subcoms in acc_subcoms:
+            acc_data[dielet]["Accessible"] = []
+            acc_data[dielet]["Accessible"].append(str(len(acc_subcoms)))
         for message in not_acc_messages_shown:
-            if message not in data[dielet]:
-                data[dielet][message] = []
-            data[dielet][message].append(not_acc_subcoms[loop])
+            if message not in not_acc_data[dielet]:
+                not_acc_data[dielet][message] = []
+            not_acc_data[dielet][message].append(not_acc_subcoms[loop])
             loop += 1
     #display & dump data
-    disp.Pre_test.disp_accessibility(data)
-    Pre_Test._manage_and_dump_accessibility_data(data)
+    disp.Pre_test.disp_accessibility(acc_data)
+    disp.Pre_test.disp_inaccessibility(not_acc_data)
+    Pre_test._manage_and_dump_accessibility_data(not_acc_data)
 
 def aggressive(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xlsx'):
     '''
