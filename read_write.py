@@ -849,6 +849,7 @@ class Exec:
                 error_messages[full_field_name]=str(message)
                 pass_fail = 'error'
                 pre_rd = wr_in_list = rd_in_list = []
+                attr = eval(full_field_name+'.info["attribute"]')
                 (error_rowdl,error_x) = disp.store_content(error_rowdl,error_x,num,full_field_name,attr,pass_fail,pre_rd,wr_in_list,rd_in_list,fail_reason,num_val_seq)
                 if "'Python SV time-out reached (0.1 se..." in fail_reason and reset_detection:
                     print('\n' + Fore.RED + "AggressiVE Forced Reboot due to error message!" + Fore.RESET)
