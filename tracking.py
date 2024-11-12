@@ -144,71 +144,71 @@ def feedback_access_method(chosen_access,attr_ips,log_store):
             log_store.append(f'Default access for {attr_ip} is {ip_access}.')
     return log_store
     
-def detect_pass_regs_log():
-    p_regs = []
-    p_regs_temp = []
-    num = 1
-    while True:
-        try:
-            #os.(r'C:\Users\limchink\PythonSv\Aggressive_logs'+str(num))
-            os.chdir(r'C:\Users\pgsvlab\PythonSv\Aggressive_logs'+str(num))
-            prlg = open("pass_regs"+".log",'r')
-            print('Detected pass_regs in Aggressive_logs'+str(num))
-            print('Extracting pass_regs from log...')
-            p_regs_temp.append(prlg.readlines())
-            prlg.close()
-        except:
-            print('Failed to detect Aggressive_logs'+str(num))
-            print('Will continue without it.')
-            break
-        if num == 1:
-            p_regs.append(p_regs_temp)
-        else:
-            for p_reg_temp in p_regs_temp:
-                if p_reg_temp not in p_regs:
-                    p_regs.append(p_reg_temp)
-        num+=1
-    dump.goto_latest_log_folder()
-    return p_regs    
+#def detect_pass_regs_log():
+#    p_regs = []
+#    p_regs_temp = []
+#    num = 1
+#    while True:
+#        try:
+#            #os.(r'C:\Users\limchink\PythonSv\Aggressive_logs'+str(num))
+#            os.chdir(r'C:\Users\pgsvlab\PythonSv\Aggressive_logs'+str(num))
+#            prlg = open("pass_regs"+".log",'r')
+#            print('Detected pass_regs in Aggressive_logs'+str(num))
+#            print('Extracting pass_regs from log...')
+#            p_regs_temp.append(prlg.readlines())
+#            prlg.close()
+#        except:
+#            print('Failed to detect Aggressive_logs'+str(num))
+#            print('Will continue without it.')
+#            break
+#        if num == 1:
+#            p_regs.append(p_regs_temp)
+#        else:
+#            for p_reg_temp in p_regs_temp:
+#                if p_reg_temp not in p_regs:
+#                    p_regs.append(p_reg_temp)
+#        num+=1
+#    dump.goto_latest_log_folder()
+#    return p_regs    
 
-def detect_fail_regs_log():
-    f_regs = []
-    try:
-        frlg = open("fail_regs.log",'r')
-        print('Detected fail_regs.log')
-        print('Extracting fail regs from log...')
-        f_regs.append(frlg.readlines())
-        frlg.close()
-    except:
-        print('Failed to detect fail_regs.log')
-        print('Will continue without it.')
-    return f_regs
+#def detect_fail_regs_log():
+#    f_regs = []
+#    try:
+#        frlg = open("fail_regs.log",'r')
+#        print('Detected fail_regs.log')
+#        print('Extracting fail regs from log...')
+#        f_regs.append(frlg.readlines())
+#        frlg.close()
+#    except:
+#        print('Failed to detect fail_regs.log')
+#        print('Will continue without it.')
+#    return f_regs
 
-def detect_error_regs_log():
-    e_regs = []
-    try:
-        erlg = open("error_regs.log",'r')
-        print('Detected error_regs.log')
-        print('Extracting error regs from log...')
-        e_regs.append(erlg.readlines())
-        erlg.close()
-    except:
-        print('Failed to detect error_regs.log')
-        print('Will continue without it.')
-    return e_regs
+#def detect_error_regs_log():
+#    e_regs = []
+#    try:
+#        erlg = open("error_regs.log",'r')
+#        print('Detected error_regs.log')
+#        print('Extracting error regs from log...')
+#        e_regs.append(erlg.readlines())
+#        erlg.close()
+#    except:
+#        print('Failed to detect error_regs.log')
+#        print('Will continue without it.')
+#    return e_regs
 
-def detect_hang_regs_log():
-    h_regs = []
-    try:
-        hrlg = open("hang_regs.log",'r')
-        print('Detected hang_regs.log')
-        print('Extracting hang regs from log...')
-        h_regs.append(hrlg.readlines())
-        hrlg.close()
-    except:
-        print('Failed to detect hang_regs.log')
-        print('Will continue without it.')
-    return h_regs
+#def detect_hang_regs_log():
+#    h_regs = []
+#    try:
+#        hrlg = open("hang_regs.log",'r')
+#        print('Detected hang_regs.log')
+#        print('Extracting hang regs from log...')
+#        h_regs.append(hrlg.readlines())
+#        hrlg.close()
+#    except:
+#        print('Failed to detect hang_regs.log')
+#        print('Will continue without it.')
+#    return h_regs
 	
 def track_chosen_attr_fields(valid_fields,chosen_attr):
     num_chosen_attr_fields = 0

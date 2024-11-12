@@ -98,6 +98,11 @@ def my_test():
         n += 1
 
 class Pre_test:
+    def _rmv_validated_fields(chosen_attr_fields, validated_fields):
+        for valed_field in validated_fields:
+            chosen_attr_fields.remove(valed_field)
+        return chosen_attr_fields
+
     def _detect_fid_subcomps(comp):
         nextstage_comps = []
         comps_with_fid = eval(comp)
@@ -441,8 +446,8 @@ class Pre_test:
         return attr_fields,chosen_attr,[lockbit_regs,lockattr_regs]
 
 class Post_test:
-    def _fail_main(fail_infos,alg,flg,detections,num_val_seq,locklists):
-        [Fail,fail_regs,fail_x,auto] = fail_infos
+    def _fail_main(fail_infos,alg,flg,detections,num_val_seq,locklists,auto):
+        [Fail,fail_regs,fail_x] = fail_infos
         if Fail > 0 :
             chosen_fail_val = 1
             while chosen_fail_val == 1:
@@ -668,7 +673,6 @@ class Exec:
         for badname_reg in badname_regs:
             pass
         return attr_badname_regs, their_attr
-
 
 def theory():
     '''
@@ -1004,6 +1008,7 @@ def aggressive(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xlsx'):
     dump.goto_default_path()
     dump.create_log_folder()
     dump.goto_latest_log_folder()
+    dump.create_tbc_folder()
     if dfd_en == False:
         halt_detection = reset_detection = hang_detection = False
     if len(auto_attr) == 1:
@@ -1035,11 +1040,50 @@ def aggressive(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xlsx'):
     #AggressiVE_error.log & AggressiVE_hang.log & AggressiVE_pass.log?
     if dfd_en:
         Pre_test.initial_setting()
+    dump.export_tobecont_input_regs(filtered_input_regs)
+    print(f"filtered_input_regs:{filtered_input_regs}")
     for input_reg in filtered_input_regs:
         (attr_fields,chosen_attr,locklists) = Pre_test._main(input_reg,auto_attr,auto_access)#run all pretest features.
         detections = Pre_test._adjust_prerd_num(chosen_attr, detections)
-        rdwr.Exec.validate(attr_fields,chosen_attr,auto,detections,num_val_seq,random,locklists)#validation.
+        dump.export_tobecont_config(dfd_en, auto, detections, num_val_seq, locklists, random, auto_access, auto_attr)
+        status = rdwr.Exec.validate(attr_fields,chosen_attr,auto,detections,num_val_seq,random,locklists)#validation.
+        print(f"input_reg:{input_reg}")
+        dump.rmv_input_reg_from_log(input_reg)
+        if status == 1:
+            break
+    if status == 0:
+        dump.rmv_tobecont_folder()
     dump.goto_default_path()
+
+def aggressive_cont(file=None):
+    if file == None:
+        return "Please input the path of log folder."
+    (chosen_attr_fields, validated_fields, unfinish_input_regs, dfd_en, auto, detections, num_val_seq, locklists, random, auto_access, auto_attr) = dump._find_and_get_tobecont_logfile(file)
+    if all(arg == 'NA' for arg in [chosen_attr_fields, validated_fields, dfd_en, auto, detections, num_val_seq, locklists, random, auto_access, auto_attr]):
+        return 1
+    if dfd_en:
+        Pre_test.initial_setting()
+    remain_fields = Pre_test._rmv_validated_fields(chosen_attr_fields, validated_fields)
+    status = rdwr.Exec.validate_cont(remain_fields,auto,detections,num_val_seq,locklists)
+    if status == 1:
+        return 1
+    for input_reg in unfinish_input_regs:
+        (attr_fields,chosen_attr,locklists) = Pre_test._main(input_reg,auto_attr,auto_access)#run all pretest features.
+        detections = Pre_test._adjust_prerd_num(chosen_attr, detections)
+        dump.export_tobecont_config(dfd_en, auto, detections, num_val_seq, locklists, random, auto_access, auto_attr)
+        status = rdwr.Exec.validate(attr_fields,chosen_attr,auto,detections,num_val_seq,random,locklists)#validation.
+        dump.rmv_input_reg_from_log(input_reg)
+        if status == 1:
+            break
+    if status == 0:
+        dump.rmv_tobecont_folder()
+    dump.goto_default_path()
+
+def mytt(full_field_name="pcd.tam.iosf_tam_top.i_map_iosf_tam.mode_sel.hvm_test_mode"):
+    print("\n")
+    print('f'+full_field_name+"f")
+    attr = eval(full_field_name+'.info["attribute"]')
+    print(attr)
 
 def aggressive_badname(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xlsx'):
     '''

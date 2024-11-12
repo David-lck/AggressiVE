@@ -57,7 +57,7 @@ class Pre_test:
             disp.disp_avail_access(avail_access)
             chosen_access = Pre_test._access_choice_input(avail_access)
         else:#for die level
-            if auto_access == 'None':
+            if auto_access == 'None' or isinstance(auto_access, type(None)):
                 chosen_access = ''
             else:
                 chosen_access = auto_access
@@ -161,7 +161,7 @@ class Post_test:
                 (alg, flg) = rw.Post_test.validate_pass(pass_infos, Pass, alg, flg,detections,auto,num_val_seq,locklists)
                 avail_choice.remove('Pass Registers.')
             elif 'Fail' in avail_choice[int(val_choice)-1]:
-                (alg, flg) = ags.Post_test._fail_main(fail_infos, alg, flg,detections,num_val_seq,locklists)#run post feature (Validate or display fail fields only).
+                (alg, flg) = ags.Post_test._fail_main(fail_infos, alg, flg,detections,num_val_seq,locklists,auto)#run post feature (Validate or display fail fields only).
                 avail_choice.remove('Fail Registers.')
             elif 'Hang' in avail_choice[int(val_choice)-1]:
                 [sus_hang_regs] = sus_hang_infos

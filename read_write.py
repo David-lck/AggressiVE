@@ -796,29 +796,122 @@ class Exec:
             print("AggressiVE Forced reset!!!")
         return pre_rd,wr_in_list,rd_in_list,pass_fail,fail_reason
         
+    def _reboot(pass_fail, hang_detection, full_field_name, cont_fail_cnt):
+        if 'hang' in pass_fail and hang_detection:
+            print('\n' + Fore.RED + "AggressiVE Forced Reboot due to hang!" + Fore.RESET)
+            print(f'Reg: {full_field_name}')
+            target.powerCycle(waitOff=1,waitAfter=1)
+            while True:
+                if target.readPostcode() == 0x10AD:
+                    itp.unlock()
+                    refresh()
+                    break
+        elif cont_fail_cnt == 10:
+            print('\n' + Fore.RED + "AggressiVE Forced Reboot due to continuous reg fail(suspect hang)!" + Fore.RESET)
+            target.powerCycle(waitOff=1,waitAfter=1)
+            while True:
+                if target.readPostcode() == 0x10AD:
+                    itp.unlock()
+                    refresh()
+                    break
+                    
+    def _post_val_stage(num_status, alg, flg, status_infos, detections, auto, num_val_seq, locklists):
+        [Pass, Fail, Error, Hang] = num_status
+        [[pass_regs],[Fail,fail_regs,fail_x],[sus_hang_regs],[error_messages]] = status_infos
+        post_val = detections[4]
+        if post_val:
+            reset_detection = detections[1]
+            if reset_detection:
+                print("Reboot for post validation in case it is hang!")
+                target.powerCycle(waitOff=1,waitAfter=1)
+                while True:
+                    if target.readPostcode() == 0x10AD:
+                        itp.unlock()
+                        refresh()
+                        break
+            (alg, flg) = user.Post_test.choose_post_test([Pass, Fail, Error, Hang],alg,flg,[[pass_regs],[Fail,fail_regs,fail_x],[sus_hang_regs],[error_messages]],detections,auto,num_val_seq,locklists)
+        return alg, flg
+        
+    def _store(pass_fail, detections, full_field_name, attr, fail_reason, tables_params, num_list):
+        [rowdictlist, x, pass_rowdl,pass_x, fail_rowdl, fail_x,nochk_rowdictlist,nochk_x] = tables_params
+        [Hang, cont_fail_cnt, num, nochk_cnt, num_val_seq, pre_rd, wr_in_list, rd_in_list] = num_list
+        hang_detection, mca_check = detections[2], detections[3]
+        if pass_fail == 'fail':
+            if hang_detection and mca_check == 'every_failreg': # will do the machine check every fial reg detected.
+                machine_chk_error = debug.mca.analyze()
+                print(machine_chk_error)
+                if machine_chk_error != []:
+                    pass_fail = 'hang'
+                    Hang+=1
+                else:
+                    cont_fail_cnt += 1
+            (fail_rowdl,fail_x) = disp.store_fail_content(fail_rowdl,fail_x,num,full_field_name,attr,pass_fail,pre_rd,wr_in_list,rd_in_list,fail_reason,num_val_seq)
+        elif pass_fail =='pass':#this statement is for continuous fail due to undetected hang
+            cont_fail_cnt = 0 #reset it back due to not continuous fail.
+            (pass_rowdl,pass_x) = disp.store_content(pass_rowdl,pass_x,num,full_field_name,attr,pass_fail,pre_rd,wr_in_list,rd_in_list,fail_reason,num_val_seq)
+        elif pass_fail == 'NA':
+            nochk_cnt += 1
+            (nochk_rowdictlist,nochk_x) = disp.store_nocheck_content(nochk_rowdictlist,nochk_x,nochk_cnt,full_field_name,attr,pass_fail,pre_rd,wr_in_list,rd_in_list,num_val_seq)
+        # storing validation info in table form.
+        (rowdictlist,x) = disp.store_content(rowdictlist,x,num,full_field_name,attr,pass_fail,pre_rd,wr_in_list,rd_in_list,fail_reason,num_val_seq)
+        return Hang, pass_fail, cont_fail_cnt, fail_rowdl, fail_x, pass_rowdl,pass_x, nochk_rowdictlist,nochk_x, rowdictlist,x
+        
+    def _print_data_in_condition(pass_fail, table_info, dump_info, num_info, detections):
+        [rowdictlist, x, pass_rowdl, pass_x, fail_rowdl, fail_x, error_rowdl, error_x, nochk_rowdictlist, nochk_x] = table_info
+        [alg, flg, plg, elg, nclg] = dump_info
+        [num, num2print, Pass, Fail, Unknown, Error, Hang] = num_info
+        hang_detection, mca_check = detections[2], detections[3]
+    
+        num2print -= 1
+        if int(repr(num2print)[-1]) == 0:
+            print('')
+            if hang_detection and mca_check == 'every_10val':#will do the machine check every 10 validation.
+                machine_chk_error = debug.mca.analyze()
+                if machine_chk_error != []:
+                    pass_fail = 'hang'
+                    Hang+=1
+            disp.disp_content(rowdictlist,x,alg,flg)
+            if fail_rowdl != []:
+                (alg, flg) = dump.export("store_fail", fail_x.getTableText(), alg, flg)
+            if pass_rowdl != []:
+                plg = dump.export_write_pass(plg, pass_x.getTableText())
+            if error_rowdl != []:
+                elg = dump.export_write_error(elg, error_x.getTableText())
+            disp.disp_total_pass_fail(Pass,Fail,Unknown,Error,Hang)
+            rowdictlist = []
+            pass_rowdl = []
+            fail_rowdl = []
+            error_rowdl = []
+            x = []
+            if nochk_rowdictlist != []:
+                nclg = dump.export_nocheck('store',nochk_x.getTableText(),nclg)
+        num+=1
+        return num2print, pass_fail, Hang, alg, flg, plg, elg, Pass, Fail, Unknown, Error, rowdictlist, pass_rowdl, fail_rowdl, error_rowdl, x, nclg, num
+        
     def validate(valid_fields,chosen_attr,auto,detections,num_val_seq,random,locklists):
+        # initialization
         [halt_detection,reset_detection,hang_detection,mca_check,post_val,pre_rd_num] = detections
-        num=1
-        Pass, Fail, Unknown, Error, Hang = 0, 0, 0, 0, 0
-        num2print=0
+        Pass, Fail, Unknown, Error, Hang, num2print, cont_fail_cnt, nochk_cnt, num = 0, 0, 0, 0, 0, 0, 0, 0, 1
         rowdictlist, pass_rowdl, fail_rowdl, error_rowdl, nochk_rowdictlist = [], [], [], [], []
         x, pass_x, fail_x, error_x, nochk_x = [], [], [], [], []
-        alg, flg, nclg = '', '', ''
+        validated_fields, pass_regs, fail_regs, error_regs, sus_hang_regs, nocheck_regs = [], [], [], [], [], []
         error_messages = {}
-        pass_regs, fail_regs, error_regs, sus_hang_regs, nocheck_regs = [], [], [], [], []
-        cont_fail_cnt, nochk_cnt = 0, 0
-        (alg,flg) = dump.export('open','NA',alg,flg)
-        (nclg) = dump.export_nocheck('open','NA',nclg)
-        plg = open("AggressiVE_pass.log","a")
-        elg = open("AggressiVE_error.log","a")
-        #Exclude all the fields with non-chosen attr.
+        # Exclude all the fields with non-chosen attr.
         chosen_attr_fields_all = track.track_chosen_attr_fields(valid_fields,chosen_attr)
         print(f"\nTotal Num Available= {str(len(chosen_attr_fields_all))}")
-        if random != False:
+        if random != False: #re-suffle the arrangement of registers
             chosen_attr_fields = dice.sample(chosen_attr_fields_all, random)
             print(f"Total Random Num Available= {str(len(chosen_attr_fields))}")
         else:
             chosen_attr_fields = chosen_attr_fields_all
+        # open dump log
+        (alg,flg) = dump.export('open','NA','','')
+        (nclg) = dump.export_nocheck('open','NA','')
+        plg = open("AggressiVE_pass.log","a")
+        elg = open("AggressiVE_error.log","a")
+        #keep data into tobecont log folder
+        dump.export_tobecont_allfields(chosen_attr_fields)
+
         #validation.
         num_chosen_attr_fields = len(chosen_attr_fields)
         reserved_print_num=len(chosen_attr_fields)
@@ -833,13 +926,18 @@ class Exec:
             reserved_num += 1
             disp.progress(reserved_num, reserved_print_num, prefix=f'Progress [{reserved_num}:{reserved_print_num}]:', infix1 = f'StartTime= {time.ctime()}', suffix=f'Reg: [{full_field_name}]')
             #validate
+            attr = eval(full_field_name+'.info["attribute"]')
             try:
+                time.sleep(1)
                 (pre_rd,wr_in_list,rd_in_list,pass_fail,fail_reason) = Exec.validate_1by1(full_field_name,reset_detection,halt_detection,num_val_seq,pre_rd_num,locklists)
             except KeyboardInterrupt:
                 print('\n' + Fore.RED + 'Validation forced to stopped!' + Fore.RESET)
+                print("Before")
                 disp.disp_content(rowdictlist,x,alg,flg)
                 disp.disp_total_pass_fail(Pass,Fail,Unknown,Error,Hang)
-                break
+                dump.export_regs(pass_regs, fail_regs, error_regs, sus_hang_regs, nocheck_regs)
+                dump.export_tobecont_final(validated_fields)
+                return 1
             except:
                 message = sys.exc_info()[1]
                 fail_reason = str(message)
@@ -849,7 +947,6 @@ class Exec:
                 error_messages[full_field_name]=str(message)
                 pass_fail = 'error'
                 pre_rd = wr_in_list = rd_in_list = []
-                attr = eval(full_field_name+'.info["attribute"]')
                 (error_rowdl,error_x) = disp.store_content(error_rowdl,error_x,num,full_field_name,attr,pass_fail,pre_rd,wr_in_list,rd_in_list,fail_reason,num_val_seq)
                 if "'Python SV time-out reached (0.1 se..." in fail_reason and reset_detection:
                     print('\n' + Fore.RED + "AggressiVE Forced Reboot due to error message!" + Fore.RESET)
@@ -860,97 +957,135 @@ class Exec:
                             itp.unlock()
                             refresh()
                             break
-            attr = eval(full_field_name+'.info["attribute"]')
-            #store pass and fail fields validation info separately.
-            if pass_fail == 'fail':
-                if hang_detection and mca_check == 'every_failreg':#will do the machine check every fial reg detected.
-                    machine_chk_error = debug.mca.analyze()
-                    print(machine_chk_error)
-                    if machine_chk_error != []:
-                        pass_fail = 'hang'
-                        Hang+=1
-                    else:
-                        cont_fail_cnt += 1
-                (fail_rowdl,fail_x) = disp.store_fail_content(fail_rowdl,fail_x,num,full_field_name,attr,pass_fail,pre_rd,wr_in_list,rd_in_list,fail_reason,num_val_seq)
-            elif pass_fail =='pass':#this statement is for continuous fail due to undetected hang
-                cont_fail_cnt = 0 #reset it back due to not continuous fail.
-                (pass_rowdl,pass_x) = disp.store_content(pass_rowdl,pass_x,num,full_field_name,attr,pass_fail,pre_rd,wr_in_list,rd_in_list,fail_reason,num_val_seq)
-            elif pass_fail == 'NA':
-                nochk_cnt += 1
-                (nochk_rowdictlist,nochk_x) = disp.store_nocheck_content(nochk_rowdictlist,nochk_x,nochk_cnt,full_field_name,attr,pass_fail,pre_rd,wr_in_list,rd_in_list,num_val_seq)
-            #display and storing validation info in table form.
-            (rowdictlist,x) = disp.store_content(rowdictlist,x,num,full_field_name,attr,pass_fail,pre_rd,wr_in_list,rd_in_list,fail_reason,num_val_seq)
-            (Pass,Fail,Unknown,Error) = track.track_num_pass_fail(pass_fail,Pass,Fail,Unknown,Error)
-            #print the table when reach number user want to print.
-            num2print -= 1
-            if int(repr(num2print)[-1]) == 0:
-                print('')
-                if hang_detection and mca_check == 'every_10val':#will do the machine check every 10 validation.
-                    machine_chk_error = debug.mca.analyze()
-                    if machine_chk_error != []:
-                        pass_fail = 'hang'
-                        Hang+=1
+            try:
+                #store pass, fail, & no_chk fields validation info separately.
+                tables_params = [rowdictlist, x, pass_rowdl,pass_x, fail_rowdl, fail_x,nochk_rowdictlist,nochk_x]
+                num_list = [Hang, cont_fail_cnt, num, nochk_cnt, num_val_seq, pre_rd, wr_in_list, rd_in_list]
+                (Hang, pass_fail, cont_fail_cnt, fail_rowdl, fail_x, pass_rowdl,pass_x, nochk_rowdictlist,nochk_x,rowdictlist,x) = Exec._store(pass_fail, detections, full_field_name, attr, fail_reason, tables_params, num_list)
+                #update num of pass/fail/etc regs.
+                (Pass,Fail,Unknown,Error) = track.track_num_pass_fail(pass_fail,Pass,Fail,Unknown,Error)
+                #print the table when reach number user want to print.
+                (num2print, pass_fail, Hang, alg, flg, plg, elg, Pass, Fail, Unknown, Error, rowdictlist, pass_rowdl, fail_rowdl, error_rowdl, x, nclg, num) = Exec._print_data_in_condition(pass_fail, [rowdictlist, x, pass_rowdl, pass_x, fail_rowdl, fail_x, error_rowdl, error_x, nochk_rowdictlist, nochk_x], [alg, flg, plg, elg, nclg], [num, num2print, Pass, Fail, Unknown, Error, Hang], detections)
+                #categorize registers in different logs.
+                (pass_regs, fail_regs, error_regs, sus_hang_regs, nocheck_regs) = Exec.categorize_regs(pass_fail, full_field_name, chosen_attr_fields, [pass_regs, fail_regs, error_regs, sus_hang_regs, nocheck_regs])
+                #detect hang and stop.
+                Exec._reboot(pass_fail, hang_detection, full_field_name, cont_fail_cnt)
+                #store validated fields as backup for ToBeCont.
+                validated_fields.append(full_field_name)
+            except KeyboardInterrupt:
+                print('\n' + Fore.RED + 'Validation forced to stopped!' + Fore.RESET)
+                print("After")
                 disp.disp_content(rowdictlist,x,alg,flg)
-                if fail_rowdl != []:
-                    (alg, flg) = dump.export("store_fail", fail_x.getTableText(), alg, flg)
-                if pass_rowdl != []:
-                    plg = dump.export_write_pass(plg, pass_x.getTableText())
-                if error_rowdl != []:
-                    elg = dump.export_write_error(elg, error_x.getTableText())
                 disp.disp_total_pass_fail(Pass,Fail,Unknown,Error,Hang)
-                rowdictlist = []
-                pass_rowdl = []
-                fail_rowdl = []
-                error_rowdl = []
-                x = []
-                if nochk_rowdictlist != []:
-                    nclg = dump.export_nocheck('store',nochk_x.getTableText(),nclg)
-            num+=1
-            #categorize registers in different logs.
-            cath_regs = [pass_regs, fail_regs, error_regs, sus_hang_regs, nocheck_regs]
-            (pass_regs, fail_regs, error_regs, sus_hang_regs, nocheck_regs) = Exec.categorize_regs(pass_fail, full_field_name, chosen_attr_fields, cath_regs)
-            #detect hang and stop.
-            if 'hang' in pass_fail and hang_detection:
-                print('\n' + Fore.RED + "AggressiVE Forced Reboot due to hang!" + Fore.RESET)
-                print(f'Reg: {full_field_name}')
-                target.powerCycle(waitOff=1,waitAfter=1)
-                while True:
-                    if target.readPostcode() == 0x10AD:
-                        itp.unlock()
-                        refresh()
-                        break
-            elif cont_fail_cnt == 10:
-                print('\n' + Fore.RED + "AggressiVE Forced Reboot due to continuous reg fail(suspect hang)!" + Fore.RESET)
-                target.powerCycle(waitOff=1,waitAfter=1)
-                while True:
-                    if target.readPostcode() == 0x10AD:
-                        itp.unlock()
-                        refresh()
-                        break
-
+                dump.export_regs(pass_regs, fail_regs, error_regs, sus_hang_regs, nocheck_regs)
+                dump.export_tobecont_final(validated_fields)
+                return 1
+        # dump different categorized regs.
         dump.export_regs(pass_regs, fail_regs, error_regs, sus_hang_regs, nocheck_regs)
         #Post Validation
-        if post_val:
-            pass_infos = [pass_regs]
-            fail_infos = [Fail,fail_regs,fail_x,auto]
-            sus_hang_infos = [sus_hang_regs]
-            error_infos = [error_messages]
-            num_status = [Pass, Fail, Error, Hang]
-            status_infos = [pass_infos,fail_infos,sus_hang_infos,error_infos]
-            if reset_detection:
-                print("Reboot for post validation in case it is hang!")
-                target.powerCycle(waitOff=1,waitAfter=1)
-                while True:
-                    if target.readPostcode() == 0x10AD:
-                        itp.unlock()
-                        refresh()
-                        break
-            (alg, flg) = user.Post_test.choose_post_test(num_status,alg,flg,status_infos,detections,auto,num_val_seq,locklists)
+        (alg, flg) = Exec._post_val_stage([Pass, Fail, Error, Hang],alg,flg,[[pass_regs],[Fail,fail_regs,fail_x],[sus_hang_regs],[error_messages]],detections,auto,num_val_seq,locklists)
+        # close dump log
         (alg,flg) = dump.export('close_all','NA',alg,flg)
         (alg,flg) = dump.export('close_fail','NA',alg,flg)
         nclg = dump.export_nocheck('close','NA',nclg)
         plg.close()
         elg.close()
+        return 0
+        
+    def validate_cont(remain_fields,auto,detections,num_val_seq,locklists):
+        # initialization
+        [halt_detection,reset_detection,hang_detection,mca_check,post_val,pre_rd_num] = detections
+        Pass, Fail, Unknown, Error, Hang, num2print, cont_fail_cnt, nochk_cnt, num = 0, 0, 0, 0, 0, 0, 0, 0, 1
+        validated_fields, pass_regs, fail_regs, error_regs, sus_hang_regs, nocheck_regs = [], [], [], [], [], []
+        rowdictlist, pass_rowdl, fail_rowdl, error_rowdl, nochk_rowdictlist = [], [], [], [], []
+        x, pass_x, fail_x, error_x, nochk_x = [], [], [], [], []
+        alg, flg, nclg = '', '', ''
+        error_messages = {}
+        #open dump log
+        (alg,flg) = dump.export('open','NA',alg,flg)
+        (nclg) = dump.export_nocheck('open','NA',nclg)
+        plg = open("AggressiVE_pass.log","a")
+        elg = open("AggressiVE_error.log","a")
+        #keep data into tobecont log folder
+        dump.export_tobecont_allfields(remain_fields)
+        
+        #validation.
+        print(f"\nTotal Num Available= {str(len(remain_fields))}")
+        num_chosen_attr_fields = len(remain_fields)
+        reserved_print_num=len(remain_fields)
+        for full_field_name in remain_fields:
+            #to ask user for the num of table display.
+            if num2print == 0:                                                                                                              
+                (num2print,reserved_print_num) = user.Exec.print_limit(num_chosen_attr_fields,reserved_print_num,auto)
+                if num2print == 'end':
+                    break
+                num_chosen_attr_fields-=num2print
+                reserved_num = 0
+            reserved_num += 1
+            disp.progress(reserved_num, reserved_print_num, prefix=f'Progress [{reserved_num}:{reserved_print_num}]:', infix1 = f'StartTime= {time.ctime()}', suffix=f'Reg: [{full_field_name}]')
+            #validate
+            print('f'+full_field_name+"f")
+            attr = eval(full_field_name+'.info["attribute"]')
+            try:
+                (pre_rd,wr_in_list,rd_in_list,pass_fail,fail_reason) = Exec.validate_1by1(full_field_name,reset_detection,halt_detection,num_val_seq,pre_rd_num,locklists)
+            except KeyboardInterrupt:
+                print('\n' + Fore.RED + 'Validation forced to stopped again!' + Fore.RESET)
+                disp.disp_content(rowdictlist,x,alg,flg)
+                disp.disp_total_pass_fail(Pass,Fail,Unknown,Error,Hang)
+                #close all log files
+                (alg,flg) = dump.export('close_all','NA',alg,flg)
+                (alg,flg) = dump.export('close_fail','NA',alg,flg)
+                nclg = dump.export_nocheck('close','NA',nclg)
+                plg.close()
+                elg.close()
+                dump.export_regs(pass_regs, fail_regs, error_regs, sus_hang_regs, nocheck_regs)
+                dump.export_tobecont_final(validated_fields) # dump validated_fields for cont next time.
+                return 1
+            except:
+                message = sys.exc_info()[1]
+                fail_reason = str(message)
+                if len(fail_reason) >= 30:
+                    fail_reason = fail_reason[:35-len(fail_reason)]+'...'
+                fail_reason = [fail_reason]
+                error_messages[full_field_name]=str(message)
+                pass_fail = 'error'
+                pre_rd = wr_in_list = rd_in_list = []
+                (error_rowdl,error_x) = disp.store_content(error_rowdl,error_x,num,full_field_name,attr,pass_fail,pre_rd,wr_in_list,rd_in_list,fail_reason,num_val_seq)
+                if "'Python SV time-out reached (0.1 se..." in fail_reason and reset_detection:
+                    print('\n' + Fore.RED + "AggressiVE Forced Reboot due to error message!" + Fore.RESET)
+                    print(f"Reg: {full_field_name}")
+                    target.powerCycle(waitOff=1,waitAfter=1)
+                    while True:
+                        if target.readPostcode() == 0x10AD:
+                            itp.unlock()
+                            refresh()
+                            break
+
+            #store validated fields as backup for ToBeCont.
+            validated_fields.append(full_field_name)
+            #store pass, fail, & no_chk fields validation info separately.
+            tables_params = [rowdictlist, x, pass_rowdl,pass_x, fail_rowdl, fail_x,nochk_rowdictlist,nochk_x]
+            num_list = [Hang, cont_fail_cnt, num, nochk_cnt, num_val_seq, pre_rd, wr_in_list, rd_in_list]
+            (Hang, pass_fail, cont_fail_cnt, fail_rowdl, fail_x, pass_rowdl,pass_x, nochk_rowdictlist,nochk_x,rowdictlist,x) = Exec._store(pass_fail, detections, full_field_name, attr, fail_reason, tables_params, num_list)
+            #update num of pass/fail/etc regs.
+            (Pass,Fail,Unknown,Error) = track.track_num_pass_fail(pass_fail,Pass,Fail,Unknown,Error)
+            #print the table when reach number user want to print.
+            (num2print, pass_fail, Hang, alg, flg, plg, elg, Pass, Fail, Unknown, Error, rowdictlist, pass_rowdl, fail_rowdl, error_rowdl, x, nclg, num) = Exec._print_data_in_condition(pass_fail, [rowdictlist, x, pass_rowdl, pass_x, fail_rowdl, fail_x, error_rowdl, error_x, nochk_rowdictlist, nochk_x], [alg, flg, plg, elg, nclg], [num, num2print, Pass, Fail, Unknown, Error, Hang], detections)
+            #categorize registers in different logs.
+            (pass_regs, fail_regs, error_regs, sus_hang_regs, nocheck_regs) = Exec.categorize_regs(pass_fail, full_field_name, remain_fields, [pass_regs, fail_regs, error_regs, sus_hang_regs, nocheck_regs])
+            #detect hang and stop.
+            Exec._reboot(pass_fail, hang_detection, full_field_name, cont_fail_cnt)
+        # dump different categorized regs.
+        dump.export_regs(pass_regs, fail_regs, error_regs, sus_hang_regs, nocheck_regs)
+        # Post Validation
+        (alg, flg) = Exec._post_val_stage([Pass, Fail, Error, Hang],alg,flg,[[pass_regs],[Fail,fail_regs,fail_x],[sus_hang_regs],[error_messages]],detections,auto,num_val_seq,locklists)
+        # close dump log
+        (alg,flg) = dump.export('close_all','NA',alg,flg)
+        (alg,flg) = dump.export('close_fail','NA',alg,flg)
+        nclg = dump.export_nocheck('close','NA',nclg)
+        plg.close()
+        elg.close()
+        return 0
         
 class Post_test:
     def simplify_error_msg(full_err_msg):
