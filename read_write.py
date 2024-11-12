@@ -928,7 +928,6 @@ class Exec:
             #validate
             attr = eval(full_field_name+'.info["attribute"]')
             try:
-                time.sleep(1)
                 (pre_rd,wr_in_list,rd_in_list,pass_fail,fail_reason) = Exec.validate_1by1(full_field_name,reset_detection,halt_detection,num_val_seq,pre_rd_num,locklists)
             except KeyboardInterrupt:
                 print('\n' + Fore.RED + 'Validation forced to stopped!' + Fore.RESET)
