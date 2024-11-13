@@ -615,10 +615,10 @@ class Val_stage:
     def pre_read(full_field_name,pre_rd_num,prefered_list):#It is mainly for attr = ro/swc
         [prefered_attr, prefered_reason] = prefered_list
         pre_rd1 = str(eval(full_field_name))
-        if pre_rd_num == 2:
+        if str(pre_rd_num) in ['2','2.0']:
             pre_rd2 = str(eval(full_field_name))
             pre_rd = [pre_rd1,pre_rd2]
-        elif pre_rd_num == 1:
+        elif str(pre_rd_num) in ['1','1.0']:
             pre_rd = [pre_rd1]
         attr = eval(full_field_name+'.info["attribute"]')
         numbit = track.track_field_bits(full_field_name)
@@ -750,20 +750,20 @@ class Exec:
         else:
             fail_reason.append(prefered_reason)
         (pre_rd,pass_fail_pre_rd) = Val_stage.pre_read(full_field_name,pre_rd_num,prefered_list)
-        if num_val_seq == 1:
+        if str(int(float(num_val_seq))) == "1":
             firststage_wr_value = 'FF'
         else:
             firststage_wr_value = 'A5'
         (wr_in_list,rd_in_list,pass_fail_1st_val) = Val_stage.first_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,'1st_stage_rdwr',firststage_wr_value,reset_detection,prefered_list)
-        if num_val_seq == 3:
+        if str(int(float(num_val_seq))) == "3":
             (wr_in_list,rd_in_list,pass_fail_2nd_val) = Val_stage.second_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,'2nd_stage_rdwr','5A',reset_detection,prefered_list)
             (wr_in_list,rd_in_list,pass_fail_3rd_val) = Val_stage.third_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,'3rd_stage_rdwr','A5',reset_detection,prefered_list)
-        elif num_val_seq == 2:
+        elif str(int(float(num_val_seq))) == "2":
             (wr_in_list,rd_in_list,pass_fail_2nd_val) = Val_stage.second_stage_val(full_field_name,pre_rd,wr_in_list,rd_in_list,'2nd_stage_rdwr','5A',reset_detection,prefered_list)
             wr_in_list.append('NA')
             rd_in_list.append('NA')
             pass_fail_3rd_val = 'NA'
-        elif num_val_seq == 1:
+        elif str(int(float(num_val_seq))) == "1":
             wr_in_list.append('NA')
             wr_in_list.append('NA')
             rd_in_list.append('NA')
@@ -773,6 +773,7 @@ class Exec:
             #    rd_in_list.append('NA')
             pass_fail_2nd_val = 'NA'
             pass_fail_3rd_val = 'NA'
+        print(str(num_val_seq))
         if 'fail' in [pass_fail_pre_rd,pass_fail_1st_val,pass_fail_2nd_val,pass_fail_3rd_val]:
             pass_fail = 'fail'
             fail_reason = track.track_fail_reason(pass_fail_pre_rd,pass_fail_1st_val,pass_fail_2nd_val,pass_fail_3rd_val,fail_reason)
@@ -931,7 +932,6 @@ class Exec:
                 (pre_rd,wr_in_list,rd_in_list,pass_fail,fail_reason) = Exec.validate_1by1(full_field_name,reset_detection,halt_detection,num_val_seq,pre_rd_num,locklists)
             except KeyboardInterrupt:
                 print('\n' + Fore.RED + 'Validation forced to stopped!' + Fore.RESET)
-                print("Before")
                 disp.disp_content(rowdictlist,x,alg,flg)
                 disp.disp_total_pass_fail(Pass,Fail,Unknown,Error,Hang)
                 dump.export_regs(pass_regs, fail_regs, error_regs, sus_hang_regs, nocheck_regs)
@@ -1023,7 +1023,6 @@ class Exec:
             reserved_num += 1
             disp.progress(reserved_num, reserved_print_num, prefix=f'Progress [{reserved_num}:{reserved_print_num}]:', infix1 = f'StartTime= {time.ctime()}', suffix=f'Reg: [{full_field_name}]')
             #validate
-            print('f'+full_field_name+"f")
             attr = eval(full_field_name+'.info["attribute"]')
             try:
                 (pre_rd,wr_in_list,rd_in_list,pass_fail,fail_reason) = Exec.validate_1by1(full_field_name,reset_detection,halt_detection,num_val_seq,pre_rd_num,locklists)

@@ -1,21 +1,57 @@
 import tracking as track
 import os
 import time
+import math
 import shutil
-import ast
 
 #log_file_path = r'C:\Users\pgsvlab\PythonSv'
 log_file_path = r'C:\Users\limchink\PythonSv'
 
+def _convert_strnan_2_floatnan(list_with_nan):
+    newlist = []
+    for item in list_with_nan:
+        if item == "nan":
+            newlist.append(math.nan)
+        else:
+            newlist.append(item)
+    return newlist
+
+def _convert_strlist2list(strlist):
+    strlist = strlist[1:-1]
+    if strlist[0] == "[":
+        strlist = strlist.replace(" ", "")
+        strlist = strlist.split("],")
+        output = []
+        for string in strlist:
+            #for empty list
+            if string in ["[","[]"]:
+                output.append([])
+            else:
+                string = string.replace("[","")#1,1 or 1
+                string = string.replace("]","")
+                string = string.replace("'","")
+                string = string.replace('"','')
+                string = string.split(",")#[1,1] ir [1]
+                output.append(string)
+    else:
+        strlist = strlist.replace("[","")
+        strlist = strlist.replace("]","")
+        strlist = strlist.replace("'","")
+        strlist = strlist.replace('"','')
+        strlist = strlist.replace(' ','')
+        output = strlist.split(",")
+    if "nan" in output:
+        output = _convert_strnan_2_floatnan(output)
+    return output
+
 def process_var(varx):
     # Split the string at the '=' character
     key, value = varx.split('=', 1)
-    # Try to evaluate the value using ast.literal_eval
-    try:
-        evaluated_value = ast.literal_eval(value)
-    except (ValueError, SyntaxError):
-        # If evaluation fails, treat it as a plain string
-        evaluated_value = value
+    
+    if value[0] == "[":
+        evaluated_value = _convert_strlist2list(value) # if the data is list or nested list in string, convert to list or nested list back.
+    else:
+        evaluated_value = value # when it is string, not list.
     return evaluated_value
 
 def _find_and_get_tobecont_logfile(path):
@@ -53,6 +89,7 @@ def _find_and_get_tobecont_logfile(path):
                 detections = process_var(config_line)
             elif "num_val_seq" in config_line:
                 num_val_seq = process_var(config_line)
+                num_val_seq = int(float(num_val_seq))
             elif "locklists" in config_line:
                 locklists = process_var(config_line)
             elif "random" in config_line:
@@ -62,6 +99,11 @@ def _find_and_get_tobecont_logfile(path):
         os.chdir(path) # go out from ToBeCont folder
         return "NA","NA","NA","NA","NA","NA","NA","NA","NA","NA"
     os.chdir(path) # go out from ToBeCont folder
+    #convert all the 1/0/"True"/"False" back to boolean
+    dfd_en = dfd_en == "True"
+    auto = auto == "True"
+    random = random == "True"
+    detections = [item == "True" if item in ["True", "False"] else item for item in detections]
     return chosen_attr_fields, validated_fields, unfinish_input_regs, dfd_en, auto,detections,num_val_seq,locklists, random, auto_access, auto_attr
 
 def export(choice,content,alg,flg):#Write/store only
@@ -106,7 +148,6 @@ def rmv_input_reg_from_log(input_reg):
         log_lines = file.readlines()
         log_lines = [line.strip() for line in log_lines]
     #remove the input_reg from list
-    print(f"log_lines:{log_lines}")
     log_lines.remove(input_reg)
     #rewrite the log file with this new input_reg
     bulg = open("input_regs.log", "w")
@@ -127,22 +168,45 @@ def export_tobecont_allfields(chosen_attr_fields):
     bulg.close()
     os.chdir(cur_path) # go out from ToBeCont folder
     
+def _ensure_detections_in_boolean(detections):
+    new_detections = []
+    loop = 0
+    for detection in detections:
+        if loop == (len(detections)-1):
+            new_detections.append(str(int(float(detection))))
+        elif str(detection) in ["False", "0", "0.0"]:
+            new_detections.append(False)
+        elif str(detection) in ["True", "1", "1.0"]:
+            new_detections.append(True)
+        loop += 1
+    return new_detections
+    
 def export_tobecont_config(dfd_en, auto, detections, num_val_seq, locklists, random, auto_access, auto_attr):
     cur_path = os.getcwd() # get current path
     tbc_path = os.path.join(cur_path, 'ToBeCont')
     os.chdir(tbc_path) # goto ToBeCont folder
     bulg = open("configurations.log", "w")
-    bulg.write(f"dfd_en={str(dfd_en)}")
+    if dfd_en == 0:
+        bulg.write(f"dfd_en={False}")
+    else:
+        bulg.write(f"dfd_en={True}")
     bulg.write('\n')
-    bulg.write(f"auto={str(auto)}")
+    if auto == 0:
+        bulg.write(f"auto={False}")
+    else:
+        bulg.write(f"auto={True}")
     bulg.write('\n')
-    bulg.write(f"detections={str(detections)}")
+    detections = _ensure_detections_in_boolean(detections)
+    bulg.write(f"detections={detections}")
     bulg.write('\n')
     bulg.write(f"num_val_seq={str(num_val_seq)}")
     bulg.write('\n')
     bulg.write(f"locklists={str(locklists)}")
     bulg.write('\n')
-    bulg.write(f"random={str(random)}")
+    if random == 0:
+        bulg.write(f"random={False}")
+    else:
+        bulg.write(f"random={True}")
     bulg.write('\n')
     bulg.write(f"auto_access={str(auto_access)}")
     bulg.write('\n')
@@ -266,8 +330,8 @@ def export_attr_all(choice,content,aa):
 	
 def export_invalidate(choice,content,invf,vf):
     if choice == 'open':
-        invf = open("no_attr_fields.log","w")
-        vf = open("attr_fields.log","w")
+        invf = open("no_attr_fields.log","a")
+        vf = open("attr_fields.log","a")
     elif choice == 'close':
         invf.close()
         vf.close()

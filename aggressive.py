@@ -1079,12 +1079,6 @@ def aggressive_cont(file=None):
         dump.rmv_tobecont_folder()
     dump.goto_default_path()
 
-def mytt(full_field_name="pcd.tam.iosf_tam_top.i_map_iosf_tam.mode_sel.hvm_test_mode"):
-    print("\n")
-    print('f'+full_field_name+"f")
-    attr = eval(full_field_name+'.info["attribute"]')
-    print(attr)
-
 def aggressive_badname(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xlsx'):
     '''
     Command:
