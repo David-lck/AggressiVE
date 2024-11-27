@@ -192,11 +192,13 @@ class Algorithm:
         elif len(compare_value) == 2 and val_stage == 'pre_rd':
             wr=compare_value[0]
             rd1=compare_value[1]
-            if wr == '0x0' and rd == all_one_value:
+            if wr == '0x0' and rd1 == all_one_value:
                 return 'pass'
             else:
                 return 'fail'
         elif val_stage in['1st_stage_rdwr','2nd_stage_rdwr','3rd_stage_rdwr']:
+            wr=compare_value[0]
+            rd1=compare_value[1]
             rd2 = compare_value[2]
             if wr == rd1 and rd1 == rd2:
                 return 'pass'

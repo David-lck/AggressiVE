@@ -1,5 +1,5 @@
 # AggressiVE
-#Current Patch: 0.3
+# Current Patch: 1.0
 
 #Used for register validation with feedback system.
 #It helps you to detect the naming issue of registers, check for nunmber of registers with specific attribute(s), and check for the false behavior of the 
