@@ -115,10 +115,21 @@ class Pre_test:
         for i in range(num_of_comps_w_fid):
             while True:
                 try:
-                    comps_with_fid = eval(f"{comp}[{str(i+add_num)}]")
-                    nextstage_comps.append(f"{comp}[{str(i+add_num)}]")
+                    comps_with_fid = eval(f"{comp}['fid_{str(i+add_num)}']")
+                    nextstage_comps.append(f"{comp}['fid_{str(i+add_num)}']")
                 except LookupError:
+                    try:
+                        comps_with_fid = eval(f"{comp}[{str(i+add_num)}]")
+                        nextstage_comps.append(f"{comp}[{str(i+add_num)}]")
+                    except:
+                        add_num += 1
+                        continue
+                except Exception:
+                    comps_with_fid = eval(f"{comp}['fid_{str(i+add_num)}']")
+                    nextstage_comps.append(f"{comp}['fid_{str(i+add_num)}']")
                     add_num += 1
+                    if add_num >= 100:
+                        print("Something is wrong due to Infinite Loop! Please Force to Stop!!!")
                     continue
                 break
         return nextstage_comps
