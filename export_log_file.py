@@ -54,6 +54,15 @@ def process_var(varx):
         evaluated_value = value # when it is string, not list.
     return evaluated_value
 
+def _get_logregs(path, logname):
+    os.chdir(path)
+    #read the fail_regs.log
+    with open(os.path.join(path, logname),'r') as file:
+        full_fields = file.readlines()
+        full_fields = [line.strip() for line in full_fields]
+
+    return full_fields
+
 def _find_and_get_tobecont_logfile(path):
     os.chdir(path) # goto Unfinish logfile folder    
     #find tbc

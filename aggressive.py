@@ -454,6 +454,7 @@ class Pre_test:
         chosen_attr = user.Pre_test.attr_choice([],auto_attr)#choose the one for validation.('r/w' or '')
         Pre_test.export_pre_test_msg(log_store)#store access method info in 'AggressiVE.log'.
         (lockbit_regs,lockattr_regs) = Pre_test.feature_lock(attr_fields,chosen_attr)
+        
         return attr_fields,chosen_attr,[lockbit_regs,lockattr_regs]
 
 class Post_test:
@@ -1063,6 +1064,41 @@ def aggressive(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xlsx'):
         if status == 1:
             break
     if status == 0:
+        dump.rmv_tobecont_folder()
+    dump.goto_default_path()
+    
+def aggressive_log(path=None, logname=None):
+    if logname is None or path is None:
+        print("Please Enter The Path of Your Log File and Log File Name")
+    input_regs = dump._get_logregs(path, logname)#full_path_fields
+    auto_attr, auto_access = "None", "None"
+    halt_detection, reset_detection, hang_detection = False, False, False
+    auto = True
+    mca_check, random, dfd_en = False, False, False
+    num_val_seq = 3
+    post_val = False
+    pre_rd_num = 2
+    dump.goto_default_path()
+    dump.create_log_folder()
+    dump.goto_latest_log_folder()
+    dump.create_tbc_folder()
+
+    #detection mode changed
+    detections = [halt_detection,reset_detection,hang_detection,mca_check,post_val,pre_rd_num]
+    #AggressiVE_error.log & AggressiVE_hang.log & AggressiVE_pass.log?
+    if dfd_en:
+        Pre_test.initial_setting()
+    dump.export_tobecont_input_regs(input_regs)
+    #(attr_fields,chosen_attr,locklists) = Pre_test._main(input_reg,auto_attr,auto_access)#run all pretest features.
+    locklists = [[], []]
+    attr_fields = input_regs
+    chosen_attr = "None"
+    detections = Pre_test._adjust_prerd_num(chosen_attr, detections)
+    dump.export_tobecont_config(dfd_en, auto, detections, num_val_seq, locklists, random, auto_access, auto_attr)
+
+    status = rdwr.Exec.validate(attr_fields,chosen_attr,auto,detections,num_val_seq,random,locklists)#validation.
+    if status == 0:
+        #dump.rmv_input_reg_from_log(input_regs)
         dump.rmv_tobecont_folder()
     dump.goto_default_path()
 
