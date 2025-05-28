@@ -3,9 +3,14 @@ import os
 import time
 import math
 import shutil
+from pathlib import Path
+current_directory = Path(__file__).parent
+script_path = current_directory / "log_path.txt"
 
-#log_file_path = r'C:\Users\pgsvlab\PythonSv'
-log_file_path = r'C:\Users\limchink\PythonSv'
+log_file_path1 = r'C:\Users\limchink\PythonSv'
+log_file_path2 = r'C:\Users\pgsvlab\PythonSv'
+log_file_path3 = r'C:\Users\pgsvlab\PythonSv'
+
 
 def _convert_strnan_2_floatnan(list_with_nan):
     newlist = []
@@ -386,13 +391,17 @@ def create_log_folder():
 	
 def goto_latest_log_folder():#Assume C:\Users\pgsvlab\PythonSv is the default log file for all systems.
     log_num=1
+    with open(script_path, "r") as file:
+        recommend_logpath = file.read()
     while True:
         try:
-            new_directory = os.path.join(log_file_path, 'Aggressive_logs')
+            new_directory = os.path.join(recommend_logpath, 'Aggressive_logs')
             os.chdir(new_directory+str(log_num))
         except:
             break
         log_num+=1
 
 def goto_default_path():#Assume C:\Users\pgsvlab\PythonSv is the default log file for all systems.
-    os.chdir(log_file_path)
+    with open(script_path, "r") as file:
+        recommend_logpath = file.read()
+    os.chdir(recommend_logpath)
