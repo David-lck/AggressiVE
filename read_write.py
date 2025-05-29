@@ -775,7 +775,6 @@ class Exec:
             #    rd_in_list.append('NA')
             pass_fail_2nd_val = 'NA'
             pass_fail_3rd_val = 'NA'
-        print(str(num_val_seq))
         if 'fail' in [pass_fail_pre_rd,pass_fail_1st_val,pass_fail_2nd_val,pass_fail_3rd_val]:
             pass_fail = 'fail'
             fail_reason = track.track_fail_reason(pass_fail_pre_rd,pass_fail_1st_val,pass_fail_2nd_val,pass_fail_3rd_val,fail_reason)
@@ -1177,7 +1176,6 @@ class Post_test:
         (alg, flg, hlg) = disp.disp_hang_regs(confirm_hang_regs, final_hang_stages, regs_mca_errs, alg, flg, hlg)
         hlg.close()
         dump.export_hang_regs(confirm_hang_regs)
-        print('All the hang infos are stored in C>>Users>>pgsvlab>>PythonSv>>Aggressive_logs>>AggressiVE_hang.log')
         target.powerCycle(waitOff=1,waitAfter=1)
         while True:
             if target.readPostcode() == 0x10AD:

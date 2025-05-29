@@ -407,7 +407,7 @@ class Pre_test:
         lockattr_regs=[]
         for attr_field in attr_fields:
             attr = eval(f"{attr_field}.info['attribute']")
-            if 'rw/p/l' in attr:
+            if attr in ["rw/p/l", "rw/v/l", "rw/v/p/l", "rw/l"]:
                 lockattr_regs.append(attr_field)
                 try:
                     lockbit_name = eval(f"{attr_field}.info['LockKeyField'].lower()")
@@ -1065,6 +1065,7 @@ def aggressive(file = r'C:\AggressiVE_GITHUB\AggressiVE\input_parameters.xlsx'):
             break
     if status == 0:
         dump.rmv_tobecont_folder()
+    dump.print_log_location()
     dump.goto_default_path()
     
 def aggressive_log(path=None, logname=None):
@@ -1090,9 +1091,10 @@ def aggressive_log(path=None, logname=None):
         Pre_test.initial_setting()
     dump.export_tobecont_input_regs(input_regs)
     #(attr_fields,chosen_attr,locklists) = Pre_test._main(input_reg,auto_attr,auto_access)#run all pretest features.
-    locklists = [[], []]
     attr_fields = input_regs
     chosen_attr = "None"
+    (lockbit_regs,lockattr_regs) = Pre_test.feature_lock(attr_fields,[])
+    locklists = [lockattr_regs, lockattr_regs]
     detections = Pre_test._adjust_prerd_num(chosen_attr, detections)
     dump.export_tobecont_config(dfd_en, auto, detections, num_val_seq, locklists, random, auto_access, auto_attr)
 
@@ -1100,6 +1102,7 @@ def aggressive_log(path=None, logname=None):
     if status == 0:
         #dump.rmv_input_reg_from_log(input_regs)
         dump.rmv_tobecont_folder()
+    dump.print_log_location()
     dump.goto_default_path()
 
 def aggressive_cont(file=None):

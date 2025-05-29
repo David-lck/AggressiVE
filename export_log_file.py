@@ -312,11 +312,6 @@ def export_regs(pass_regs, fail_regs, error_regs, sus_hang_regs, nocheck_regs):
     for nocheck_reg in nocheck_regs:
         nclg.write(nocheck_reg)
         nclg.write('\n')
-    print('All current list of pass registers have been saved to C>>Users>>pgsvlab>>PythonSv>>Aggressive_logs>>pass_regs.log')
-    print('All current list of pass registers have been saved to C>>Users>>pgsvlab>>PythonSv>>Aggressive_logs>>fail_regs.log')
-    print('All current list of error registers have been saved to C>>Users>>pgsvlab>>PythonSv>>Aggressive_logs>>error_regs.log')
-    print('All current list of suspect hang registers have been saved to C>>Users>>pgsvlab>>PythonSv>>Aggressive_logs>>sus_hang_regs.log')
-    print('All current list of error registers have been saved to C>>Users>>pgsvlab>>PythonSv>>Aggressive_logs>>nocheck_regs.log')
     prlg.close()
     frlg.close()
     erlg.close()
@@ -330,7 +325,6 @@ def export_hang_regs(confirm_hang_regs):
         hrlg.write(reg)
         hrlg.write('\n')
     hrlg.close()
-    print('All current list of confirmed hang registers have been saved to C>>Users>>pgsvlab>>PythonSv>>Aggressive_logs>>hang_regs.log')
 
 def export_attr_all(choice,content,aa):
     if choice == 'open':
@@ -384,10 +378,14 @@ def create_log_folder():
     while True:
         try:
             os.makedirs('Aggressive_logs'+str(log_num))
+            print('Aggressive_logs'+str(log_num)+" has been created.")
         except:
             log_num += 1
             continue
         break
+        
+def print_log_location():
+    print(f"All the log files has been saved to: {os.getcwd() }")
 	
 def goto_latest_log_folder():#Assume C:\Users\pgsvlab\PythonSv is the default log file for all systems.
     log_num=1
